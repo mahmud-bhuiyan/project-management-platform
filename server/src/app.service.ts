@@ -4,9 +4,9 @@ import { Injectable } from '@nestjs/common';
 export class AppService {
   getHealth() {
     return {
-      status: 'ok',
-      service: 'flowdesk-server',
-      timestamp: new Date().toISOString(),
+      data: {
+        status: 'ok',
+      },
     };
   }
 }
