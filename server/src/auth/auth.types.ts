@@ -5,6 +5,15 @@ export type LoginResult = {
   user: SafeUser;
 };
 
+export type LoginWithRefreshTokenResult = LoginResult & {
+  refreshToken: string;
+};
+
+export type RefreshResult = {
+  accessToken: string;
+  refreshToken: string;
+};
+
 export type AccessTokenPayload = {
   sub: string;
   email: string;

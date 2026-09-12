@@ -10,9 +10,10 @@
 
 1. Work **one step at a time** — do not skip.
 2. Within each step: **backend/API first**, then frontend (unless the step says UI-only or placeholder).
-3. Run the **Manual test** for that step yourself.
-4. Mark the step in [IMPLEMENTED.md](./IMPLEMENTED.md) only after manual test passes.
-5. Tell Cursor: *"Implement step X.Y"* or *"Continue from next incomplete step"*.
+3. After any **API** change: update `docs/postman/` and **sync Postman cloud** (Postman MCP, browser auth) — see [PLAN.md § Postman cloud sync](./PLAN.md#postman-cloud-sync).
+4. Run the **Manual test** for that step yourself.
+5. Mark the step in [IMPLEMENTED.md](./IMPLEMENTED.md) only after manual test passes.
+6. Tell Cursor: *"Implement step X.Y"* or *"Continue from next incomplete step"*.
 
 **Legend:** `API` = server only · `UI` = client only · `Full` = both · `Test` = verification step
 

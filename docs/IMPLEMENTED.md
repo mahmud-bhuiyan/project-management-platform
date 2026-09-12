@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-12  
-**Current step:** 2.4
+**Current step:** 2.5
 
 ### Decisions (Phase 2)
 
@@ -15,7 +15,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 - **Superadmin** — seeded via `npm run db:seed`; creates company admins.
 - **Company admin** — `OWNER` of a new organization; adds team in Phase 3.
 - **`name`** = display name; optional `avatarUrl`, `themePreference`.
-- **Postman** — synced to **My Workspace** (`Flowdesk API` collection + `Flowdesk — Local` env).
+- **Postman** — repo `docs/postman/` + cloud **My Workspace** (`Flowdesk API` + `Flowdesk — Local`). Agent syncs both after every API change (Postman MCP, browser auth). See PLAN § Postman cloud sync.
 
 ---
 
@@ -24,7 +24,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | Phase | Name | Steps done | Status |
 |-------|------|------------|--------|
 | 1 | Project setup | 12 / 12 | Complete |
-| 2 | Authentication | 3 / 12 | In progress |
+| 2 | Authentication | 4 / 12 | In progress |
 | 3 | Organization & team | 0 / 8 | Not started |
 | 4 | Dashboard shell | 0 / 3 | Not started |
 | 5 | Project management | 0 / 7 | Not started |
@@ -70,7 +70,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 2.1 | Users module (backend) | [x] | 2026-09-12 | bcrypt, UsersService, optional avatar/theme — manually verified |
 | 2.2 | POST /auth/company-admins | [x] | 2026-09-12 | B2B: superadmin creates company admin + org; seed script — Postman OK |
 | 2.3 | POST /auth/login | [x] | 2026-09-12 | JWT 15m; `{ accessToken, user }`; 401 invalid creds — Postman OK |
-| 2.4 | Refresh token (cookie) | [ ] | | |
+| 2.4 | Refresh token (cookie) | [x] | 2026-09-12 | httpOnly `refresh_token` cookie, rotation on refresh — Postman OK (login + refresh verified) |
 | 2.5 | POST /auth/logout + GET /auth/me | [ ] | | |
 | 2.6 | Auth backend tests | [ ] | | |
 | 2.7 | Angular auth service | [ ] | | |
@@ -249,4 +249,7 @@ Use this for quick notes across sessions.
 |------|------|-----------------|--------|
 | 2026-09-12 | 1.12 | Health, Swagger, Prisma migrate status, client build, .env gitignore | Pass — Phase 1 complete |
 | 2026-09-12 | 2.1–2.3 | Users module, company-admin API, login JWT | Pass — manually tested in Postman |
+| 2026-09-12 | 2.4 | Login Set-Cookie, POST /auth/refresh, invalid → 401 | Pass — curl + unit tests |
+| 2026-09-12 | 2.4 | Postman: company admin → login (`accessToken` + cookie) → refresh | Pass — user verified |
+| 2026-09-12 | Postman | Cloud sync: Refresh request + login test scripts; PLAN rule added | Done |
 | 2026-09-12 | Docs | PLAN/STEPS/Postman updated for B2B provisioning | Done |

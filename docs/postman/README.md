@@ -2,14 +2,21 @@
 
 Import these files into Postman to test the API alongside Swagger/curl.
 
-## Cloud (Postman app)
+**Agent rule:** After every backend API change, update the JSON files in this folder **and** sync to Postman cloud via Postman MCP (browser authentication). See [PLAN.md § Postman cloud sync](../PLAN.md#postman-cloud-sync).
 
-Synced to **My Workspace** in Postman (browser auth):
+## Cloud (Postman app) — primary for daily testing
 
-- Collection: **Flowdesk API**
-- Environment: **Flowdesk — Local**
+Synced to **My Workspace** in Postman (browser auth via Cursor Postman MCP):
+
+| Resource | Name | Cloud ID |
+|----------|------|----------|
+| Collection | **Flowdesk API** | `31395184-59846ddc-bdb0-4dab-8a40-04cb14a49045` |
+| Environment | **Flowdesk — Local** | `31395184-e7f0d94c-d52c-431f-9907-e2dee200ca1d` |
+| Workspace | **My Workspace** | `813764e7-b440-4bf7-8a36-74be9c4026ab` |
 
 Open the Postman app → **My Workspace** → select **Flowdesk — Local** environment (top-right).
+
+Changes made in Cursor should appear in cloud without re-import. Repo JSON files are the git backup / offline import.
 
 ## Import (alternative)
 
@@ -31,17 +38,32 @@ Set these in the environment before running requests:
 | `superadminPassword` | your seed password | From `SUPERADMIN_PASSWORD` |
 | `companyAdminEmail` | `admin@acme-corp.com` | Any company admin you created |
 | `companyAdminPassword` | `password123` | Password used at creation |
-| `accessToken` | auto-set | Filled by **Login** test script |
+| `accessToken` | auto-set | Filled by **Login** / **Refresh** test scripts |
 
 ## Typical flow
 
 1. Seed superadmin: `cd server && npm run db:seed`
 2. **Auth → Create company admin** (uses `x-superadmin-key`)
-3. **Auth → Login** (saves `accessToken` automatically)
-4. Use Bearer token on protected routes once step 2.5+ exists
+3. **Auth → Login** (saves `accessToken`; sets `refresh_token` httpOnly cookie in Postman)
+4. **Auth → Refresh access token** (uses cookie from step 3; updates `accessToken`)
+5. Use Bearer `{{accessToken}}` on protected routes once step 2.5+ exists
+
+### Cookie-based refresh (step 2.4+)
+
+- Login does **not** return the refresh token in JSON — only `Set-Cookie: refresh_token`.
+- Postman stores cookies per domain; run **Login** then **Refresh** in the same session.
+- Ensure Postman **Settings → General → Cookies** is enabled.
 
 ## B2B auth model
 
 - **No public register** — users are provisioned by admins
 - **Superadmin** → creates company admin + organization
 - **Company admin** → adds team members (Phase 3 API)
+
+## Keeping cloud in sync (for Cursor)
+
+When implementing API steps:
+
+1. Edit `Flowdesk.postman_collection.json` (and environment JSON if needed).
+2. Push to cloud with Postman MCP (`createCollectionRequest`, `updateCollectionRequest`, `patchEnvironment`, etc.).
+3. Preserve existing request/folder IDs from cloud when updating (`getCollection` with `model=full`).

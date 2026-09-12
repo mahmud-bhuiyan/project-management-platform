@@ -4,12 +4,19 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiException } from '../common/exceptions/api.exception.js';
 import * as passwordUtil from '../common/utils/password.util.js';
+import * as tokenUtil from '../common/utils/token.util.js';
 import { OrganizationsService } from '../organizations/organizations.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
 import { UsersService } from '../users/users.service.js';
 import { AuthService } from './auth.service.js';
 
 vi.mock('../common/utils/password.util.js', () => ({
   comparePassword: vi.fn(),
+}));
+
+vi.mock('../common/utils/token.util.js', () => ({
+  generateRefreshToken: vi.fn(),
+  hashRefreshToken: vi.fn(),
 }));
 
 const safeUser = {
@@ -44,6 +51,14 @@ describe('AuthService', () => {
     signAsync: vi.fn(),
   };
 
+  const prisma = {
+    refreshToken: {
+      create: vi.fn(),
+      findFirst: vi.fn(),
+      delete: vi.fn(),
+    },
+  };
+
   beforeEach(async () => {
     vi.clearAllMocks();
 
@@ -53,17 +68,21 @@ describe('AuthService', () => {
         { provide: OrganizationsService, useValue: organizationsService },
         { provide: UsersService, useValue: usersService },
         { provide: JwtService, useValue: jwtService },
+        { provide: PrismaService, useValue: prisma },
       ],
     }).compile();
 
     authService = module.get(AuthService);
   });
 
-  it('login returns access token and safe user', async () => {
+  it('login returns access token, user, and refresh token', async () => {
     usersService.findByEmail.mockResolvedValue(storedUser);
     usersService.toSafeUser.mockReturnValue(safeUser);
     vi.mocked(passwordUtil.comparePassword).mockResolvedValue(true);
     jwtService.signAsync.mockResolvedValue('jwt-access-token');
+    vi.mocked(tokenUtil.generateRefreshToken).mockReturnValue('raw-refresh-token');
+    vi.mocked(tokenUtil.hashRefreshToken).mockReturnValue('hashed-refresh-token');
+    prisma.refreshToken.create.mockResolvedValue({});
 
     const result = await authService.login({
       email: 'admin@acme.com',
@@ -76,9 +95,17 @@ describe('AuthService', () => {
       email: safeUser.email,
       platformRole: safeUser.platformRole,
     });
+    expect(prisma.refreshToken.create).toHaveBeenCalledWith({
+      data: {
+        userId: safeUser.id,
+        tokenHash: 'hashed-refresh-token',
+        expiresAt: expect.any(Date),
+      },
+    });
     expect(result).toEqual({
       accessToken: 'jwt-access-token',
       user: safeUser,
+      refreshToken: 'raw-refresh-token',
     });
     expect(result.user).not.toHaveProperty('passwordHash');
   });
@@ -111,6 +138,83 @@ describe('AuthService', () => {
       expect(error).toBeInstanceOf(ApiException);
       expect((error as ApiException).getStatus()).toBe(HttpStatus.UNAUTHORIZED);
       return true;
+    });
+  });
+
+  it('refresh returns a new access token and rotated refresh token', async () => {
+    const storedRefreshToken = {
+      id: 'refresh-1',
+      userId: safeUser.id,
+      tokenHash: 'hashed-refresh-token',
+      expiresAt: new Date(Date.now() + 60_000),
+      user: storedUser,
+    };
+
+    vi.mocked(tokenUtil.hashRefreshToken).mockReturnValue('hashed-refresh-token');
+    prisma.refreshToken.findFirst.mockResolvedValue(storedRefreshToken);
+    prisma.refreshToken.delete.mockResolvedValue({});
+    usersService.toSafeUser.mockReturnValue(safeUser);
+    jwtService.signAsync.mockResolvedValue('new-access-token');
+    vi.mocked(tokenUtil.generateRefreshToken).mockReturnValue('new-refresh-token');
+    prisma.refreshToken.create.mockResolvedValue({});
+
+    const result = await authService.refresh('raw-refresh-token');
+
+    expect(prisma.refreshToken.delete).toHaveBeenCalledWith({
+      where: { id: 'refresh-1' },
+    });
+    expect(result).toEqual({
+      accessToken: 'new-access-token',
+      refreshToken: 'new-refresh-token',
+    });
+  });
+
+  it('refresh rejects missing token', async () => {
+    await expect(authService.refresh(undefined)).rejects.toSatisfy(
+      (error: unknown) => {
+        expect(error).toBeInstanceOf(ApiException);
+        expect((error as ApiException).getStatus()).toBe(HttpStatus.UNAUTHORIZED);
+        return true;
+      },
+    );
+  });
+
+  it('refresh rejects invalid token', async () => {
+    vi.mocked(tokenUtil.hashRefreshToken).mockReturnValue('hashed-refresh-token');
+    prisma.refreshToken.findFirst.mockResolvedValue(null);
+
+    await expect(authService.refresh('invalid-token')).rejects.toSatisfy(
+      (error: unknown) => {
+        expect(error).toBeInstanceOf(ApiException);
+        expect((error as ApiException).getStatus()).toBe(HttpStatus.UNAUTHORIZED);
+        return true;
+      },
+    );
+  });
+
+  it('refresh rejects expired token', async () => {
+    const expiredToken = {
+      id: 'refresh-1',
+      userId: safeUser.id,
+      tokenHash: 'hashed-refresh-token',
+      expiresAt: new Date(Date.now() - 60_000),
+      user: storedUser,
+    };
+
+    vi.mocked(tokenUtil.hashRefreshToken).mockReturnValue('hashed-refresh-token');
+    prisma.refreshToken.findFirst.mockResolvedValue(expiredToken);
+    prisma.refreshToken.delete.mockResolvedValue({});
+
+    await expect(authService.refresh('expired-token')).rejects.toSatisfy(
+      (error: unknown) => {
+        expect(error).toBeInstanceOf(ApiException);
+        expect((error as ApiException).getStatus()).toBe(HttpStatus.UNAUTHORIZED);
+        return true;
+      },
+    );
+
+    expect(prisma.refreshToken.delete).toHaveBeenCalledWith({
+      where: { id: 'refresh-1' },
     });
   });
 });

@@ -4,8 +4,11 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import {
   ApiConflictResponse,
   ApiCreatedResponse,
@@ -19,6 +22,10 @@ import {
 } from '@nestjs/swagger';
 import { SuperAdminGuard } from '../common/guards/super-admin.guard.js';
 import { respond } from '../common/utils/api-response.util.js';
+import {
+  REFRESH_TOKEN_COOKIE,
+  setRefreshTokenCookie,
+} from './auth-cookie.util.js';
 import { AuthService } from './auth.service.js';
 import { CreateCompanyAdminDto } from './dto/create-company-admin.dto.js';
 import { LoginDto } from './dto/login.dto.js';
@@ -127,8 +134,54 @@ export class AuthController {
   @ApiUnprocessableEntityResponse({
     description: 'Validation failed',
   })
-  async login(@Body() dto: LoginDto) {
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const result = await this.authService.login(dto);
-    return respond.ok(result, 'Login successful');
+    setRefreshTokenCookie(res, result.refreshToken);
+
+    const { refreshToken: _refreshToken, ...data } = result;
+    return respond.ok(data, 'Login successful');
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Refresh access token using httpOnly refresh cookie',
+  })
+  @ApiOkResponse({
+    description: 'Access token refreshed successfully',
+    schema: {
+      example: {
+        success: true,
+        message: 'Token refreshed successfully',
+        data: {
+          accessToken: 'jwt-access-token',
+        },
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Missing, invalid, or expired refresh token',
+    schema: {
+      example: {
+        success: false,
+        message: 'Invalid or expired refresh token',
+        error: { code: 'UNAUTHORIZED', details: null },
+      },
+    },
+  })
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.refresh(req.cookies?.[REFRESH_TOKEN_COOKIE]);
+    setRefreshTokenCookie(res, result.refreshToken);
+
+    return respond.ok(
+      { accessToken: result.accessToken },
+      'Token refreshed successfully',
+    );
   }
 }
