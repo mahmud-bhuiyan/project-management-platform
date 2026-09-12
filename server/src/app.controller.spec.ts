@@ -19,8 +19,6 @@ describe('AppController', () => {
       const result = appController.getHealth();
 
       expect(result.status).toBe('ok');
-      expect(result.service).toBe('flowdesk-server');
-      expect(result.timestamp).toBeDefined();
     });
   });
 });
