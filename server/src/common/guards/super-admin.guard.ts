@@ -4,14 +4,8 @@ import {
   HttpStatus,
   Injectable,
 } from '@nestjs/common';
-import type { Request } from 'express';
 import { ApiException } from '../exceptions/api.exception.js';
-
-type AuthenticatedRequest = Request & {
-  user?: {
-    platformRole?: string;
-  };
-};
+import type { AuthenticatedRequest } from '../types/authenticated-request.types.js';
 
 @Injectable()
 export class SuperAdminGuard implements CanActivate {

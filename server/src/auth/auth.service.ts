@@ -16,7 +16,15 @@ import type {
   LoginWithRefreshTokenResult,
   RefreshResult,
 } from './auth.types.js';
+import {
+  DEMO_PERSONAS,
+  isDemoLoginEnabled,
+  isDemoPersonaEmail,
+  resolveDemoPassword,
+  type DemoPersonaDefinition,
+} from './demo-personas.config.js';
 import type { CreateCompanyAdminDto } from './dto/create-company-admin.dto.js';
+import type { DemoLoginDto } from './dto/demo-login.dto.js';
 import type { LoginDto } from './dto/login.dto.js';
 
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -32,6 +40,46 @@ export class AuthService {
 
   createCompanyAdmin(dto: CreateCompanyAdminDto): Promise<CompanyAdminResult> {
     return this.organizationsService.createCompanyAdmin(dto);
+  }
+
+  getDemoPersonas(): DemoPersonaDefinition[] {
+    if (!isDemoLoginEnabled()) {
+      return [];
+    }
+
+    return DEMO_PERSONAS;
+  }
+
+  async demoLogin(dto: DemoLoginDto): Promise<LoginWithRefreshTokenResult> {
+    if (!isDemoLoginEnabled()) {
+      throw new ApiException(
+        'Demo login is disabled',
+        'FORBIDDEN',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const email = dto.email.toLowerCase();
+
+    if (!isDemoPersonaEmail(email)) {
+      throw new ApiException(
+        'Invalid demo persona',
+        'INVALID_DEMO_PERSONA',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const password = resolveDemoPassword(email);
+
+    if (!password) {
+      throw new ApiException(
+        'Demo login is not configured',
+        'DEMO_LOGIN_UNAVAILABLE',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    }
+
+    return this.login({ email, password });
   }
 
   async login(dto: LoginDto): Promise<LoginWithRefreshTokenResult> {
@@ -64,6 +112,31 @@ export class AuthService {
       user: safeUser,
       refreshToken,
     };
+  }
+
+  async logout(rawToken: string | undefined): Promise<void> {
+    if (!rawToken) {
+      return;
+    }
+
+    const tokenHash = hashRefreshToken(rawToken);
+    await this.prisma.refreshToken.deleteMany({
+      where: { tokenHash },
+    });
+  }
+
+  async getMe(userId: string): Promise<SafeUser> {
+    const user = await this.usersService.findById(userId);
+
+    if (!user) {
+      throw new ApiException(
+        'User not found',
+        'UNAUTHORIZED',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    return this.usersService.toSafeUser(user);
   }
 
   async refresh(rawToken: string | undefined): Promise<RefreshResult> {

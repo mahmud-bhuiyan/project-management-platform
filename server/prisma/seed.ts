@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { PlatformRole, PrismaClient } from '@prisma/client';
+import { OrganizationRole, PlatformRole, PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import { hashPassword } from '../src/common/utils/password.util.js';
@@ -11,7 +11,35 @@ const prisma = new PrismaClient({
   adapter: new PrismaPg(pool),
 });
 
-async function main() {
+const DEMO_ORG = {
+  name: 'Acme Technologies',
+  slug: 'acme',
+};
+
+const DEMO_TEAM = [
+  {
+    email: 'admin@acme.dev',
+    name: 'Acme Admin',
+    role: OrganizationRole.OWNER,
+  },
+  {
+    email: 'manager@acme.dev',
+    name: 'Project Manager',
+    role: OrganizationRole.ADMIN,
+  },
+  {
+    email: 'member@acme.dev',
+    name: 'Team Member',
+    role: OrganizationRole.MEMBER,
+  },
+  {
+    email: 'viewer@acme.dev',
+    name: 'Read-only Viewer',
+    role: OrganizationRole.VIEWER,
+  },
+] as const;
+
+async function seedSuperadmin(): Promise<void> {
   const email = process.env.SUPERADMIN_EMAIL?.toLowerCase();
   const password = process.env.SUPERADMIN_PASSWORD;
 
@@ -48,6 +76,62 @@ async function main() {
   });
 
   console.log(`Superadmin ${email} created`);
+}
+
+async function seedDemoTeam(): Promise<void> {
+  const password = process.env.DEMO_PASSWORD;
+
+  if (!password) {
+    console.log('Skipping demo team seed: set DEMO_PASSWORD');
+    return;
+  }
+
+  const passwordHash = await hashPassword(password);
+
+  const organization = await prisma.organization.upsert({
+    where: { slug: DEMO_ORG.slug },
+    update: { name: DEMO_ORG.name },
+    create: DEMO_ORG,
+  });
+
+  for (const persona of DEMO_TEAM) {
+    const email = persona.email.toLowerCase();
+
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: {
+        name: persona.name,
+        passwordHash,
+      },
+      create: {
+        email,
+        name: persona.name,
+        passwordHash,
+      },
+    });
+
+    await prisma.organizationMember.upsert({
+      where: {
+        organizationId_userId: {
+          organizationId: organization.id,
+          userId: user.id,
+        },
+      },
+      update: { role: persona.role },
+      create: {
+        organizationId: organization.id,
+        userId: user.id,
+        role: persona.role,
+      },
+    });
+
+    console.log(`Demo user ${email} (${persona.role}) ready`);
+  }
+}
+
+async function main() {
+  await seedSuperadmin();
+  await seedDemoTeam();
 }
 
 main()

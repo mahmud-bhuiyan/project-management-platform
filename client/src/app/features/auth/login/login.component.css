@@ -1,0 +1,130 @@
+@keyframes blob-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  33% {
+    transform: translate(24px, -18px) scale(1.06);
+  }
+
+  66% {
+    transform: translate(-16px, 12px) scale(0.96);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.brand-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  animation: blob-drift 14s ease-in-out infinite;
+}
+
+.brand-blob--one {
+  top: 8%;
+  left: -8%;
+  width: 18rem;
+  height: 18rem;
+  background: rgb(91 79 214 / 0.55);
+}
+
+.brand-blob--two {
+  right: -6%;
+  bottom: 12%;
+  width: 22rem;
+  height: 22rem;
+  background: rgb(34 211 238 / 0.28);
+  animation-delay: -5s;
+}
+
+.brand-blob--three {
+  top: 42%;
+  left: 38%;
+  width: 14rem;
+  height: 14rem;
+  background: rgb(124 109 240 / 0.35);
+  animation-delay: -9s;
+}
+
+.login-form-panel {
+  animation: fade-up 0.55s ease-out both;
+}
+
+.feature-pill {
+  animation: fade-up 0.6s ease-out both;
+}
+
+.feature-pill:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.feature-pill:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.feature-pill:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.demo-persona-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0.25rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.demo-persona-row:hover {
+  background: rgb(255 255 255 / 0.65);
+}
+
+.demo-persona-row span:last-child {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+}
+
+.input-flow-wrap {
+  position: relative;
+}
+
+.input-flow-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.875rem;
+  z-index: 1;
+  display: flex;
+  color: rgb(156 163 175);
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: color 0.2s ease;
+}
+
+.input-flow-wrap:focus-within .input-flow-icon {
+  color: var(--color-flow-500);
+}
+
+.input-flow--icon {
+  padding-left: 2.75rem;
+}

@@ -44,6 +44,7 @@ describe('AuthService', () => {
 
   const usersService = {
     findByEmail: vi.fn(),
+    findById: vi.fn(),
     toSafeUser: vi.fn(),
   };
 
@@ -56,6 +57,7 @@ describe('AuthService', () => {
       create: vi.fn(),
       findFirst: vi.fn(),
       delete: vi.fn(),
+      deleteMany: vi.fn(),
     },
   };
 
@@ -73,6 +75,33 @@ describe('AuthService', () => {
     }).compile();
 
     authService = module.get(AuthService);
+  });
+
+  it('createCompanyAdmin delegates to organizations service', async () => {
+    const dto = {
+      email: 'admin@acme.com',
+      name: 'Acme Admin',
+      password: 'password123',
+      organizationName: 'Acme Technologies',
+      organizationSlug: 'acme-technologies',
+    };
+    const companyAdminResult = {
+      user: safeUser,
+      organization: {
+        id: 'org-1',
+        name: 'Acme Technologies',
+        slug: 'acme-technologies',
+        createdAt: new Date('2026-01-01T00:00:00.000Z'),
+        updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+      },
+    };
+
+    organizationsService.createCompanyAdmin.mockResolvedValue(companyAdminResult);
+
+    const result = await authService.createCompanyAdmin(dto);
+
+    expect(organizationsService.createCompanyAdmin).toHaveBeenCalledWith(dto);
+    expect(result).toEqual(companyAdminResult);
   });
 
   it('login returns access token, user, and refresh token', async () => {
@@ -216,5 +245,44 @@ describe('AuthService', () => {
     expect(prisma.refreshToken.delete).toHaveBeenCalledWith({
       where: { id: 'refresh-1' },
     });
+  });
+
+  it('logout deletes refresh token when cookie is present', async () => {
+    vi.mocked(tokenUtil.hashRefreshToken).mockReturnValue('hashed-refresh-token');
+    prisma.refreshToken.deleteMany.mockResolvedValue({ count: 1 });
+
+    await authService.logout('raw-refresh-token');
+
+    expect(prisma.refreshToken.deleteMany).toHaveBeenCalledWith({
+      where: { tokenHash: 'hashed-refresh-token' },
+    });
+  });
+
+  it('logout is a no-op when cookie is missing', async () => {
+    await authService.logout(undefined);
+
+    expect(prisma.refreshToken.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it('getMe returns safe user', async () => {
+    usersService.findById.mockResolvedValue(storedUser);
+    usersService.toSafeUser.mockReturnValue(safeUser);
+
+    const result = await authService.getMe(safeUser.id);
+
+    expect(usersService.findById).toHaveBeenCalledWith(safeUser.id);
+    expect(result).toEqual(safeUser);
+  });
+
+  it('getMe rejects missing user', async () => {
+    usersService.findById.mockResolvedValue(null);
+
+    await expect(authService.getMe('missing-user-id')).rejects.toSatisfy(
+      (error: unknown) => {
+        expect(error).toBeInstanceOf(ApiException);
+        expect((error as ApiException).getStatus()).toBe(HttpStatus.UNAUTHORIZED);
+        return true;
+      },
+    );
   });
 });

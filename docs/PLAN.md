@@ -494,12 +494,12 @@ Keep **repo files** and **Postman cloud** in sync whenever backend API endpoints
 |------|--------|
 | Source of truth (git) | `docs/postman/Flowdesk.postman_collection.json`, `docs/postman/Flowdesk.local.postman_environment.json` |
 | Cloud (live testing) | **My Workspace** → collection **Flowdesk API**, environment **Flowdesk — Local** |
-| Auth for agent sync | Postman MCP **browser authentication** (no API key in repo) |
+| Auth for agent sync | Postman MCP **browser authentication only** — never a Postman API key |
 
-**After every API update, Cursor must:**
+**After every API update, Cursor must (same session — do not wait for the user to ask):**
 
 1. Update `docs/postman/Flowdesk.postman_collection.json` (and environment file if variables change).
-2. Push the same changes to Postman cloud via Postman MCP (`createCollectionRequest`, `updateCollectionRequest`, `patchEnvironment`, or `putCollection` as appropriate).
+2. **Push the same changes to Postman cloud** via Postman MCP (`createCollectionRequest`, `updateCollectionRequest`, `patchEnvironment`, or `putCollection`). Repo-only updates are incomplete.
 3. Add or update test scripts (e.g. save `accessToken` on login, cookie-based refresh flow).
 4. Note the sync in `IMPLEMENTED.md` session log when marking the step done.
 

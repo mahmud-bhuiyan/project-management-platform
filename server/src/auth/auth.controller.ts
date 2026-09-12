@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -10,6 +11,7 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import {
+  ApiBearerAuth,
   ApiConflictResponse,
   ApiCreatedResponse,
   ApiForbiddenResponse,
@@ -20,10 +22,14 @@ import {
   ApiUnauthorizedResponse,
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
+import { OptionalJwtAuthGuard } from '../common/guards/optional-jwt-auth.guard.js';
 import { SuperAdminGuard } from '../common/guards/super-admin.guard.js';
+import type { AuthenticatedRequest } from '../common/types/authenticated-request.types.js';
 import { respond } from '../common/utils/api-response.util.js';
 import {
   REFRESH_TOKEN_COOKIE,
+  clearRefreshTokenCookie,
   setRefreshTokenCookie,
 } from './auth-cookie.util.js';
 import { AuthService } from './auth.service.js';
@@ -36,7 +42,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('company-admins')
-  @UseGuards(SuperAdminGuard)
+  @UseGuards(OptionalJwtAuthGuard, SuperAdminGuard)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: 'Create a company admin and organization (superadmin only)',
@@ -183,5 +189,68 @@ export class AuthController {
       { accessToken: result.accessToken },
       'Token refreshed successfully',
     );
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Logout and invalidate refresh token' })
+  @ApiOkResponse({
+    description: 'Logged out successfully',
+    schema: {
+      example: {
+        success: true,
+        message: 'Logged out successfully',
+        data: null,
+      },
+    },
+  })
+  async logout(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.authService.logout(req.cookies?.[REFRESH_TOKEN_COOKIE]);
+    clearRefreshTokenCookie(res);
+
+    return respond.ok(null, 'Logged out successfully');
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current authenticated user' })
+  @ApiOkResponse({
+    description: 'Current user profile',
+    schema: {
+      example: {
+        success: true,
+        message: 'Profile retrieved successfully',
+        data: {
+          user: {
+            id: 'uuid',
+            email: 'admin@acme.com',
+            name: 'Acme Admin',
+            platformRole: 'USER',
+            avatarUrl: null,
+            themePreference: 'LIGHT',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+        },
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Missing or invalid access token',
+    schema: {
+      example: {
+        success: false,
+        message: 'Access token required',
+        error: { code: 'UNAUTHORIZED', details: null },
+      },
+    },
+  })
+  async me(@Req() req: AuthenticatedRequest) {
+    const user = await this.authService.getMe(req.user!.id);
+    return respond.ok({ user }, 'Profile retrieved successfully');
   }
 }

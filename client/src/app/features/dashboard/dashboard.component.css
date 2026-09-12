@@ -1,0 +1,20 @@
+@keyframes stat-shimmer {
+  0% {
+    background-position: 200% center;
+  }
+
+  100% {
+    background-position: -200% center;
+  }
+}
+
+.stat-placeholder {
+  background: linear-gradient(
+    90deg,
+    rgb(237 233 254 / 0.6) 0%,
+    rgb(255 255 255 / 0.9) 50%,
+    rgb(237 233 254 / 0.6) 100%
+  );
+  background-size: 200% 100%;
+  animation: stat-shimmer 2.8s ease-in-out infinite;
+}

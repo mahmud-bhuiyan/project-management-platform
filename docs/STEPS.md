@@ -10,7 +10,7 @@
 
 1. Work **one step at a time** — do not skip.
 2. Within each step: **backend/API first**, then frontend (unless the step says UI-only or placeholder).
-3. After any **API** change: update `docs/postman/` and **sync Postman cloud** (Postman MCP, browser auth) — see [PLAN.md § Postman cloud sync](./PLAN.md#postman-cloud-sync).
+3. After any **API** change: update `docs/postman/` **and sync Postman cloud in the same session** (Postman MCP **browser auth only** — never API key). Repo-only is not enough — see [PLAN.md § Postman cloud sync](./PLAN.md#postman-cloud-sync).
 4. Run the **Manual test** for that step yourself.
 5. Mark the step in [IMPLEMENTED.md](./IMPLEMENTED.md) only after manual test passes.
 6. Tell Cursor: *"Implement step X.Y"* or *"Continue from next incomplete step"*.
