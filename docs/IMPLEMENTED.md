@@ -6,8 +6,8 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
-**Last updated:** 2026-09-12  
-**Current step:** 2.5
+**Last updated:** 2026-09-13  
+**Current step:** 2.9
 
 ### Decisions (Phase 2)
 
@@ -15,7 +15,8 @@ Track what you have **built and manually tested**. Compare against the master pl
 - **Superadmin** — seeded via `npm run db:seed`; creates company admins.
 - **Company admin** — `OWNER` of a new organization; adds team in Phase 3.
 - **`name`** = display name; optional `avatarUrl`, `themePreference`.
-- **Postman** — repo `docs/postman/` + cloud **My Workspace** (`Flowdesk API` + `Flowdesk — Local`). Agent syncs both after every API change (Postman MCP, browser auth). See PLAN § Postman cloud sync.
+- **Demo login** — persona picker + `GET/POST /auth/demo-*` for local/CV demos; gated by `DEMO_LOGIN_ENABLED` / `NG_APP_DEMO_LOGIN_ENABLED`.
+- **Postman** — repo `docs/postman/` **and** cloud **My Workspace** (`Flowdesk API` + `Flowdesk — Local`). After every API change, agent must update **both** in the same session (never repo-only). Sync via Postman MCP **browser auth only** — no Postman API key. See `.cursor/rules/postman-cloud-sync.mdc` and PLAN § Postman cloud sync.
 
 ---
 
@@ -24,7 +25,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | Phase | Name | Steps done | Status |
 |-------|------|------------|--------|
 | 1 | Project setup | 12 / 12 | Complete |
-| 2 | Authentication | 4 / 12 | In progress |
+| 2 | Authentication | 8 / 12 | In progress |
 | 3 | Organization & team | 0 / 8 | Not started |
 | 4 | Dashboard shell | 0 / 3 | Not started |
 | 5 | Project management | 0 / 7 | Not started |
@@ -71,10 +72,10 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 2.2 | POST /auth/company-admins | [x] | 2026-09-12 | B2B: superadmin creates company admin + org; seed script — Postman OK |
 | 2.3 | POST /auth/login | [x] | 2026-09-12 | JWT 15m; `{ accessToken, user }`; 401 invalid creds — Postman OK |
 | 2.4 | Refresh token (cookie) | [x] | 2026-09-12 | httpOnly `refresh_token` cookie, rotation on refresh — Postman OK (login + refresh verified) |
-| 2.5 | POST /auth/logout + GET /auth/me | [ ] | | |
-| 2.6 | Auth backend tests | [ ] | | |
-| 2.7 | Angular auth service | [ ] | | |
-| 2.8 | Login page | [ ] | | |
+| 2.5 | POST /auth/logout + GET /auth/me | [x] | 2026-09-12 | JwtAuthGuard; logout clears cookie + DB; me returns profile — Postman OK |
+| 2.6 | Auth backend tests | [x] | 2026-09-12 | 51 tests pass — company-admin, login, guards, logout, me |
+| 2.7 | Angular auth service | [x] | 2026-09-12 | Signals, login/logout/refresh/loadMe, in-memory token — unit tests pass |
+| 2.8 | Login page | [x] | 2026-09-13 | Reactive form, validation, API errors, redirect to dashboard; demo persona picker + `GET /auth/demo-personas` + `POST /auth/demo-login` — UI verified |
 | 2.9 | Superadmin: create company admin (UI) | [ ] | | Replaces public register |
 | 2.10 | Auth interceptor + guard | [ ] | | |
 | 2.11 | Basic profile page | [ ] | | |
@@ -251,5 +252,9 @@ Use this for quick notes across sessions.
 | 2026-09-12 | 2.1–2.3 | Users module, company-admin API, login JWT | Pass — manually tested in Postman |
 | 2026-09-12 | 2.4 | Login Set-Cookie, POST /auth/refresh, invalid → 401 | Pass — curl + unit tests |
 | 2026-09-12 | 2.4 | Postman: company admin → login (`accessToken` + cookie) → refresh | Pass — user verified |
-| 2026-09-12 | Postman | Cloud sync: Refresh request + login test scripts; PLAN rule added | Done |
+| 2026-09-12 | Postman | Cloud sync: Get current user (me) + Logout; mandatory cloud sync rule (browser auth only) | Done |
+| 2026-09-12 | 2.5 | Login → me → logout → refresh fail | Pass — user verified in Postman |
+| 2026-09-12 | 2.8 | Login form validation + redirect; `npm test` + build | Pass — 8 client tests green |
 | 2026-09-12 | Docs | PLAN/STEPS/Postman updated for B2B provisioning | Done |
+| 2026-09-13 | 2.8 | UI login with demo persona picker → dashboard redirect | Pass — user verified in browser |
+| 2026-09-13 | Postman | Cloud sync: Get demo personas + Demo login added to Flowdesk API | Done |

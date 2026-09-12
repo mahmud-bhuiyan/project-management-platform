@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
+import { OptionalJwtAuthGuard } from '../common/guards/optional-jwt-auth.guard.js';
 import { SuperAdminGuard } from '../common/guards/super-admin.guard.js';
 import { OrganizationsModule } from '../organizations/organizations.module.js';
 import { UsersModule } from '../users/users.module.js';
@@ -21,7 +23,12 @@ import { AuthService } from './auth.service.js';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, SuperAdminGuard],
-  exports: [AuthService, JwtModule],
+  providers: [
+    AuthService,
+    JwtAuthGuard,
+    OptionalJwtAuthGuard,
+    SuperAdminGuard,
+  ],
+  exports: [AuthService, JwtModule, JwtAuthGuard, OptionalJwtAuthGuard],
 })
 export class AuthModule {}

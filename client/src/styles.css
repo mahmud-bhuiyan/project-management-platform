@@ -1,5 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Syne:wght@600;700;800&display=swap');
 @import 'tailwindcss';
+
+@theme {
+  --font-display: 'Syne', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --color-flow-950: #07051a;
+  --color-flow-900: #0f0b2e;
+  --color-flow-800: #1a1442;
+  --color-flow-700: #2a2260;
+  --color-flow-600: #4338a8;
+  --color-flow-500: #5b4fd6;
+  --color-flow-400: #7c6df0;
+  --color-flow-300: #a89af7;
+  --color-flow-200: #d4ccfc;
+  --color-flow-100: #ede9fe;
+  --color-flow-50: #f5f3ff;
+
+  --color-accent: #22d3ee;
+  --color-accent-strong: #06b6d4;
+  --color-accent-muted: #a5f3fc;
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(124 109 240 / 0.4) transparent;
+}
 
 body {
   margin: 0;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(124 109 240 / 0.4) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgb(124 109 240 / 0.35);
+  border-radius: 9999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgb(124 109 240 / 0.55);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.mesh-bg {
+  background-color: var(--color-flow-950);
+  background-image:
+    radial-gradient(ellipse 80% 60% at 10% 20%, rgb(91 79 214 / 0.45), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 90% 10%, rgb(34 211 238 / 0.2), transparent 50%),
+    radial-gradient(ellipse 60% 70% at 70% 90%, rgb(124 109 240 / 0.25), transparent 55%),
+    linear-gradient(160deg, var(--color-flow-950) 0%, var(--color-flow-900) 45%, #0a1628 100%);
+}
+
+.glass-panel {
+  background: rgb(255 255 255 / 0.72);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgb(255 255 255 / 0.55);
+  box-shadow:
+    0 1px 2px rgb(15 11 46 / 0.04),
+    0 24px 48px rgb(15 11 46 / 0.08);
+}
+
+.glass-dark {
+  background: rgb(255 255 255 / 0.06);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.input-flow {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(209 213 219 / 0.9);
+  background: rgb(255 255 255 / 0.9);
+  padding: 0.75rem 1rem;
+  color: var(--color-flow-900);
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.input-flow::placeholder {
+  color: rgb(107 114 128);
+}
+
+.input-flow:focus {
+  border-color: var(--color-flow-400);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgb(124 109 240 / 0.15);
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  border-radius: 0.75rem;
+  border: none;
+  background: linear-gradient(135deg, var(--color-flow-600), var(--color-flow-500));
+  padding: 0.8rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  box-shadow:
+    0 1px 2px rgb(15 11 46 / 0.1),
+    0 8px 24px rgb(91 79 214 / 0.35);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    0 2px 4px rgb(15 11 46 / 0.12),
+    0 12px 32px rgb(91 79 214 / 0.42);
+}
+
+.btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  box-shadow: none;
 }

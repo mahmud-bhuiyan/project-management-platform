@@ -10,7 +10,7 @@
 
 1. Work **one step at a time** — do not skip.
 2. Within each step: **backend/API first**, then frontend (unless the step says UI-only or placeholder).
-3. After any **API** change: update `docs/postman/` and **sync Postman cloud** (Postman MCP, browser auth) — see [PLAN.md § Postman cloud sync](./PLAN.md#postman-cloud-sync).
+3. After any **API** change: update `docs/postman/` **and sync Postman cloud in the same session** (Postman MCP **browser auth only** — never API key). Repo-only is not enough — see [PLAN.md § Postman cloud sync](./PLAN.md#postman-cloud-sync).
 4. Run the **Manual test** for that step yourself.
 5. Mark the step in [IMPLEMENTED.md](./IMPLEMENTED.md) only after manual test passes.
 6. Tell Cursor: *"Implement step X.Y"* or *"Continue from next incomplete step"*.
@@ -224,7 +224,7 @@
 - `CreateCompanyAdminDto` + validation (user fields + `organizationName`, `organizationSlug`).
 - Create user, organization, and `organization_members` row with role `OWNER`.
 - Superadmin guard (`x-superadmin-key` bootstrap and/or JWT superadmin).
-- Seed script: `npm run db:seed` creates platform superadmin from env.
+- Seed script: `npm run db:seed` creates platform superadmin **and** Acme demo org users (`admin@acme.dev`, etc.) when `DEMO_PASSWORD` is set.
 - Swagger docs.
 
 **Manual test:**
@@ -291,10 +291,10 @@
 **Layer:** API
 
 **Build:**
-- Vitest: company-admin create, login, invalid credentials, protected route.
+- Vitest: company-admin create, login, demo login, invalid credentials, protected route.
 
 **Manual test:**
-- [ ] `cd server && npm test` — auth tests pass.
+- [ ] `cd server && npm test` — auth tests pass (includes demo-personas + demo-login).
 
 **Done when:** Automated auth tests green.
 
@@ -305,29 +305,34 @@
 
 **Build:**
 - Auth service with Signals for current user.
-- Methods: login, logout, refresh, loadMe (no public register).
+- Methods: `login`, `demoLogin`, `getDemoPersonas`, `logout`, `refresh`, `loadMe` (no public register).
 - Store access token in memory.
 
 **Manual test:**
-- [ ] DevTools/network: login calls API correctly (after step 2.10 UI, or test via temporary button).
+- [ ] Unit tests: login, demoLogin, getDemoPersonas.
+- [ ] DevTools/network: login calls API correctly (after step 2.10 UI, or test via login page).
 
 **Done when:** Service compiles and calls API (test with login page or console).
 
 ---
 
-### Step 2.8 — Login page
-**Layer:** UI
+### Step 2.8 — Login page (+ demo personas)
+**Layer:** UI + API (demo endpoints)
 
 **Build:**
 - Reactive form, validation messages.
 - Submit → login → redirect to dashboard route.
+- **Demo login (optional):** `GET /auth/demo-personas`, `POST /auth/demo-login` on server; persona picker on login page when `NG_APP_DEMO_LOGIN_ENABLED=true`.
+- Env: `DEMO_LOGIN_ENABLED`, `DEMO_PASSWORD` (server); `NG_APP_DEMO_LOGIN_ENABLED` (client).
 
 **Manual test:**
 - [ ] Invalid form shows errors.
-- [ ] Valid credentials → redirect.
+- [ ] Valid credentials → redirect to dashboard.
 - [ ] Invalid credentials → error message shown.
+- [ ] Demo persona picker visible when enabled; click persona → demo-login → redirect (no password typed).
+- [ ] Persona picker hidden when `NG_APP_DEMO_LOGIN_ENABLED=false`.
 
-**Done when:** Login page works in browser.
+**Done when:** Login page works in browser (email/password and demo persona flow).
 
 ---
 
@@ -385,7 +390,8 @@
 
 **Manual test:**
 - [ ] Full flow: seed superadmin → create company admin → login → profile → logout.
-- [ ] Postman collection in `docs/postman/` matches live endpoints.
+- [ ] Demo flow: seed → persona picker login → dashboard.
+- [ ] Postman collection in `docs/postman/` matches live endpoints (including demo-personas + demo-login).
 - [ ] Swagger documents all auth endpoints.
 - [ ] Server tests pass.
 - [ ] No secrets in git.
@@ -947,15 +953,17 @@
 
 ## Phase 15 — Demo seed data
 
-### Step 15.1 — Seed script
+### Step 15.1 — Seed script (projects + tasks)
 **Layer:** API
 
 **Build:**
-- Organization **Acme Technologies**, 3 projects, team roles, tasks, comments.
+- Extend existing seed (`npm run db:seed`): superadmin + Acme org/users already exist from Phase 2.
+- Add 3 projects (CRM Development, Website Redesign, Mobile Application), tasks with statuses/priorities/assignees, comments.
 
 **Manual test:**
-- [ ] `npx prisma db seed` (or documented command) populates data.
-- [ ] Demo login documented in README (password not in repo).
+- [ ] `cd server && npm run db:seed` populates org users + projects + tasks.
+- [ ] Demo personas still login via picker or email/password.
+- [ ] Demo login documented in README (passwords not in repo).
 
 **Done when:** Local demo works in one command.
 

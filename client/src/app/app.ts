@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { environment } from '../environments/environment';
 
 @Component({
   imports: [RouterOutlet],
@@ -8,6 +7,4 @@ import { environment } from '../environments/environment';
   styleUrl: './app.css',
   templateUrl: './app.html',
 })
-export class App {
-  protected readonly apiUrl = environment.apiUrl;
-}
+export class App {}
