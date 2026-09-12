@@ -471,6 +471,7 @@ Use two companion docs — keep them in sync:
 2. **Manual test after every step** — you approve in `IMPLEMENTED.md` before the next step starts.
 3. **No frontend feature** without its API endpoint(s) documented in Swagger (dashboard shell/layout may use placeholders until stats APIs exist).
 4. Automated tests run in the same phase as the feature — manual test is still required.
+5. **Postman cloud sync after every API change** — see [Postman cloud sync](#postman-cloud-sync) below. Do this in the same session as the API work; do not wait for the user to ask.
 
 ### Order inside each feature phase
 
@@ -478,11 +479,39 @@ Use two companion docs — keep them in sync:
 Prisma migration (if needed)
   → Nest module + DTOs + guards
   → Swagger
-  → Manual API test (Swagger / curl)
+  → Postman: update docs/postman/ + sync to cloud (Postman MCP, browser auth)
+  → Manual API test (Postman / Swagger / curl)
   → Angular service + UI
   → Manual UI test
   → Mark step done in IMPLEMENTED.md
 ```
+
+### Postman cloud sync
+
+Keep **repo files** and **Postman cloud** in sync whenever backend API endpoints change (new route, changed body, auth, or test scripts).
+
+| What | Where |
+|------|--------|
+| Source of truth (git) | `docs/postman/Flowdesk.postman_collection.json`, `docs/postman/Flowdesk.local.postman_environment.json` |
+| Cloud (live testing) | **My Workspace** → collection **Flowdesk API**, environment **Flowdesk — Local** |
+| Auth for agent sync | Postman MCP **browser authentication** (no API key in repo) |
+
+**After every API update, Cursor must:**
+
+1. Update `docs/postman/Flowdesk.postman_collection.json` (and environment file if variables change).
+2. Push the same changes to Postman cloud via Postman MCP (`createCollectionRequest`, `updateCollectionRequest`, `patchEnvironment`, or `putCollection` as appropriate).
+3. Add or update test scripts (e.g. save `accessToken` on login, cookie-based refresh flow).
+4. Note the sync in `IMPLEMENTED.md` session log when marking the step done.
+
+**Cloud IDs (My Workspace):**
+
+| Resource | ID |
+|----------|-----|
+| Collection **Flowdesk API** | `31395184-59846ddc-bdb0-4dab-8a40-04cb14a49045` |
+| Environment **Flowdesk — Local** | `31395184-e7f0d94c-d52c-431f-9907-e2dee200ca1d` |
+| Workspace **My Workspace** | `813764e7-b440-4bf7-8a36-74be9c4026ab` |
+
+See [docs/postman/README.md](./postman/README.md) for import, variables, and typical request order.
 
 ---
 
@@ -979,10 +1008,11 @@ When implementing each phase:
 14. Do not hardcode API URLs — use environment variables.
 15. Keep database access inside the backend only.
 16. Add Swagger decorators when adding endpoints.
-17. Add tests for auth and permission-sensitive logic in the same phase.
-18. Run build/test checks before marking a step complete in IMPLEMENTED.md.
-19. Fix broken features before moving on.
-20. Keep the implementation maintainable — YAGNI.
+17. **Sync Postman** — update `docs/postman/` and push to cloud via Postman MCP (browser auth) after every API change; see [Postman cloud sync](#postman-cloud-sync).
+18. Add tests for auth and permission-sensitive logic in the same phase.
+19. Run build/test checks before marking a step complete in IMPLEMENTED.md.
+20. Fix broken features before moving on.
+21. Keep the implementation maintainable — YAGNI.
 
 ---
 

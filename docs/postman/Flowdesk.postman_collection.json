@@ -96,6 +96,33 @@
           }
         },
         {
+          "name": "Refresh access token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data?.accessToken) {",
+                  "  pm.environment.set('accessToken', json.data.accessToken);",
+                  "}",
+                  "pm.test('Refresh successful', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.accessToken).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/auth/refresh"
+          }
+        },
+        {
           "name": "Create company admin (superadmin)",
           "request": {
             "method": "POST",
