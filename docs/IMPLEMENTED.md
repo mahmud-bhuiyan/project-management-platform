@@ -6,8 +6,8 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
-**Last updated:** —  
-**Current step:** 1.1
+**Last updated:** 2026-09-12  
+**Current step:** 2.1
 
 ---
 
@@ -15,7 +15,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Phase | Name | Steps done | Status |
 |-------|------|------------|--------|
-| 1 | Project setup | 0 / 12 | Not started |
+| 1 | Project setup | 12 / 12 | Complete |
 | 2 | Authentication | 0 / 12 | Not started |
 | 3 | Organization & team | 0 / 8 | Not started |
 | 4 | Dashboard shell | 0 / 3 | Not started |
@@ -40,18 +40,18 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 1.1 | Verify Node.js | [ ] | | |
-| 1.2 | Neon database + server env | [ ] | | |
-| 1.3 | Prisma init + full schema draft | [ ] | | |
-| 1.4 | First migration | [ ] | | |
-| 1.5 | NestJS config + global conventions | [ ] | | |
-| 1.6 | Health endpoint | [ ] | | |
-| 1.7 | Swagger stub | [ ] | | |
-| 1.8 | Tailwind CSS on client | [ ] | | |
-| 1.9 | Angular folder structure | [ ] | | |
-| 1.10 | Client environment config | [ ] | | |
-| 1.11 | Deploy config stubs | [ ] | | |
-| 1.12 | Phase 1 integration check | [ ] | | |
+| 1.1 | Verify Node.js | [x] | 2026-09-12 | Node v24.21.0, npm 11.19.0 |
+| 1.2 | Neon database + server env | [x] | 2026-09-12 | `server/.env` with `DATABASE_URL` (not committed) |
+| 1.3 | Prisma init + full schema draft | [x] | 2026-09-12 | `prisma validate` OK — all PLAN §3 entities |
+| 1.4 | First migration | [x] | 2026-09-12 | `20260911180229_init` — schema up to date on Neon |
+| 1.5 | NestJS config + global conventions | [x] | 2026-09-12 | `/api/v1` prefix, error filter, CORS for :4200 |
+| 1.6 | Health endpoint | [x] | 2026-09-12 | `GET /api/v1/health` → 200 `{ data: { status: "ok" } }` |
+| 1.7 | Swagger stub | [x] | 2026-09-12 | `/api/docs` + `/api/docs-json` return 200 |
+| 1.8 | Tailwind CSS on client | [x] | 2026-09-12 | Tailwind 4 in `styles.css`; classes in `app.html` |
+| 1.9 | Angular folder structure | [x] | 2026-09-12 | `core/`, `shared/`, `features/`, `layouts/`, etc. |
+| 1.10 | Client environment config | [x] | 2026-09-12 | `NG_APP_API_URL` / `NG_APP_WS_URL` via `.env` |
+| 1.11 | Deploy config stubs | [x] | 2026-09-12 | `vercel.json`, `railway.toml`, `render.yaml`; `.env` gitignored |
+| 1.12 | Phase 1 integration check | [x] | 2026-09-12 | Server :3001, client build OK, health + Swagger + 404 JSON |
 
 ---
 
@@ -239,4 +239,4 @@ Use this for quick notes across sessions.
 
 | Date | Step | What you tested | Result |
 |------|------|-----------------|--------|
-| | | | |
+| 2026-09-12 | 1.12 | Health, Swagger, Prisma migrate status, client build, .env gitignore | Pass — Phase 1 complete |
