@@ -1,6 +1,15 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, map, tap } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  finalize,
+  map,
+  of,
+  shareReplay,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { ApiSuccessResponse } from '../models/api-response.model';
 import type {
@@ -24,12 +33,13 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
 
-  private accessToken: string | null = null;
+  private readonly accessToken = signal<string | null>(null);
+  private refreshRequest: Observable<string> | null = null;
 
   /** Shared session user — shell and pages read this signal; no refetch on route change. */
   readonly currentUser = signal<User | null>(null);
   readonly isAuthenticated = computed(
-    () => this.accessToken !== null && this.currentUser() !== null,
+    () => this.accessToken() !== null && this.currentUser() !== null,
   );
   readonly isSuperadmin = computed(
     () => this.currentUser()?.platformRole === 'SUPERADMIN',
@@ -52,7 +62,7 @@ export class AuthService {
       )
       .pipe(
         tap((response) => {
-          this.accessToken = response.data.accessToken;
+          this.accessToken.set(response.data.accessToken);
           this.currentUser.set(response.data.user);
         }),
         map((response) => response.data.user),
@@ -68,7 +78,7 @@ export class AuthService {
       )
       .pipe(
         tap((response) => {
-          this.accessToken = response.data.accessToken;
+          this.accessToken.set(response.data.accessToken);
           this.currentUser.set(response.data.user);
         }),
         map((response) => response.data.user),
@@ -89,18 +99,41 @@ export class AuthService {
   }
 
   refresh(): Observable<string> {
-    return this.http
-      .post<ApiSuccessResponse<RefreshResponseData>>(
-        `${this.apiUrl}/auth/refresh`,
-        {},
-        { withCredentials: true },
-      )
-      .pipe(
-        tap((response) => {
-          this.accessToken = response.data.accessToken;
-        }),
-        map((response) => response.data.accessToken),
-      );
+    if (!this.refreshRequest) {
+      this.refreshRequest = this.http
+        .post<ApiSuccessResponse<RefreshResponseData>>(
+          `${this.apiUrl}/auth/refresh`,
+          {},
+          { withCredentials: true },
+        )
+        .pipe(
+          tap((response) => {
+            this.accessToken.set(response.data.accessToken);
+          }),
+          map((response) => response.data.accessToken),
+          shareReplay(1),
+          finalize(() => {
+            this.refreshRequest = null;
+          }),
+        );
+    }
+
+    return this.refreshRequest;
+  }
+
+  restoreSession(): Observable<boolean> {
+    if (this.isAuthenticated()) {
+      return of(true);
+    }
+
+    return this.refresh().pipe(
+      switchMap(() => this.loadMe()),
+      map(() => true),
+      catchError(() => {
+        this.clearSession();
+        return of(false);
+      }),
+    );
   }
 
   createCompanyAdmin(
@@ -110,16 +143,13 @@ export class AuthService {
       .post<ApiSuccessResponse<CreateCompanyAdminResponseData>>(
         `${this.apiUrl}/auth/company-admins`,
         payload,
-        { headers: this.authHeaders() },
       )
       .pipe(map((response) => response.data));
   }
 
   loadMe(): Observable<User> {
     return this.http
-      .get<ApiSuccessResponse<MeResponseData>>(`${this.apiUrl}/auth/me`, {
-        headers: this.authHeaders(),
-      })
+      .get<ApiSuccessResponse<MeResponseData>>(`${this.apiUrl}/auth/me`)
       .pipe(
         tap((response) => this.currentUser.set(response.data.user)),
         map((response) => response.data.user),
@@ -127,23 +157,11 @@ export class AuthService {
   }
 
   getAccessToken(): string | null {
-    return this.accessToken;
+    return this.accessToken();
   }
 
   clearSession(): void {
-    this.accessToken = null;
+    this.accessToken.set(null);
     this.currentUser.set(null);
-  }
-
-  private authHeaders(): HttpHeaders {
-    const token = this.accessToken;
-
-    if (!token) {
-      return new HttpHeaders();
-    }
-
-    return new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-    });
   }
 }

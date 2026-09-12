@@ -3,8 +3,12 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient } from '@angular/common/http';
+import {
+  provideHttpClient,
+  withInterceptors,
+} from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { authInterceptor } from '../../interceptors/auth.interceptor';
 import { AuthService } from './auth.service';
 
 const mockUser = {
@@ -24,7 +28,11 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [AuthService, provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        AuthService,
+        provideHttpClient(withInterceptors([authInterceptor])),
+        provideHttpClientTesting(),
+      ],
     });
 
     authService = TestBed.inject(AuthService);
@@ -68,8 +76,7 @@ describe('AuthService', () => {
 
   it('refresh updates access token and sends credentials', async () => {
     authService.clearSession();
-    (authService as unknown as { accessToken: string | null }).accessToken =
-      'old-access-token';
+    authService['accessToken'].set('old-access-token');
 
     const refreshPromise = firstValueFrom(authService.refresh());
 
@@ -90,8 +97,7 @@ describe('AuthService', () => {
   });
 
   it('loadMe loads profile with bearer token', async () => {
-    (authService as unknown as { accessToken: string | null }).accessToken =
-      'jwt-access-token';
+    authService['accessToken'].set('jwt-access-token');
 
     const mePromise = firstValueFrom(authService.loadMe());
 
@@ -163,8 +169,7 @@ describe('AuthService', () => {
   });
 
   it('createCompanyAdmin sends bearer token and payload', async () => {
-    (authService as unknown as { accessToken: string | null }).accessToken =
-      'jwt-access-token';
+    authService['accessToken'].set('jwt-access-token');
 
     const createPromise = firstValueFrom(
       authService.createCompanyAdmin({
@@ -218,9 +223,49 @@ describe('AuthService', () => {
     });
   });
 
+  it('restoreSession refreshes and loads profile when cookie is valid', async () => {
+    const restorePromise = firstValueFrom(authService.restoreSession());
+
+    const refreshRequest = httpMock.expectOne(
+      'http://localhost:3001/api/v1/auth/refresh',
+    );
+    refreshRequest.flush({
+      success: true,
+      message: 'Token refreshed successfully',
+      data: { accessToken: 'jwt-access-token' },
+    });
+
+    const meRequest = httpMock.expectOne('http://localhost:3001/api/v1/auth/me');
+    expect(meRequest.request.headers.get('Authorization')).toBe(
+      'Bearer jwt-access-token',
+    );
+    meRequest.flush({
+      success: true,
+      message: 'Profile retrieved successfully',
+      data: { user: mockUser },
+    });
+
+    await expect(restorePromise).resolves.toBe(true);
+    expect(authService.isAuthenticated()).toBe(true);
+  });
+
+  it('restoreSession returns false when refresh fails', async () => {
+    const restorePromise = firstValueFrom(authService.restoreSession());
+
+    const refreshRequest = httpMock.expectOne(
+      'http://localhost:3001/api/v1/auth/refresh',
+    );
+    refreshRequest.flush(
+      { message: 'Unauthorized' },
+      { status: 401, statusText: 'Unauthorized' },
+    );
+
+    await expect(restorePromise).resolves.toBe(false);
+    expect(authService.isAuthenticated()).toBe(false);
+  });
+
   it('logout clears session and sends credentials', async () => {
-    (authService as unknown as { accessToken: string | null }).accessToken =
-      'jwt-access-token';
+    authService['accessToken'].set('jwt-access-token');
     authService.currentUser.set(mockUser);
 
     const logoutPromise = firstValueFrom(authService.logout());
