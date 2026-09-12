@@ -28,6 +28,7 @@ The original plan was strong on scope and features, but had gaps that would caus
 | Swagger + tests per phase | Documentation and tests added late are often skipped. Auth and core modules get them immediately. |
 | Demo seed before deploy | Production is hard to demo without seed data. Seeding moves before final deployment. |
 | CV packaging checklist | Recruiters need live URL, demo login, README, and screenshots — not just working local code. |
+| B2B user provisioning (no public signup) | Flowdesk is multi-tenant for companies — users are created by admins, not self-registration. Superadmin seeds once; superadmin creates company admins; company admins add team members. |
 
 ---
 
@@ -288,7 +289,7 @@ Notification ── User
 
 ### users
 
-- id, email (unique), passwordHash, name, avatarUrl?, createdAt, updatedAt
+- id, email (unique), passwordHash, name (display name), avatarUrl?, platformRole (SUPERADMIN | USER), themePreference (LIGHT | DARK | SYSTEM), createdAt, updatedAt
 
 ### organizations
 
@@ -394,10 +395,24 @@ Apply from Phase 1 so all modules stay consistent.
 | Access token | 15 minutes | Memory or short-lived app state | API requests |
 | Refresh token | 7 days | httpOnly secure cookie | Silent re-auth |
 
+## User provisioning (B2B — decided)
+
+No public self-registration. Hierarchy:
+
+| Actor | Creates | How |
+|-------|---------|-----|
+| **Platform superadmin** | First superadmin account | `npm run db:seed` (`SUPERADMIN_EMAIL` / `SUPERADMIN_PASSWORD` in `server/.env`) |
+| **Superadmin** | Company admin + organization | `POST /api/v1/auth/company-admins` (superadmin guard) |
+| **Company admin** (org OWNER/ADMIN) | Team users in their org | Phase 3 — `POST /organizations/:id/members` |
+
+- `platformRole: SUPERADMIN` — platform operator only (not tied to a company org for admin duties).
+- `platformRole: USER` — all company users including company admins; org role (`OWNER`, `ADMIN`, etc.) lives on `organization_members`.
+- `SUPERADMIN_BOOTSTRAP_KEY` — optional dev header (`x-superadmin-key`) until JWT superadmin auth is wired on all guards; prefer Bearer token after login.
+
 ## Endpoints
 
 ```
-POST /api/v1/auth/register
+POST /api/v1/auth/company-admins   # superadmin only — create company admin + org
 POST /api/v1/auth/login
 POST /api/v1/auth/refresh
 POST /api/v1/auth/logout
@@ -528,26 +543,29 @@ Add modules incrementally — scaffold folders only, implement per phase.
 
 ### Features
 
-- Register, login, logout, refresh, get current user
+- Login, logout, refresh, get current user
+- Superadmin provisions company admins (no public signup)
 - Password hashing (bcrypt)
 - Protected routes + auth interceptor
 - Basic profile page
 
 ### Backend
 
-- Auth module, Users module, JWT strategy, refresh token rotation
-- Register/login DTOs with class-validator
+- Auth module, Users module, Organizations module (company admin provisioning), JWT strategy, refresh token rotation
+- Company-admin + login DTOs with class-validator
+- Superadmin guard; seed script for platform superadmin
 - Swagger docs for all auth endpoints
 
 ### Frontend
 
-- Login, register pages
+- Login page (all users including superadmin and company admins)
+- Superadmin UI to create company admins (replaces public register page — step 2.9)
 - Auth service with Signals for current user
 - Auth guard + interceptor
 
 ### Tests (required in this phase)
 
-- Backend: register, login, invalid credentials, protected route
+- Backend: company-admin create, login, invalid credentials, protected route
 - Frontend: auth service + login form validation
 
 ---

@@ -43,14 +43,27 @@ enum TaskPriority {
   CRITICAL
 }
 
+enum ThemePreference {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+enum PlatformRole {
+  SUPERADMIN
+  USER
+}
+
 model User {
-  id           String   @id @default(uuid()) @db.Uuid
-  email        String   @unique
-  passwordHash String   @map("password_hash")
-  name         String
-  avatarUrl    String?  @map("avatar_url")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id              String          @id @default(uuid()) @db.Uuid
+  email           String          @unique
+  passwordHash    String          @map("password_hash")
+  name            String
+  avatarUrl       String?         @map("avatar_url")
+  platformRole    PlatformRole    @default(USER) @map("platform_role")
+  themePreference ThemePreference @default(LIGHT) @map("theme_preference")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
 
   organizationMembers OrganizationMember[]
   ownedProjects       Project[]            @relation("ProjectOwner")
