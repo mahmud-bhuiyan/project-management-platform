@@ -7,7 +7,15 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-12  
-**Current step:** 2.1
+**Current step:** 2.4
+
+### Decisions (Phase 2)
+
+- **No public signup** — users are provisioned by admins.
+- **Superadmin** — seeded via `npm run db:seed`; creates company admins.
+- **Company admin** — `OWNER` of a new organization; adds team in Phase 3.
+- **`name`** = display name; optional `avatarUrl`, `themePreference`.
+- **Postman** — synced to **My Workspace** (`Flowdesk API` collection + `Flowdesk — Local` env).
 
 ---
 
@@ -16,7 +24,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | Phase | Name | Steps done | Status |
 |-------|------|------------|--------|
 | 1 | Project setup | 12 / 12 | Complete |
-| 2 | Authentication | 0 / 12 | Not started |
+| 2 | Authentication | 3 / 12 | In progress |
 | 3 | Organization & team | 0 / 8 | Not started |
 | 4 | Dashboard shell | 0 / 3 | Not started |
 | 5 | Project management | 0 / 7 | Not started |
@@ -59,15 +67,15 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 2.1 | Users module (backend) | [ ] | | |
-| 2.2 | POST /auth/register | [ ] | | |
-| 2.3 | POST /auth/login | [ ] | | |
+| 2.1 | Users module (backend) | [x] | 2026-09-12 | bcrypt, UsersService, optional avatar/theme — manually verified |
+| 2.2 | POST /auth/company-admins | [x] | 2026-09-12 | B2B: superadmin creates company admin + org; seed script — Postman OK |
+| 2.3 | POST /auth/login | [x] | 2026-09-12 | JWT 15m; `{ accessToken, user }`; 401 invalid creds — Postman OK |
 | 2.4 | Refresh token (cookie) | [ ] | | |
 | 2.5 | POST /auth/logout + GET /auth/me | [ ] | | |
 | 2.6 | Auth backend tests | [ ] | | |
 | 2.7 | Angular auth service | [ ] | | |
 | 2.8 | Login page | [ ] | | |
-| 2.9 | Register page | [ ] | | |
+| 2.9 | Superadmin: create company admin (UI) | [ ] | | Replaces public register |
 | 2.10 | Auth interceptor + guard | [ ] | | |
 | 2.11 | Basic profile page | [ ] | | |
 | 2.12 | Phase 2 integration check | [ ] | | |
@@ -240,3 +248,5 @@ Use this for quick notes across sessions.
 | Date | Step | What you tested | Result |
 |------|------|-----------------|--------|
 | 2026-09-12 | 1.12 | Health, Swagger, Prisma migrate status, client build, .env gitignore | Pass — Phase 1 complete |
+| 2026-09-12 | 2.1–2.3 | Users module, company-admin API, login JWT | Pass — manually tested in Postman |
+| 2026-09-12 | Docs | PLAN/STEPS/Postman updated for B2B provisioning | Done |

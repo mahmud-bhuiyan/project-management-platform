@@ -216,20 +216,23 @@
 
 ---
 
-### Step 2.2 — POST /auth/register
+### Step 2.2 — POST /auth/company-admins (superadmin only)
 **Layer:** API
 
 **Build:**
-- Register DTO + validation.
-- Create user, hash password.
+- `CreateCompanyAdminDto` + validation (user fields + `organizationName`, `organizationSlug`).
+- Create user, organization, and `organization_members` row with role `OWNER`.
+- Superadmin guard (`x-superadmin-key` bootstrap and/or JWT superadmin).
+- Seed script: `npm run db:seed` creates platform superadmin from env.
 - Swagger docs.
 
 **Manual test:**
-- [ ] Swagger: register with email, name, password → 201 + user data (no password).
-- [ ] Duplicate email → validation/error response.
-- [ ] User row in Prisma Studio.
+- [ ] Seed superadmin: `cd server && npm run db:seed`.
+- [ ] Swagger/Postman: `POST /auth/company-admins` with superadmin key → 201 + user + organization (no password).
+- [ ] Duplicate email or slug → conflict error.
+- [ ] Rows in Prisma Studio: `users`, `organizations`, `organization_members`.
 
-**Done when:** Register works via Swagger.
+**Done when:** Superadmin can provision a company admin + org. No public register endpoint.
 
 ---
 
@@ -287,7 +290,7 @@
 **Layer:** API
 
 **Build:**
-- Vitest: register, login, invalid credentials, protected route.
+- Vitest: company-admin create, login, invalid credentials, protected route.
 
 **Manual test:**
 - [ ] `cd server && npm test` — auth tests pass.
@@ -301,7 +304,7 @@
 
 **Build:**
 - Auth service with Signals for current user.
-- Methods: register, login, logout, refresh, loadMe.
+- Methods: login, logout, refresh, loadMe (no public register).
 - Store access token in memory.
 
 **Manual test:**
@@ -327,17 +330,20 @@
 
 ---
 
-### Step 2.9 — Register page
+### Step 2.9 — Superadmin: create company admin (UI)
 **Layer:** UI
 
 **Build:**
-- Register form → auto-login or redirect to login.
+- Superadmin-only form: company admin email, name, password, organization name/slug.
+- Submit → `POST /auth/company-admins` → success message.
+- Regular users have **no** public signup page.
 
 **Manual test:**
-- [ ] New user registers and lands logged in (or login prompt).
-- [ ] Duplicate email shows API error in UI.
+- [ ] Superadmin logged in can create a company admin + org.
+- [ ] Non-superadmin cannot access the page.
+- [ ] Duplicate email/slug shows API error in UI.
 
-**Done when:** Register flow works in browser.
+**Done when:** Company admin provisioning works in browser (replaces public register page).
 
 ---
 
@@ -347,7 +353,7 @@
 **Build:**
 - Interceptor: attach Bearer token, refresh on 401 once.
 - Auth guard: block unauthenticated routes.
-- Guest guard: redirect logged-in users away from login/register.
+- Guest guard: redirect logged-in users away from login.
 
 **Manual test:**
 - [ ] Protected route without login → redirect to login.
@@ -377,7 +383,8 @@
 **Layer:** Test
 
 **Manual test:**
-- [ ] Full flow: register → login → profile → logout.
+- [ ] Full flow: seed superadmin → create company admin → login → profile → logout.
+- [ ] Postman collection in `docs/postman/` matches live endpoints.
 - [ ] Swagger documents all auth endpoints.
 - [ ] Server tests pass.
 - [ ] No secrets in git.

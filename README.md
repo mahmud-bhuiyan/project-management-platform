@@ -14,11 +14,13 @@ flowdesk/
     PLAN.md         # Full spec (stack, data model, API conventions, phases)
     STEPS.md        # Step-by-step build plan + manual test per step
     IMPLEMENTED.md  # What is done (same step IDs — compare with STEPS.md)
+    postman/        # Postman collection + local environment (import into Postman)
 ```
 
 - [docs/PLAN.md](docs/PLAN.md) — architecture, data model, phase overview
 - [docs/STEPS.md](docs/STEPS.md) — **what to build next** (master checklist)
 - [docs/IMPLEMENTED.md](docs/IMPLEMENTED.md) — **what you have tested and approved**
+- [docs/postman/README.md](docs/postman/README.md) — **Postman** collection for API testing
 
 ## Prerequisites
 
@@ -56,8 +58,14 @@ Default local URLs:
 
 ## API
 
-- Base URL: `http://localhost:3000/api/v1`
+- Base URL: `http://localhost:3001/api/v1` (or `PORT` in `server/.env`)
+- Swagger: `http://localhost:3001/api/docs`
 - Health: `GET /api/v1/health`
+- Postman: import [docs/postman/](docs/postman/)
+
+### Auth model (B2B)
+
+No public signup. **Superadmin** (seed) → creates **company admin** + org → company admin adds team (Phase 3).
 
 ## Deploy (split — same repo, two projects)
 
