@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000/api/v1',
-  wsUrl: 'ws://localhost:3000',
+  apiUrl: import.meta.env.NG_APP_API_URL,
+  wsUrl: import.meta.env.NG_APP_WS_URL,
 };

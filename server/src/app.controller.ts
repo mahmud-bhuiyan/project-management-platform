@@ -13,6 +13,7 @@ export class AppController {
     description: 'Service health status',
     schema: {
       example: {
+        success: true,
         data: {
           status: 'ok',
         },

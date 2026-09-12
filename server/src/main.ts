@@ -1,14 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import type { Request, Response } from 'express';
 import { AppModule } from './app.module.js';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
+import {
+  configureApp,
+  registerNotFoundHandler,
+} from './common/config/configure-app.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.setGlobalPrefix('api/v1');
-  app.useGlobalFilters(new HttpExceptionFilter());
+  configureApp(app);
 
   app.enableCors({
     origin: process.env.FRONTEND_URL ?? 'http://localhost:4200',
@@ -26,18 +27,10 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   await app.init();
-
-  app.getHttpAdapter().getInstance().use((req: Request, res: Response) => {
-    res.status(404).json({
-      error: {
-        code: 'NOT_FOUND',
-        message: `Cannot ${req.method} ${req.originalUrl}`,
-        details: [],
-      },
-    });
-  });
+  registerNotFoundHandler(app);
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
+  console.log(`  Server running in: http://localhost:${port}`);
 }
 await bootstrap();

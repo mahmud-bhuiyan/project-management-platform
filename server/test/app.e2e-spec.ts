@@ -1,12 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module.js';
-import { HttpExceptionFilter } from './../src/common/filters/http-exception.filter.js';
+import {
+  configureApp,
+  registerNotFoundHandler,
+} from './../src/common/config/configure-app.js';
 
 describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+  let app: INestApplication;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -14,19 +16,9 @@ describe('AppController (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.setGlobalPrefix('api/v1');
-    app.useGlobalFilters(new HttpExceptionFilter());
+    configureApp(app);
     await app.init();
-
-    app.getHttpAdapter().getInstance().use((req, res) => {
-      res.status(404).json({
-        error: {
-          code: 'NOT_FOUND',
-          message: `Cannot ${req.method} ${req.originalUrl}`,
-          details: [],
-        },
-      });
-    });
+    registerNotFoundHandler(app);
   });
 
   it('/api/v1/health (GET)', () => {
@@ -34,7 +26,9 @@ describe('AppController (e2e)', () => {
       .get('/api/v1/health')
       .expect(200)
       .expect((res) => {
+        expect(res.body.success).toBe(true);
         expect(res.body.data.status).toBe('ok');
+        expect(res.body.error).toBeUndefined();
       });
   });
 
@@ -43,9 +37,11 @@ describe('AppController (e2e)', () => {
       .get('/api/v1/unknown')
       .expect(404)
       .expect((res) => {
-        expect(res.body.error).toBeDefined();
-        expect(res.body.error.message).toBeDefined();
-        expect(Array.isArray(res.body.error.details)).toBe(true);
+        expect(res.body.success).toBe(false);
+        expect(res.body.message).toBe('Cannot GET /api/v1/unknown');
+        expect(res.body.error.code).toBe('NOT_FOUND');
+        expect(res.body.error.details).toBeNull();
+        expect(res.body.data).toBeUndefined();
       });
   });
 

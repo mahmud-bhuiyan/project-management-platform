@@ -18,7 +18,7 @@ describe('AppController', () => {
     it('should return ok status', () => {
       const result = appController.getHealth();
 
-      expect(result.data.status).toBe('ok');
+      expect(result.status).toBe('ok');
     });
   });
 });

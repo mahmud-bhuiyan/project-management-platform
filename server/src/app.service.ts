@@ -4,9 +4,7 @@ import { Injectable } from '@nestjs/common';
 export class AppService {
   getHealth() {
     return {
-      data: {
-        status: 'ok',
-      },
+      status: 'ok',
     };
   }
 }
