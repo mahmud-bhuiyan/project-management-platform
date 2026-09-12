@@ -17,3 +17,12 @@ export interface RefreshResponseData {
 export interface MeResponseData {
   user: User;
 }
+
+export interface DemoPersonasResponseData {
+  personas: DemoPersona[];
+}
+
+export interface DemoPersona {
+  label: string;
+  email: string;
+}

@@ -6,7 +6,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
-**Last updated:** 2026-09-12  
+**Last updated:** 2026-09-13  
 **Current step:** 2.9
 
 ### Decisions (Phase 2)
@@ -15,6 +15,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 - **Superadmin** — seeded via `npm run db:seed`; creates company admins.
 - **Company admin** — `OWNER` of a new organization; adds team in Phase 3.
 - **`name`** = display name; optional `avatarUrl`, `themePreference`.
+- **Demo login** — persona picker + `GET/POST /auth/demo-*` for local/CV demos; gated by `DEMO_LOGIN_ENABLED` / `NG_APP_DEMO_LOGIN_ENABLED`.
 - **Postman** — repo `docs/postman/` **and** cloud **My Workspace** (`Flowdesk API` + `Flowdesk — Local`). After every API change, agent must update **both** in the same session (never repo-only). Sync via Postman MCP **browser auth only** — no Postman API key. See `.cursor/rules/postman-cloud-sync.mdc` and PLAN § Postman cloud sync.
 
 ---
@@ -74,7 +75,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 2.5 | POST /auth/logout + GET /auth/me | [x] | 2026-09-12 | JwtAuthGuard; logout clears cookie + DB; me returns profile — Postman OK |
 | 2.6 | Auth backend tests | [x] | 2026-09-12 | 51 tests pass — company-admin, login, guards, logout, me |
 | 2.7 | Angular auth service | [x] | 2026-09-12 | Signals, login/logout/refresh/loadMe, in-memory token — unit tests pass |
-| 2.8 | Login page | [x] | 2026-09-12 | Reactive form, validation, API errors, redirect to dashboard placeholder |
+| 2.8 | Login page | [x] | 2026-09-13 | Reactive form, validation, API errors, redirect to dashboard; demo persona picker + `GET /auth/demo-personas` + `POST /auth/demo-login` — UI verified |
 | 2.9 | Superadmin: create company admin (UI) | [ ] | | Replaces public register |
 | 2.10 | Auth interceptor + guard | [ ] | | |
 | 2.11 | Basic profile page | [ ] | | |
@@ -255,3 +256,5 @@ Use this for quick notes across sessions.
 | 2026-09-12 | 2.5 | Login → me → logout → refresh fail | Pass — user verified in Postman |
 | 2026-09-12 | 2.8 | Login form validation + redirect; `npm test` + build | Pass — 8 client tests green |
 | 2026-09-12 | Docs | PLAN/STEPS/Postman updated for B2B provisioning | Done |
+| 2026-09-13 | 2.8 | UI login with demo persona picker → dashboard redirect | Pass — user verified in browser |
+| 2026-09-13 | Postman | Cloud sync: Get demo personas + Demo login added to Flowdesk API | Done |

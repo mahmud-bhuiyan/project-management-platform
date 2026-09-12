@@ -98,11 +98,11 @@
         (ngSubmit)="submit()"
         novalidate
       >
-        @if (demoLoginEnabled) {
+        @if (demoLoginEnabled && demoPersonas().length > 0) {
           <div class="demo-personas mb-6 rounded-xl border border-flow-200/70 bg-flow-50/50 p-4">
             <p class="text-xs font-medium text-gray-500">Try a demo persona</p>
             <ul class="mt-3 divide-y divide-flow-200/60">
-              @for (persona of demoPersonas; track persona.email) {
+              @for (persona of demoPersonas(); track persona.email) {
                 <li>
                   <button
                     type="button"
@@ -116,7 +116,7 @@
               }
             </ul>
             <p class="mt-3 text-xs text-gray-400">
-              Click an email to auto-fill credentials
+              Click an email to auto-fill — password is applied securely on sign in
             </p>
           </div>
         }
@@ -148,6 +148,7 @@
               placeholder="you@example.com"
               formControlName="email"
               class="input-flow input-flow--icon"
+              (input)="onEmailInput()"
             />
           </div>
           @if (hasError('email', 'required')) {
@@ -164,15 +165,28 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
               </svg>
             </span>
-            <input
-              id="password"
-              type="password"
-              aria-label="Password"
-              [attr.autocomplete]="demoLoginEnabled ? 'off' : 'current-password'"
-              placeholder="Enter your password"
-              formControlName="password"
-              class="input-flow input-flow--icon"
-            />
+            @if (selectedDemoEmail()) {
+              <input
+                id="password"
+                type="password"
+                readonly
+                tabindex="-1"
+                aria-label="Password"
+                class="input-flow input-flow--icon"
+                value="demopassword"
+              />
+            } @else {
+              <input
+                id="password"
+                type="password"
+                aria-label="Password"
+                [attr.autocomplete]="demoLoginEnabled ? 'off' : 'current-password'"
+                placeholder="Enter your password"
+                formControlName="password"
+                class="input-flow input-flow--icon"
+                (input)="onPasswordInput()"
+              />
+            }
           </div>
           @if (hasError('password', 'required')) {
             <p class="mt-1.5 text-sm text-red-600">Password is required.</p>

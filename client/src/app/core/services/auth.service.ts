@@ -4,6 +4,8 @@ import { Observable, map, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { ApiSuccessResponse } from '../models/api-response.model';
 import type {
+  DemoPersona,
+  DemoPersonasResponseData,
   LoginCredentials,
   LoginResponseData,
   MeResponseData,
@@ -22,6 +24,30 @@ export class AuthService {
   readonly isAuthenticated = computed(
     () => this.accessToken !== null && this.currentUser() !== null,
   );
+
+  getDemoPersonas(): Observable<DemoPersona[]> {
+    return this.http
+      .get<ApiSuccessResponse<DemoPersonasResponseData>>(
+        `${this.apiUrl}/auth/demo-personas`,
+      )
+      .pipe(map((response) => response.data.personas));
+  }
+
+  demoLogin(email: string): Observable<User> {
+    return this.http
+      .post<ApiSuccessResponse<LoginResponseData>>(
+        `${this.apiUrl}/auth/demo-login`,
+        { email },
+        { withCredentials: true },
+      )
+      .pipe(
+        tap((response) => {
+          this.accessToken = response.data.accessToken;
+          this.currentUser.set(response.data.user);
+        }),
+        map((response) => response.data.user),
+      );
+  }
 
   login(credentials: LoginCredentials): Observable<User> {
     return this.http

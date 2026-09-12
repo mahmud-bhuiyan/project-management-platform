@@ -9,9 +9,13 @@ import { LoginComponent } from './login.component';
 describe('LoginComponent', () => {
   const authService = {
     login: vi.fn(),
+    demoLogin: vi.fn(),
+    getDemoPersonas: vi.fn(),
   };
 
   beforeEach(async () => {
+    authService.getDemoPersonas.mockReturnValue(of([]));
+
     await TestBed.configureTestingModule({
       imports: [LoginComponent],
       providers: [
@@ -25,6 +29,7 @@ describe('LoginComponent', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    authService.getDemoPersonas.mockReturnValue(of([]));
   });
 
   it('shows validation errors when form is empty', () => {
@@ -75,26 +80,48 @@ describe('LoginComponent', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/dashboard']);
   });
 
-  it('auto-fills credentials when a demo persona is selected', () => {
+  it('shows masked password and uses demo login when a persona is selected', () => {
+    authService.demoLogin.mockReturnValue(
+      of({
+        id: 'user-1',
+        email: 'admin@acme.dev',
+        name: 'Acme Admin',
+        platformRole: 'USER',
+        avatarUrl: null,
+        themePreference: 'LIGHT',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      }),
+    );
+
     const fixture = TestBed.createComponent(LoginComponent);
+    const router = TestBed.inject(Router);
+    vi.spyOn(router, 'navigate').mockResolvedValue(true);
     fixture.detectChanges();
 
     const component = fixture.componentInstance;
     component.fillDemoPersona({
       label: 'Company Admin',
       email: 'admin@acme.dev',
-      password: 'User@123',
     });
+    fixture.detectChanges();
 
     expect(component.form.getRawValue()).toEqual({
       email: 'admin@acme.dev',
-      password: 'User@123',
+      password: '',
     });
+    expect(component.selectedDemoEmail()).toBe('admin@acme.dev');
 
     const passwordInput = fixture.nativeElement.querySelector(
       '#password',
     ) as HTMLInputElement;
-    expect(passwordInput.value).toBe('User@123');
+    expect(passwordInput.readOnly).toBe(true);
+    expect(passwordInput.value).toBe('demopassword');
+
+    component.submit();
+
+    expect(authService.demoLogin).toHaveBeenCalledWith('admin@acme.dev');
+    expect(authService.login).not.toHaveBeenCalled();
   });
 
   it('shows API error message on failed login', () => {

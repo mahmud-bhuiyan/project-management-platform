@@ -34,6 +34,7 @@ import {
 } from './auth-cookie.util.js';
 import { AuthService } from './auth.service.js';
 import { CreateCompanyAdminDto } from './dto/create-company-admin.dto.js';
+import { DemoLoginDto } from './dto/demo-login.dto.js';
 import { LoginDto } from './dto/login.dto.js';
 
 @ApiTags('auth')
@@ -100,6 +101,75 @@ export class AuthController {
   async createCompanyAdmin(@Body() dto: CreateCompanyAdminDto) {
     const result = await this.authService.createCompanyAdmin(dto);
     return respond.created(result, 'Company admin created successfully');
+  }
+
+  @Get('demo-personas')
+  @ApiOperation({ summary: 'List demo login personas (email only)' })
+  @ApiOkResponse({
+    description: 'Demo personas available for quick login',
+    schema: {
+      example: {
+        success: true,
+        message: 'Demo personas retrieved successfully',
+        data: {
+          personas: [
+            { label: 'Superadmin', email: 'superadmin@flowdesk.local' },
+            { label: 'Company Admin', email: 'admin@acme.dev' },
+          ],
+        },
+      },
+    },
+  })
+  getDemoPersonas() {
+    const personas = this.authService.getDemoPersonas();
+    return respond.ok({ personas }, 'Demo personas retrieved successfully');
+  }
+
+  @Post('demo-login')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Login as a demo persona using server-side credentials',
+  })
+  @ApiOkResponse({
+    description: 'Demo login successful',
+    schema: {
+      example: {
+        success: true,
+        message: 'Login successful',
+        data: {
+          accessToken: 'jwt-access-token',
+          user: {
+            id: 'uuid',
+            email: 'admin@acme.dev',
+            name: 'Acme Admin',
+            platformRole: 'USER',
+            avatarUrl: null,
+            themePreference: 'LIGHT',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+        },
+      },
+    },
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid demo persona',
+  })
+  @ApiForbiddenResponse({
+    description: 'Demo login is disabled',
+  })
+  @ApiUnprocessableEntityResponse({
+    description: 'Validation failed',
+  })
+  async demoLogin(
+    @Body() dto: DemoLoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.demoLogin(dto);
+    setRefreshTokenCookie(res, result.refreshToken);
+
+    const { refreshToken: _refreshToken, ...data } = result;
+    return respond.ok(data, 'Login successful');
   }
 
   @Post('login')

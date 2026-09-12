@@ -44,12 +44,21 @@ Set these in the environment before running requests:
 | `superadminPassword` | your seed password | From `SUPERADMIN_PASSWORD` |
 | `companyAdminEmail` | `admin@acme-corp.com` | Any company admin you created |
 | `companyAdminPassword` | `password123` | Password used at creation |
-| `accessToken` | auto-set | Filled by **Login** / **Refresh** test scripts |
+| `accessToken` | auto-set | Filled by **Login** / **Demo login** / **Refresh** test scripts |
 
 ## Typical flow
 
+### Quick demo (persona login)
+
+1. Seed: `cd server && npm run db:seed` (requires `SUPERADMIN_*` and `DEMO_PASSWORD` in `server/.env`)
+2. **Auth → Get demo personas**
+3. **Auth → Demo login** (saves `accessToken`; sets `refresh_token` cookie)
+4. **Auth → Get current user (me)**
+
+### Full B2B flow
+
 1. Seed superadmin: `cd server && npm run db:seed`
-2. **Auth → Create company admin** (uses `x-superadmin-key`)
+2. **Auth → Create company admin** (uses `x-superadmin-key` or Bearer superadmin token)
 3. **Auth → Login** (saves `accessToken`; sets `refresh_token` httpOnly cookie in Postman)
 4. **Auth → Refresh access token** (uses cookie from step 3; updates `accessToken`)
 5. **Auth → Get current user (me)** (Bearer `{{accessToken}}`)

@@ -154,6 +154,55 @@ describe('AuthService', () => {
     });
   });
 
+  it('getDemoPersonas returns personas when demo login is enabled', () => {
+    vi.stubEnv('DEMO_LOGIN_ENABLED', 'true');
+
+    const personas = authService.getDemoPersonas();
+
+    expect(personas.length).toBeGreaterThan(0);
+    expect(personas[0]).toHaveProperty('label');
+    expect(personas[0]).toHaveProperty('email');
+
+    vi.unstubAllEnvs();
+  });
+
+  it('demoLogin delegates to login with server-side password', async () => {
+    vi.stubEnv('DEMO_LOGIN_ENABLED', 'true');
+    vi.stubEnv('DEMO_PASSWORD', 'password123');
+
+    usersService.findByEmail.mockResolvedValue(storedUser);
+    vi.mocked(passwordUtil.comparePassword).mockResolvedValue(true);
+    usersService.toSafeUser.mockReturnValue(safeUser);
+    jwtService.signAsync.mockResolvedValue('access-token');
+    vi.mocked(tokenUtil.generateRefreshToken).mockReturnValue('refresh-token');
+    prisma.refreshToken.create.mockResolvedValue({});
+
+    const result = await authService.demoLogin({ email: 'admin@acme.dev' });
+
+    expect(usersService.findByEmail).toHaveBeenCalledWith('admin@acme.dev');
+    expect(passwordUtil.comparePassword).toHaveBeenCalledWith(
+      'password123',
+      storedUser.passwordHash,
+    );
+    expect(result.accessToken).toBe('access-token');
+
+    vi.unstubAllEnvs();
+  });
+
+  it('demoLogin rejects unknown persona email', async () => {
+    vi.stubEnv('DEMO_LOGIN_ENABLED', 'true');
+
+    await expect(
+      authService.demoLogin({ email: 'unknown@example.com' }),
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(ApiException);
+      expect((error as ApiException).getStatus()).toBe(HttpStatus.UNAUTHORIZED);
+      return true;
+    });
+
+    vi.unstubAllEnvs();
+  });
+
   it('login rejects wrong password', async () => {
     usersService.findByEmail.mockResolvedValue(storedUser);
     vi.mocked(passwordUtil.comparePassword).mockResolvedValue(false);

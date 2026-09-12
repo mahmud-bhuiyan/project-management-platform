@@ -409,10 +409,27 @@ No public self-registration. Hierarchy:
 - `platformRole: USER` — all company users including company admins; org role (`OWNER`, `ADMIN`, etc.) lives on `organization_members`.
 - `SUPERADMIN_BOOTSTRAP_KEY` — optional dev header (`x-superadmin-key`) until JWT superadmin auth is wired on all guards; prefer Bearer token after login.
 
+## Demo login (local dev + CV showcase)
+
+One-click login for recruiters and local testing — **not** public self-registration.
+
+| Control | Where | Default |
+|---------|-------|---------|
+| `DEMO_LOGIN_ENABLED` | `server/.env` | `true` — set `false` to disable API |
+| `DEMO_PASSWORD` | `server/.env` | Shared password for seeded `@acme.dev` users |
+| `NG_APP_DEMO_LOGIN_ENABLED` | `client/.env` | `true` — set `false` to hide persona picker |
+
+- `GET /auth/demo-personas` — returns `{ label, email }` only (never passwords).
+- `POST /auth/demo-login` — body `{ email }`; server resolves password from env (`SUPERADMIN_PASSWORD` for superadmin, `DEMO_PASSWORD` for org personas).
+- Persona list in `server/src/auth/demo-personas.config.ts` must match users created by `npm run db:seed`.
+- Login page shows a persona picker when client flag is enabled; selecting a persona calls demo-login (password field masked in UI).
+
 ## Endpoints
 
 ```
 POST /api/v1/auth/company-admins   # superadmin only — create company admin + org
+GET  /api/v1/auth/demo-personas    # optional — list demo personas (email + label)
+POST /api/v1/auth/demo-login       # optional — login by persona email; server-side password
 POST /api/v1/auth/login
 POST /api/v1/auth/refresh
 POST /api/v1/auth/logout
@@ -574,6 +591,7 @@ Add modules incrementally — scaffold folders only, implement per phase.
 
 - Login, logout, refresh, get current user
 - Superadmin provisions company admins (no public signup)
+- **Demo login** — persona picker + server-side credential login for local/CV demos
 - Password hashing (bcrypt)
 - Protected routes + auth interceptor
 - Basic profile page
@@ -582,20 +600,21 @@ Add modules incrementally — scaffold folders only, implement per phase.
 
 - Auth module, Users module, Organizations module (company admin provisioning), JWT strategy, refresh token rotation
 - Company-admin + login DTOs with class-validator
-- Superadmin guard; seed script for platform superadmin
+- Demo login: `GET /auth/demo-personas`, `POST /auth/demo-login` (gated by `DEMO_LOGIN_ENABLED`)
+- Superadmin guard; seed script for platform superadmin **and** Acme demo org users
 - Swagger docs for all auth endpoints
 
 ### Frontend
 
-- Login page (all users including superadmin and company admins)
+- Login page (email/password + optional demo persona picker)
 - Superadmin UI to create company admins (replaces public register page — step 2.9)
-- Auth service with Signals for current user
+- Auth service with Signals for current user (`login`, `demoLogin`, `getDemoPersonas`, `logout`, `refresh`, `loadMe`)
 - Auth guard + interceptor
 
 ### Tests (required in this phase)
 
-- Backend: company-admin create, login, invalid credentials, protected route
-- Frontend: auth service + login form validation
+- Backend: company-admin create, login, demo login, invalid credentials, protected route
+- Frontend: auth service + login form validation + demo persona flow
 
 ---
 
@@ -843,24 +862,27 @@ Aim for meaningful coverage on business logic, not 100%.
 
 Create before production deploy so live demo works on first visit.
 
-### Seed content
+**Already seeded in Phase 2** (`npm run db:seed`):
 
-Organization: **Acme Technologies**
+- Platform superadmin (`SUPERADMIN_EMAIL` / `SUPERADMIN_PASSWORD`)
+- Organization **Acme Technologies** (`slug: acme`)
+- Demo team: `admin@acme.dev` (OWNER), `manager@acme.dev` (ADMIN), `member@acme.dev` (MEMBER), `viewer@acme.dev` (VIEWER) — shared `DEMO_PASSWORD`
 
-Projects: CRM Development, Website Redesign, Mobile Application
+**Phase 15 adds:** projects, tasks, comments, and richer sample data.
 
-Team: PM, Frontend Dev, Backend Dev, QA, Designer
+- Projects: CRM Development, Website Redesign, Mobile Application
+- Tasks with realistic titles, statuses, priorities, assignees, due dates, comments
 
-Tasks with realistic titles, statuses, priorities, assignees, due dates, comments
+### Demo personas (login page picker)
 
-### Demo account
+| Label | Email | Password source |
+|-------|-------|-----------------|
+| Superadmin | `superadmin@flowdesk.local` | `SUPERADMIN_PASSWORD` |
+| Company Admin | `admin@acme.dev` | `DEMO_PASSWORD` |
+| Manager | `manager@acme.dev` | `DEMO_PASSWORD` |
+| Member | `member@acme.dev` | `DEMO_PASSWORD` |
 
-Document in README:
-
-```
-Email: demo@acme.dev
-Password: (document in README, not in repo code)
-```
+Document passwords in README only — never commit values. Disable demo login in production with `DEMO_LOGIN_ENABLED=false` and `NG_APP_DEMO_LOGIN_ENABLED=false` if desired.
 
 ---
 
@@ -914,7 +936,7 @@ Same monorepo, **two deploy projects** — one per app folder.
 
 ### Post-deploy checks
 
-1. Register or use demo login
+1. Use demo login (persona picker or email/password)
 2. Switch organization
 3. Open Kanban, drag task
 4. Add comment, see notification

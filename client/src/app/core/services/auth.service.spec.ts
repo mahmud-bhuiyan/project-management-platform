@@ -113,6 +113,55 @@ describe('AuthService', () => {
     expect(authService.currentUser()).toEqual(mockUser);
   });
 
+  it('getDemoPersonas returns persona list without passwords', async () => {
+    const personasPromise = firstValueFrom(authService.getDemoPersonas());
+
+    const request = httpMock.expectOne(
+      'http://localhost:3001/api/v1/auth/demo-personas',
+    );
+    expect(request.request.method).toBe('GET');
+
+    request.flush({
+      success: true,
+      message: 'Demo personas retrieved successfully',
+      data: {
+        personas: [
+          { label: 'Company Admin', email: 'admin@acme.dev' },
+        ],
+      },
+    });
+
+    await expect(personasPromise).resolves.toEqual([
+      { label: 'Company Admin', email: 'admin@acme.dev' },
+    ]);
+  });
+
+  it('demoLogin stores access token without sending a password', async () => {
+    const demoLoginPromise = firstValueFrom(
+      authService.demoLogin('admin@acme.dev'),
+    );
+
+    const request = httpMock.expectOne(
+      'http://localhost:3001/api/v1/auth/demo-login',
+    );
+    expect(request.request.method).toBe('POST');
+    expect(request.request.withCredentials).toBe(true);
+    expect(request.request.body).toEqual({ email: 'admin@acme.dev' });
+
+    request.flush({
+      success: true,
+      message: 'Login successful',
+      data: {
+        accessToken: 'jwt-access-token',
+        user: mockUser,
+      },
+    });
+
+    await expect(demoLoginPromise).resolves.toEqual(mockUser);
+    expect(authService.getAccessToken()).toBe('jwt-access-token');
+    expect(authService.currentUser()).toEqual(mockUser);
+  });
+
   it('logout clears session and sends credentials', async () => {
     (authService as unknown as { accessToken: string | null }).accessToken =
       'jwt-access-token';
