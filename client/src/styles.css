@@ -144,3 +144,81 @@ body {
   opacity: 0.55;
   box-shadow: none;
 }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid rgb(209 213 219 / 0.9);
+  background: rgb(255 255 255 / 0.9);
+  padding: 0.8rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-flow-700);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--color-flow-300);
+  background: var(--color-flow-50);
+}
+
+.input-flow-wrap {
+  position: relative;
+}
+
+.input-flow-icon {
+  position: absolute;
+  top: 50%;
+  left: 0.875rem;
+  z-index: 1;
+  display: flex;
+  color: rgb(156 163 175);
+  pointer-events: none;
+  transform: translateY(-50%);
+  transition: color 0.2s ease;
+}
+
+.input-flow-wrap:focus-within .input-flow-icon {
+  color: var(--color-flow-500);
+}
+
+.input-flow--icon {
+  padding-left: 2.75rem;
+}
+
+.input-flow--password {
+  padding-right: 2.75rem;
+}
+
+.input-flow-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.75rem;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  color: rgb(156 163 175);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color 0.2s ease;
+}
+
+.input-flow-toggle:hover {
+  color: var(--color-flow-500);
+}
+
+.input-flow-toggle:focus-visible {
+  border-radius: 0.375rem;
+  outline: 2px solid var(--color-flow-400);
+  outline-offset: 2px;
+}

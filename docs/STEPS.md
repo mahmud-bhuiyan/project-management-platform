@@ -12,8 +12,10 @@
 2. Within each step: **backend/API first**, then frontend (unless the step says UI-only or placeholder).
 3. After any **API** change: update `docs/postman/` **and sync Postman cloud in the same session** (Postman MCP **browser auth only** — never API key). Repo-only is not enough — see [PLAN.md § Postman cloud sync](./PLAN.md#postman-cloud-sync).
 4. Run the **Manual test** for that step yourself.
-5. Mark the step in [IMPLEMENTED.md](./IMPLEMENTED.md) only after manual test passes.
-6. Tell Cursor: *"Implement step X.Y"* or *"Continue from next incomplete step"*.
+5. For any **UI** step: verify responsiveness at **375px**, **768px**, and **1280px** (PLAN §2 Responsiveness).
+6. For any **UI** step: verify state rules — no full-page loading on navigation/submit; button-only submit loading; shell stays mounted (PLAN §2 Client state management).
+7. Mark the step in [IMPLEMENTED.md](./IMPLEMENTED.md) only after manual test passes.
+8. Tell Cursor: *"Implement step X.Y"* or *"Continue from next incomplete step"*.
 
 **Legend:** `API` = server only · `UI` = client only · `Full` = both · `Test` = verification step
 
@@ -340,16 +342,20 @@
 **Layer:** UI
 
 **Build:**
-- Superadmin-only form: company admin email, name, password, organization name/slug.
-- Submit → `POST /auth/company-admins` → success message.
+- **Full page** inside app shell (PLAN §2 UI design standards) — mesh hero + side guide panel + main form panel; not a lone centered form.
+- Superadmin-only: company admin email, name, password, organization name/slug.
+- Icon inputs + `app-password-input` with eye toggle.
+- Submit → `POST /auth/company-admins` → styled success summary (admin email, org name, slug).
 - Regular users have **no** public signup page.
 
 **Manual test:**
+- [ ] Page shows hero, guide cards, and form panel (matches dashboard visual quality).
 - [ ] Superadmin logged in can create a company admin + org.
 - [ ] Non-superadmin cannot access the page.
 - [ ] Duplicate email/slug shows API error in UI.
+- [ ] **Responsive:** at 375px — hamburger opens nav drawer; form is usable; at 1280px — sidebar + two-column layout.
 
-**Done when:** Company admin provisioning works in browser (replaces public register page).
+**Done when:** Company admin provisioning works in browser as a polished product page (replaces public register page).
 
 ---
 

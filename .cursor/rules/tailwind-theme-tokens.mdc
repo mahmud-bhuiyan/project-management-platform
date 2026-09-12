@@ -1,0 +1,28 @@
+---
+description: Prefer Tailwind theme spacing/sizing tokens over arbitrary bracket values in client templates and CSS
+globs: client/**/*.{html,css,ts}
+alwaysApply: false
+---
+
+# Tailwind — use theme tokens, not arbitrary values
+
+When writing Tailwind classes in `client/`, **prefer named theme utilities** over arbitrary values in brackets.
+
+## Do
+
+- `max-w-116` instead of `max-w-[29rem]`
+- `max-w-2xl`, `w-1/2`, `p-4`, `gap-6`, `text-sm` from the default/theme scale
+- Arbitrary values **only** when no theme token exists (e.g. `lg:w-[52%]` for a one-off layout split)
+
+## Don't
+
+- `max-w-[29rem]`, `p-[1.125rem]`, `gap-[0.625rem]` when an equivalent token exists on the scale
+- Copy-paste arbitrary rem/px values from designs without checking Tailwind 4 theme aliases first
+
+## Before committing client UI
+
+1. Scan changed templates for `\[[0-9]+(\.[0-9]+)?(rem|px)\]` patterns.
+2. Replace with theme tokens when the IDE/linter suggests them (e.g. `max-w-116`).
+3. Keep arbitrary values only with a brief comment in the PR/commit if the design truly requires a non-scale size.
+
+Project uses **Tailwind CSS 4** with `@theme` in `client/src/styles.css` — extend the theme there for repeated custom sizes instead of many arbitrary classes.

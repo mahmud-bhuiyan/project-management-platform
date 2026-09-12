@@ -1,3 +1,4 @@
+import type { Organization } from './organization.model.js';
 import type { User } from './user.model.js';
 
 export interface LoginCredentials {
@@ -25,4 +26,17 @@ export interface DemoPersonasResponseData {
 export interface DemoPersona {
   label: string;
   email: string;
+}
+
+export interface CreateCompanyAdminRequest {
+  email: string;
+  name: string;
+  password: string;
+  organizationName: string;
+  organizationSlug: string;
+}
+
+export interface CreateCompanyAdminResponseData {
+  user: User;
+  organization: Organization;
 }

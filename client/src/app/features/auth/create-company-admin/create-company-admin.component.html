@@ -1,0 +1,279 @@
+<div class="provision-page">
+  <section class="provision-hero mesh-bg">
+    <div class="provision-hero__content">
+      <span class="provision-hero__badge">
+        <span class="provision-hero__badge-dot"></span>
+        Superadmin workspace
+      </span>
+      <h1 class="provision-hero__title">Provision company admin</h1>
+      <p class="provision-hero__subtitle">
+        Onboard a new company with an owner account and organization — ready for
+        team setup in Phase 3.
+      </p>
+    </div>
+    <div class="provision-hero__glow" aria-hidden="true"></div>
+    <div class="provision-hero__glow provision-hero__glow--secondary" aria-hidden="true"></div>
+  </section>
+
+  <div class="provision-layout">
+    <aside class="provision-aside" aria-label="Provisioning guide">
+      <article class="provision-info-card glass-panel">
+        <div class="provision-info-card__icon">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h2 class="provision-info-card__title">What gets created</h2>
+        <ul class="provision-info-card__list">
+          <li>Company admin user with secure credentials</li>
+          <li>New organization with unique slug</li>
+          <li>Owner membership linking admin to org</li>
+        </ul>
+      </article>
+
+      <article class="provision-info-card glass-panel">
+        <div class="provision-info-card__icon provision-info-card__icon--accent">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h2 class="provision-info-card__title">After provisioning</h2>
+        <p class="provision-info-card__text">
+          The company admin signs in and adds team members. No public signup —
+          every user is invited by an admin.
+        </p>
+      </article>
+
+      <article class="provision-steps glass-panel">
+        <p class="provision-steps__label">Flow</p>
+        <ol class="provision-steps__list">
+          <li class="provision-steps__item provision-steps__item--active">
+            <span class="provision-steps__number">1</span>
+            <span>Create admin + organization</span>
+          </li>
+          <li class="provision-steps__item">
+            <span class="provision-steps__number">2</span>
+            <span>Admin adds team (Phase 3)</span>
+          </li>
+          <li class="provision-steps__item">
+            <span class="provision-steps__number">3</span>
+            <span>Projects & tasks go live</span>
+          </li>
+        </ol>
+      </article>
+    </aside>
+
+    <div class="provision-main">
+      @if (successResult(); as result) {
+        <div class="provision-panel glass-panel" role="status">
+          <div class="provision-success">
+            <div class="provision-success__icon">
+              <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 class="provision-panel__heading">Company admin created</h2>
+            <p class="provision-panel__lead">
+              {{ result.user.name }} is now owner of
+              <strong>{{ result.organization.name }}</strong>.
+            </p>
+
+            <dl class="provision-summary">
+              <div class="provision-summary__row">
+                <dt>Admin email</dt>
+                <dd>{{ result.user.email }}</dd>
+              </div>
+              <div class="provision-summary__row">
+                <dt>Organization</dt>
+                <dd>{{ result.organization.name }}</dd>
+              </div>
+              <div class="provision-summary__row">
+                <dt>Slug</dt>
+                <dd><code>{{ result.organization.slug }}</code></dd>
+              </div>
+            </dl>
+
+            <button type="button" class="btn-primary" (click)="createAnother()">
+              Provision another company
+            </button>
+          </div>
+        </div>
+      } @else {
+        <form
+          class="provision-panel glass-panel"
+          [formGroup]="form"
+          (ngSubmit)="submit()"
+          novalidate
+        >
+          <header class="provision-panel__header">
+            <h2 class="provision-panel__heading">New company details</h2>
+            <p class="provision-panel__lead">
+              Fill in the admin account and organization. All fields are required.
+            </p>
+          </header>
+
+          @if (errorMessage()) {
+            <div class="provision-alert provision-alert--error" role="alert">
+              <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+              </svg>
+              <span>{{ errorMessage() }}</span>
+            </div>
+          }
+
+          <section class="provision-section">
+            <div class="provision-section__title">
+              <span class="provision-section__icon">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                </svg>
+              </span>
+              Company admin
+            </div>
+
+            <div class="provision-fields">
+              <div class="provision-field">
+                <label for="email" class="provision-label">Email</label>
+                <div class="input-flow-wrap">
+                  <span class="input-flow-icon" aria-hidden="true">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                    </svg>
+                  </span>
+                  <input
+                    id="email"
+                    type="email"
+                    autocomplete="off"
+                    placeholder="admin@company.com"
+                    formControlName="email"
+                    class="input-flow input-flow--icon"
+                  />
+                </div>
+                @if (hasError('email', 'required')) {
+                  <p class="provision-error">Email is required.</p>
+                } @else if (hasError('email', 'email')) {
+                  <p class="provision-error">Enter a valid email address.</p>
+                }
+              </div>
+
+              <div class="provision-field">
+                <label for="name" class="provision-label">Display name</label>
+                <div class="input-flow-wrap">
+                  <span class="input-flow-icon" aria-hidden="true">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                  </span>
+                  <input
+                    id="name"
+                    type="text"
+                    autocomplete="off"
+                    placeholder="Jane Admin"
+                    formControlName="name"
+                    class="input-flow input-flow--icon"
+                  />
+                </div>
+                @if (hasError('name', 'required')) {
+                  <p class="provision-error">Name is required.</p>
+                }
+              </div>
+
+              <div class="provision-field provision-field--full">
+                <label for="password" class="provision-label">Password</label>
+                <app-password-input
+                  inputId="password"
+                  placeholder="At least 8 characters"
+                  autocomplete="new-password"
+                  formControlName="password"
+                />
+                @if (hasError('password', 'required')) {
+                  <p class="provision-error">Password is required.</p>
+                } @else if (hasError('password', 'minlength')) {
+                  <p class="provision-error">Password must be at least 8 characters.</p>
+                }
+              </div>
+            </div>
+          </section>
+
+          <section class="provision-section">
+            <div class="provision-section__title">
+              <span class="provision-section__icon provision-section__icon--accent">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5M3.75 21V7.5A2.25 2.25 0 016 3.75h12A2.25 2.25 0 0120.25 7.5V21M9.75 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M9 10.5h.008v.008H9V10.5zm3 0h.008v.008H12V10.5z" />
+                </svg>
+              </span>
+              Organization
+            </div>
+
+            <div class="provision-fields">
+              <div class="provision-field">
+                <label for="organizationName" class="provision-label">Organization name</label>
+                <div class="input-flow-wrap">
+                  <span class="input-flow-icon" aria-hidden="true">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5M3.75 21V7.5A2.25 2.25 0 016 3.75h12A2.25 2.25 0 0120.25 7.5V21M9.75 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M9 10.5h.008v.008H9V10.5zm3 0h.008v.008H12V10.5z" />
+                    </svg>
+                  </span>
+                  <input
+                    id="organizationName"
+                    type="text"
+                    autocomplete="off"
+                    placeholder="Acme Technologies"
+                    formControlName="organizationName"
+                    class="input-flow input-flow--icon"
+                    (input)="onOrganizationNameInput()"
+                  />
+                </div>
+                @if (hasError('organizationName', 'required')) {
+                  <p class="provision-error">Organization name is required.</p>
+                }
+              </div>
+
+              <div class="provision-field">
+                <label for="organizationSlug" class="provision-label">Organization slug</label>
+                <div class="input-flow-wrap">
+                  <span class="input-flow-icon" aria-hidden="true">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m9.86-2.54a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                    </svg>
+                  </span>
+                  <input
+                    id="organizationSlug"
+                    type="text"
+                    autocomplete="off"
+                    placeholder="acme-technologies"
+                    formControlName="organizationSlug"
+                    class="input-flow input-flow--icon font-mono text-sm"
+                    (input)="onOrganizationSlugInput()"
+                  />
+                </div>
+                <p class="provision-hint">Lowercase letters, numbers, and hyphens only.</p>
+                @if (hasError('organizationSlug', 'required')) {
+                  <p class="provision-error">Slug is required.</p>
+                } @else if (hasError('organizationSlug', 'pattern')) {
+                  <p class="provision-error">Use lowercase letters, numbers, and hyphens only.</p>
+                } @else if (hasError('organizationSlug', 'minlength')) {
+                  <p class="provision-error">Slug must be at least 2 characters.</p>
+                }
+              </div>
+            </div>
+          </section>
+
+          <footer class="provision-panel__footer">
+            <button type="submit" class="btn-primary" [disabled]="isSubmitting()">
+              @if (isSubmitting()) {
+                <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                Creating company…
+              } @else {
+                Create company admin
+              }
+            </button>
+          </footer>
+        </form>
+      }
+    </div>
+  </div>
+</div>

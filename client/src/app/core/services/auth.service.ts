@@ -4,6 +4,8 @@ import { Observable, map, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { ApiSuccessResponse } from '../models/api-response.model';
 import type {
+  CreateCompanyAdminRequest,
+  CreateCompanyAdminResponseData,
   DemoPersona,
   DemoPersonasResponseData,
   LoginCredentials,
@@ -13,6 +15,10 @@ import type {
 } from '../models/auth.model';
 import type { User } from '../models/user.model';
 
+/**
+ * Session state (singleton). Updated only on login, logout, refresh, and loadMe.
+ * UI loading flags stay in components — never add page-level spinners here.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
@@ -20,9 +26,13 @@ export class AuthService {
 
   private accessToken: string | null = null;
 
+  /** Shared session user — shell and pages read this signal; no refetch on route change. */
   readonly currentUser = signal<User | null>(null);
   readonly isAuthenticated = computed(
     () => this.accessToken !== null && this.currentUser() !== null,
+  );
+  readonly isSuperadmin = computed(
+    () => this.currentUser()?.platformRole === 'SUPERADMIN',
   );
 
   getDemoPersonas(): Observable<DemoPersona[]> {
@@ -91,6 +101,18 @@ export class AuthService {
         }),
         map((response) => response.data.accessToken),
       );
+  }
+
+  createCompanyAdmin(
+    payload: CreateCompanyAdminRequest,
+  ): Observable<CreateCompanyAdminResponseData> {
+    return this.http
+      .post<ApiSuccessResponse<CreateCompanyAdminResponseData>>(
+        `${this.apiUrl}/auth/company-admins`,
+        payload,
+        { headers: this.authHeaders() },
+      )
+      .pipe(map((response) => response.data));
   }
 
   loadMe(): Observable<User> {

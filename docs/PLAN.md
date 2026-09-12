@@ -265,6 +265,91 @@ Do NOT build these in the first version:
 
 The project should look like a real product but remain realistic for a portfolio/CV project.
 
+## UI design standards (mandatory from Phase 2 onward)
+
+Flowdesk is a **CV showcase** — every screen must feel like a polished product, not a plain admin form. Apply these rules on **every** frontend step (not deferred to Phase 13).
+
+### Visual identity
+
+| Element | Standard |
+|---------|----------|
+| **Fonts** | Syne (`font-display`) for headings; DM Sans for body — already in `styles.css` |
+| **Palette** | Flow purple (`flow-*`) + cyan accent (`accent`, `accent-strong`) on light backgrounds |
+| **Surfaces** | `mesh-bg` hero bands, `glass-panel` cards, soft gradients — never flat white-only pages |
+| **Motion** | Subtle entrance animations and glow accents; no distracting loops |
+| **Tailwind** | Use theme tokens (`max-w-116`, `p-4`) — not arbitrary brackets (`max-w-[29rem]`) when an equivalent exists; see `.cursor/rules/tailwind-theme-tokens.mdc` |
+
+### Page structure (authenticated app)
+
+Every page inside `AppShellComponent` must include:
+
+1. **Page hero** — full-width `mesh-bg` header with title, subtitle, and optional status badge (match dashboard / provision company pattern).
+2. **Page body** — content below the hero (grids, cards, forms) — never a lone centered form floating in empty space.
+3. **App shell** — fixed sidebar + sticky top bar (shared layout); page content renders in `<main>` via router outlet only.
+
+Forms belong **inside** a page layout (hero + side panel + main panel), not as the entire page.
+
+### Form & input patterns
+
+- Icon inside every text/password input (`input-flow-wrap` + `input-flow-icon`).
+- Password fields use `app-password-input` with show/hide eye toggle.
+- Section headings with icon chips — not bare `<fieldset>` legends.
+- Primary actions use `btn-primary` gradient; errors/success use tinted alert panels.
+
+### Responsiveness (mandatory — all devices)
+
+Flowdesk must be fully usable on **phone, tablet, and desktop**. Test at minimum: **375px** (mobile), **768px** (tablet), **1280px** (desktop).
+
+| Area | Standard |
+|------|----------|
+| **Viewport** | `width=device-width, initial-scale=1` in `index.html` (already set) |
+| **Breakpoints** | Tailwind defaults: `sm` 640px, `md` 768px, `lg` 1024px, `xl` 1280px |
+| **App shell** | Desktop: fixed sidebar. Mobile/tablet (`< lg`): slide-over nav drawer + hamburger + backdrop; all routes reachable |
+| **Layout** | No horizontal scroll on page body; grids collapse to single column on small screens |
+| **Typography** | Use `clamp()` or responsive text classes — headings must not overflow on narrow screens |
+| **Touch targets** | Buttons and nav links ≥ 44px tap area on mobile |
+| **Forms** | Full-width inputs on mobile; multi-column form grids only from `sm`/`md` up |
+| **Tables/Kanban** | Horizontal scroll inside container if needed — never break page layout (Phase 6+) |
+
+Manual responsive check is required before marking any UI step done (see STEPS.md).
+
+### Client state management (mandatory from Phase 2 onward)
+
+Use **Angular Signals** + singleton services. No full-page reloads, no full-page loading overlays.
+
+| Layer | Where | Examples |
+|-------|--------|----------|
+| **Session state** | `AuthService` (and future feature services) | `currentUser`, `isAuthenticated`, `isSuperadmin` |
+| **Shell state** | `AppShellComponent` | `mobileNavOpen`, `isSigningOut` |
+| **Page / form state** | Feature component signals | `isSubmitting`, `errorMessage`, `successResult` |
+| **Server data** | Service methods return `Observable`; update signals in `tap` | login → `currentUser.set()` |
+
+**Rules:**
+
+1. **No browser reload** — never `window.location.reload()` or full document navigation for in-app actions.
+2. **No page-level loading** — on route change or form submit, do **not** show full-page spinners, skeleton screens that replace the whole page, or blank flashes.
+3. **Button-only submit loading** — `isSubmitting` disables the submit button and shows inline spinner text; form fields stay visible and editable until success.
+4. **Partial view updates** — success/error swaps only the affected block (e.g. `provision-main` panel); hero, sidebar, and app shell stay mounted.
+5. **Persistent app shell** — authenticated routes are children of `AppShellComponent`; only `<router-outlet>` content swaps. Bundle shell + pages in one lazy chunk (`authenticated.routes.ts`) to avoid per-route chunk flash.
+6. **OnPush + signals** — feature components use `ChangeDetectionStrategy.OnPush`; templates read signals with `()` so only changed blocks re-render.
+7. **No refetch on navigation** — do not call `loadMe()` or list APIs on every `ngOnInit` unless data is stale; session user comes from `AuthService.currentUser`.
+8. **RxJS cleanup** — use `finalize()` to reset `isSubmitting` on both success and error.
+
+Phase 2.10 (auth interceptor) must follow the same rules — silent token refresh, no redirect loop flash.
+
+### Per-page quality bar
+
+Before marking a UI step done:
+
+- [ ] Uses app shell (if authenticated).
+- [ ] Has page hero or equivalent visual anchor (login page uses split hero).
+- [ ] Loading, error, empty, and success states styled (not raw text).
+- [ ] **Responsive:** usable at 375px, 768px, and 1280px — navigation, forms, and actions all reachable.
+- [ ] **State:** no full-page loading on route change or submit; button-only submit loading; only affected UI block updates.
+- [ ] Matches existing Flowdesk screens — recruiter-demo ready.
+
+Phase 13 is a **final polish pass**, not the first time UI quality or responsiveness is applied.
+
 ---
 
 # 3. Data Model (Prisma)
@@ -828,11 +913,11 @@ Keep charts simple — not a BI tool.
 
 ## Phase 13: UI Polish
 
-Per-phase UI quality is required, but this phase is the final pass.
+Per-phase UI quality is required from Phase 2 (see **UI design standards** in §2). This phase is the final consistency pass across all screens.
 
 ### Add / verify
 
-- Responsive layout (mobile-friendly nav)
+- Responsive layout audit across all breakpoints (see §2 Responsiveness)
 - Skeleton loaders, empty states, error states
 - Toast notifications
 - Form validation messages
@@ -1026,15 +1111,16 @@ When implementing each phase:
 10. Keep business logic in backend services, not controllers or Angular components.
 11. Enforce permissions in backend guards — UI checks are secondary.
 12. Create reusable Angular components for repeated UI patterns.
-13. Every list/detail page needs loading, error, and empty states.
-14. Do not hardcode API URLs — use environment variables.
-15. Keep database access inside the backend only.
-16. Add Swagger decorators when adding endpoints.
-17. **Sync Postman** — update `docs/postman/` and push to cloud via Postman MCP (browser auth) after every API change; see [Postman cloud sync](#postman-cloud-sync).
-18. Add tests for auth and permission-sensitive logic in the same phase.
-19. Run build/test checks before marking a step complete in IMPLEMENTED.md.
-20. Fix broken features before moving on.
-21. Keep the implementation maintainable — YAGNI.
+13. Follow **UI design standards** (§2) — modern, distinctive, recruiter-demo ready; no plain form-only pages in the app shell.
+14. Every list/detail page needs loading, error, and empty states.
+15. Do not hardcode API URLs — use environment variables.
+16. Keep database access inside the backend only.
+17. Add Swagger decorators when adding endpoints.
+18. **Sync Postman** — update `docs/postman/` and push to cloud via Postman MCP (browser auth) after every API change; see [Postman cloud sync](#postman-cloud-sync).
+19. Add tests for auth and permission-sensitive logic in the same phase.
+20. Run build/test checks before marking a step complete in IMPLEMENTED.md.
+21. Fix broken features before moving on.
+22. Keep the implementation maintainable — YAGNI.
 
 ---
 

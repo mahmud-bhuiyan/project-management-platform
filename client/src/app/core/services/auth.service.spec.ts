@@ -162,6 +162,62 @@ describe('AuthService', () => {
     expect(authService.currentUser()).toEqual(mockUser);
   });
 
+  it('createCompanyAdmin sends bearer token and payload', async () => {
+    (authService as unknown as { accessToken: string | null }).accessToken =
+      'jwt-access-token';
+
+    const createPromise = firstValueFrom(
+      authService.createCompanyAdmin({
+        email: 'admin@newco.com',
+        name: 'New Admin',
+        password: 'password123',
+        organizationName: 'New Co',
+        organizationSlug: 'new-co',
+      }),
+    );
+
+    const request = httpMock.expectOne(
+      'http://localhost:3001/api/v1/auth/company-admins',
+    );
+    expect(request.request.method).toBe('POST');
+    expect(request.request.headers.get('Authorization')).toBe(
+      'Bearer jwt-access-token',
+    );
+    expect(request.request.body).toEqual({
+      email: 'admin@newco.com',
+      name: 'New Admin',
+      password: 'password123',
+      organizationName: 'New Co',
+      organizationSlug: 'new-co',
+    });
+
+    request.flush({
+      success: true,
+      message: 'Company admin created successfully',
+      data: {
+        user: mockUser,
+        organization: {
+          id: 'org-1',
+          name: 'New Co',
+          slug: 'new-co',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
+        },
+      },
+    });
+
+    await expect(createPromise).resolves.toEqual({
+      user: mockUser,
+      organization: {
+        id: 'org-1',
+        name: 'New Co',
+        slug: 'new-co',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    });
+  });
+
   it('logout clears session and sends credentials', async () => {
     (authService as unknown as { accessToken: string | null }).accessToken =
       'jwt-access-token';
