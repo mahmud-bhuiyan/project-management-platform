@@ -3,6 +3,7 @@ import type { Notification, Prisma } from '@prisma/client';
 import { TaskStatus } from '@prisma/client';
 import { ApiException } from '../common/exceptions/api.exception.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { RealtimeEmitterService } from '../realtime/realtime-emitter.service.js';
 import type {
   CreateNotificationInput,
   ListNotificationsQuery,
@@ -16,7 +17,10 @@ const DUE_SOON_WINDOW_MS = 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly realtimeEmitter: RealtimeEmitterService,
+  ) {}
 
   async create(input: CreateNotificationInput): Promise<NotificationResponse> {
     const notification = await this.prisma.notification.create({
@@ -29,7 +33,11 @@ export class NotificationsService {
       },
     });
 
-    return this.toNotificationResponse(notification);
+    const response = this.toNotificationResponse(notification);
+
+    this.realtimeEmitter.emitNotificationCreated({ notification: response });
+
+    return response;
   }
 
   async findAllForUser(

@@ -13,6 +13,7 @@ import { ProjectsService } from '../projects/projects.service.js';
 import { UsersService } from '../users/users.service.js';
 import { ActivityAction } from './activity.types.js';
 import { NotificationTriggersService } from '../notifications/notification-triggers.service.js';
+import { RealtimeEmitterService } from '../realtime/realtime-emitter.service.js';
 import { ActivityLogService } from './activity-log.service.js';
 import type {
   CreateTaskInput,
@@ -39,6 +40,7 @@ export class TasksService {
     private readonly usersService: UsersService,
     private readonly activityLogService: ActivityLogService,
     private readonly notificationTriggersService: NotificationTriggersService,
+    private readonly realtimeEmitter: RealtimeEmitterService,
   ) {}
 
   async create(
@@ -376,9 +378,17 @@ export class TasksService {
       orderBy: [{ status: 'asc' }, { position: 'asc' }, { createdAt: 'asc' }],
     });
 
-    return {
+    const result = {
       tasks: updatedTasks.map((task) => this.toTaskResponse(task)),
     };
+
+    this.realtimeEmitter.emitTaskReordered({
+      actorId: userId,
+      organizationId,
+      projectId,
+    });
+
+    return result;
   }
 
   async remove(

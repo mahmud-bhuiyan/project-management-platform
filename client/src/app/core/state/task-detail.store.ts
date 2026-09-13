@@ -366,6 +366,34 @@ export const TaskDetailStore = signalStore(
           );
       },
 
+      applyRemoteComment(params: {
+        organizationId: string;
+        projectId: string;
+        taskId: string;
+        comment: CommentSummary;
+      }): void {
+        const key = taskDetailKey(params.projectId, params.taskId);
+        const cache = getCache(store.byKey(), key);
+
+        if (!cache.hasLoaded) {
+          return;
+        }
+
+        if (cache.comments.some((entry) => entry.id === params.comment.id)) {
+          return;
+        }
+
+        patchState(store, {
+          byKey: {
+            ...store.byKey(),
+            [key]: {
+              ...cache,
+              comments: [...cache.comments, params.comment],
+            },
+          },
+        });
+      },
+
       deleteComment(params: {
         organizationId: string;
         projectId: string;

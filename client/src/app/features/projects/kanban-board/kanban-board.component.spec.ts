@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { TaskSummary } from '../../../core/models/task.model';
 import { OrganizationStore } from '../../../core/state/organization.store';
 import { ProjectsStore } from '../../../core/state/projects.store';
+import { RealtimeStore } from '../../../core/state/realtime.store';
 import { TasksStore } from '../../../core/state/tasks.store';
 import { KanbanBoardComponent } from './kanban-board.component';
 
@@ -71,6 +72,11 @@ describe('KanbanBoardComponent', () => {
     reorderTasks: vi.fn(() => of([task])),
   };
 
+  const realtimeStore = {
+    joinProject: vi.fn(),
+    leaveProject: vi.fn(),
+  };
+
   beforeEach(async () => {
     vi.clearAllMocks();
 
@@ -80,6 +86,7 @@ describe('KanbanBoardComponent', () => {
         { provide: OrganizationStore, useValue: organizationStore },
         { provide: ProjectsStore, useValue: projectsStore },
         { provide: TasksStore, useValue: tasksStore },
+        { provide: RealtimeStore, useValue: realtimeStore },
         {
           provide: ActivatedRoute,
           useValue: {

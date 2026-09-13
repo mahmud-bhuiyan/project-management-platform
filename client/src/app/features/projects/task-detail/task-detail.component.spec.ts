@@ -9,6 +9,7 @@ import { AuthStore } from '../../../core/state/auth.store';
 import { OrganizationStore } from '../../../core/state/organization.store';
 import { ProjectsStore } from '../../../core/state/projects.store';
 import { TaskDetailStore } from '../../../core/state/task-detail.store';
+import { RealtimeStore } from '../../../core/state/realtime.store';
 import { TasksStore } from '../../../core/state/tasks.store';
 import { TaskDetailComponent } from './task-detail.component';
 
@@ -115,6 +116,11 @@ describe('TaskDetailComponent', () => {
     deleteComment: vi.fn(() => of(undefined)),
   };
 
+  const realtimeStore = {
+    joinProject: vi.fn(),
+    leaveProject: vi.fn(),
+  };
+
   const authStore = {
     currentUser: signal({
       id: 'user-1',
@@ -155,6 +161,7 @@ describe('TaskDetailComponent', () => {
         { provide: TasksStore, useValue: tasksStore },
         { provide: TaskDetailStore, useValue: taskDetailStore },
         { provide: AuthStore, useValue: authStore },
+        { provide: RealtimeStore, useValue: realtimeStore },
       ],
     }).compileComponents();
   });

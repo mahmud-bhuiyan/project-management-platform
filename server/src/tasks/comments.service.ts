@@ -5,6 +5,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { UsersService } from '../users/users.service.js';
 import { ActivityAction } from './activity.types.js';
 import { NotificationTriggersService } from '../notifications/notification-triggers.service.js';
+import { RealtimeEmitterService } from '../realtime/realtime-emitter.service.js';
 import { ActivityLogService } from './activity-log.service.js';
 import type {
   CommentResponse,
@@ -26,6 +27,7 @@ export class CommentsService {
     private readonly usersService: UsersService,
     private readonly activityLogService: ActivityLogService,
     private readonly notificationTriggersService: NotificationTriggersService,
+    private readonly realtimeEmitter: RealtimeEmitterService,
   ) {}
 
   async create(
@@ -85,7 +87,17 @@ export class CommentsService {
       });
     }
 
-    return this.toCommentResponse(comment);
+    const response = this.toCommentResponse(comment);
+
+    this.realtimeEmitter.emitCommentCreated({
+      actorId: userId,
+      organizationId,
+      projectId,
+      taskId,
+      comment: response,
+    });
+
+    return response;
   }
 
   async findAllForTask(

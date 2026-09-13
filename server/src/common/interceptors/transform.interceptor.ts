@@ -17,9 +17,13 @@ export class TransformInterceptor<T>
   implements NestInterceptor<T, ApiSuccessResponse>
 {
   intercept(
-    _context: ExecutionContext,
+    context: ExecutionContext,
     next: CallHandler<T>,
   ): Observable<ApiSuccessResponse> {
+    if (context.getType?.() === 'ws') {
+      return next.handle() as Observable<ApiSuccessResponse>;
+    }
+
     return next.handle().pipe(
       map((payload) => {
         if (payload === undefined) {

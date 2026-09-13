@@ -9,6 +9,7 @@ const suites = [
   'task-full-feature.mjs',
   'task-detail-phase8.mjs',
   'notifications-phase9.mjs',
+  'realtime-phase10.mjs',
 ];
 
 async function runSuite(suite) {

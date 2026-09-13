@@ -2,12 +2,14 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
+import { RealtimeModule } from '../realtime/realtime.module.js';
 import { NotificationTriggersService } from './notification-triggers.service.js';
 import { NotificationsController } from './notifications.controller.js';
 import { NotificationsService } from './notifications.service.js';
 
 @Module({
   imports: [
+    RealtimeModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

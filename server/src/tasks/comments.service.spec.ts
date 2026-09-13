@@ -5,6 +5,7 @@ import { ApiException } from '../common/exceptions/api.exception.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { UsersService } from '../users/users.service.js';
 import { NotificationTriggersService } from '../notifications/notification-triggers.service.js';
+import { RealtimeEmitterService } from '../realtime/realtime-emitter.service.js';
 import { ActivityLogService } from './activity-log.service.js';
 import { CommentsService } from './comments.service.js';
 import { TasksService } from './tasks.service.js';
@@ -54,6 +55,12 @@ describe('CommentsService', () => {
     notifyCommentMentions: vi.fn(),
   };
 
+  const realtimeEmitter = {
+    emitTaskReordered: vi.fn(),
+    emitCommentCreated: vi.fn(),
+    emitNotificationCreated: vi.fn(),
+  };
+
   const prisma = {
     comment: {
       create: vi.fn(),
@@ -98,6 +105,7 @@ describe('CommentsService', () => {
           provide: NotificationTriggersService,
           useValue: notificationTriggersService,
         },
+        { provide: RealtimeEmitterService, useValue: realtimeEmitter },
       ],
     }).compile();
 

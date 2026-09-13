@@ -8,6 +8,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { filter } from 'rxjs';
 import { AuthStore } from '../../core/state/auth.store';
 import { OrganizationStore } from '../../core/state/organization.store';
+import { RealtimeStore } from '../../core/state/realtime.store';
 import { WorkspaceStore } from '../../core/state/workspace.store';
 import { NotificationBellComponent } from './notification-bell/notification-bell.component';
 import { OrganizationSwitcherComponent } from './organization-switcher/organization-switcher.component';
@@ -28,6 +29,7 @@ import { OrganizationSwitcherComponent } from './organization-switcher/organizat
 export class AppShellComponent {
   private readonly authStore = inject(AuthStore);
   private readonly workspaceStore = inject(WorkspaceStore);
+  private readonly realtimeStore = inject(RealtimeStore);
   private readonly router = inject(Router);
 
   protected readonly user = this.authStore.currentUser;
@@ -47,7 +49,13 @@ export class AppShellComponent {
         this.closeMobileNav();
       });
 
-    this.workspaceStore.bootstrap().subscribe();
+    if (this.workspaceStore.hasBootstrapped()) {
+      this.realtimeStore.connect();
+    } else {
+      this.workspaceStore.bootstrap().subscribe({
+        next: () => this.realtimeStore.connect(),
+      });
+    }
   }
 
   protected userInitials(): string {

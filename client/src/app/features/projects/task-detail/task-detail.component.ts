@@ -17,6 +17,7 @@ import type { TaskSummary } from '../../../core/models/task.model';
 import { AuthStore } from '../../../core/state/auth.store';
 import { OrganizationStore } from '../../../core/state/organization.store';
 import { ProjectsStore } from '../../../core/state/projects.store';
+import { RealtimeStore } from '../../../core/state/realtime.store';
 import { TaskDetailStore } from '../../../core/state/task-detail.store';
 import { TasksStore } from '../../../core/state/tasks.store';
 import { formatActivityMessage } from '../../../core/utils/activity-message.util';
@@ -43,6 +44,7 @@ export class TaskDetailComponent {
   private readonly projectsStore = inject(ProjectsStore);
   private readonly tasksStore = inject(TasksStore);
   private readonly taskDetailStore = inject(TaskDetailStore);
+  private readonly realtimeStore = inject(RealtimeStore);
   private readonly authStore = inject(AuthStore);
   private readonly route = inject(ActivatedRoute);
 
@@ -145,6 +147,9 @@ export class TaskDetailComponent {
       if (!organization || !project || !projectId || !taskId) {
         return;
       }
+
+      this.realtimeStore.joinProject(organization.id, projectId);
+      onCleanup(() => this.realtimeStore.leaveProject(organization.id, projectId));
 
       if (untracked(() => !this.projectsStore.isProjectMembersLoaded(projectId))) {
         const membersSubscription = this.projectsStore

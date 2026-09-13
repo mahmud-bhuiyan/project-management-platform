@@ -23,6 +23,7 @@ import { finalize } from 'rxjs';
 import type { TaskStatus, TaskSummary } from '../../../core/models/task.model';
 import { OrganizationStore } from '../../../core/state/organization.store';
 import { ProjectsStore } from '../../../core/state/projects.store';
+import { RealtimeStore } from '../../../core/state/realtime.store';
 import { TasksStore } from '../../../core/state/tasks.store';
 import {
   TASK_STATUSES,
@@ -66,6 +67,7 @@ export class KanbanBoardComponent {
   private readonly organizationStore = inject(OrganizationStore);
   private readonly projectsStore = inject(ProjectsStore);
   private readonly tasksStore = inject(TasksStore);
+  private readonly realtimeStore = inject(RealtimeStore);
   private readonly route = inject(ActivatedRoute);
 
   protected readonly columns = TASK_STATUSES;
@@ -119,6 +121,8 @@ export class KanbanBoardComponent {
         return;
       }
 
+      this.realtimeStore.joinProject(organization.id, projectId);
+
       const subscription = this.tasksStore
         .loadTasks({
           organizationId: organization.id,
@@ -128,7 +132,10 @@ export class KanbanBoardComponent {
         })
         .subscribe();
 
-      onCleanup(() => subscription.unsubscribe());
+      onCleanup(() => {
+        subscription.unsubscribe();
+        this.realtimeStore.leaveProject(organization.id, projectId);
+      });
     });
 
     effect(() => {

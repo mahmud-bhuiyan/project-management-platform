@@ -12,6 +12,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { ProjectsService } from '../projects/projects.service.js';
 import { UsersService } from '../users/users.service.js';
 import { NotificationTriggersService } from '../notifications/notification-triggers.service.js';
+import { RealtimeEmitterService } from '../realtime/realtime-emitter.service.js';
 import { ActivityLogService } from './activity-log.service.js';
 import { TasksService } from './tasks.service.js';
 
@@ -71,6 +72,12 @@ describe('TasksService', () => {
   const notificationTriggersService = {
     notifyTaskAssigned: vi.fn(),
     notifyTaskStatusChanged: vi.fn(),
+  };
+
+  const realtimeEmitter = {
+    emitTaskReordered: vi.fn(),
+    emitCommentCreated: vi.fn(),
+    emitNotificationCreated: vi.fn(),
   };
 
   const tx = {
@@ -139,6 +146,7 @@ describe('TasksService', () => {
           provide: NotificationTriggersService,
           useValue: notificationTriggersService,
         },
+        { provide: RealtimeEmitterService, useValue: realtimeEmitter },
       ],
     }).compile();
 
