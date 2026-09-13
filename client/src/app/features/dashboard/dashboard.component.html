@@ -21,6 +21,14 @@
       </article>
     }
   </section>
+  <section class="mt-8 grid gap-4 lg:grid-cols-2" aria-busy="true">
+    @for (chart of [1, 2]; track chart) {
+      <article class="glass-panel rounded-2xl p-6">
+        <div class="h-4 w-32 stat-placeholder rounded"></div>
+        <div class="mt-6 h-64 stat-placeholder rounded-xl"></div>
+      </article>
+    }
+  </section>
   <p class="sr-only">Loading dashboard stats…</p>
 } @else if (statsError(); as error) {
   <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
@@ -45,6 +53,70 @@
         </p>
         <p class="mt-2 text-xs text-gray-500">{{ card.hint }}</p>
       </article>
+    }
+  </section>
+
+  <section class="mt-8" data-testid="dashboard-charts">
+    <div class="mb-4">
+      <h2 class="font-display text-lg font-bold text-flow-900">Workspace insights</h2>
+      <p class="mt-1 text-sm text-gray-600">
+        Task distribution and project completion across your organization.
+      </p>
+    </div>
+
+    @if (!chartsHaveData()) {
+      <div
+        class="glass-panel rounded-2xl px-6 py-10 text-center"
+        data-testid="dashboard-charts-empty"
+      >
+        <p class="text-sm font-medium text-flow-700">No chart data yet</p>
+        <p class="mt-1 text-sm text-gray-500">
+          Create projects and tasks to see status, priority, and progress charts here.
+        </p>
+      </div>
+    } @else {
+      <div class="grid gap-4 lg:grid-cols-2">
+        @if (tasksByStatusChart(); as statusChart) {
+          <article class="glass-panel rounded-2xl p-6">
+            <h3 class="font-display text-base font-bold text-flow-900">Tasks by status</h3>
+            <p class="mt-1 text-sm text-gray-600">How work is distributed across the board.</p>
+            <div class="mt-6">
+              <app-dashboard-chart
+                [config]="statusChart"
+                ariaLabel="Tasks by status doughnut chart"
+              />
+            </div>
+          </article>
+        }
+
+        @if (tasksByPriorityChart(); as priorityChart) {
+          <article class="glass-panel rounded-2xl p-6">
+            <h3 class="font-display text-base font-bold text-flow-900">Tasks by priority</h3>
+            <p class="mt-1 text-sm text-gray-600">Priority mix for open and completed work.</p>
+            <div class="mt-6">
+              <app-dashboard-chart
+                [config]="priorityChart"
+                ariaLabel="Tasks by priority bar chart"
+              />
+            </div>
+          </article>
+        }
+      </div>
+
+      @if (hasProjectProgress() && projectProgressChart(); as progressChart) {
+        <article class="glass-panel mt-4 rounded-2xl p-6">
+          <h3 class="font-display text-base font-bold text-flow-900">Project progress</h3>
+          <p class="mt-1 text-sm text-gray-600">
+            Completed vs open tasks for active projects (top {{ stats()?.charts.projectProgress.length }}).
+          </p>
+          <div class="mt-6">
+            <app-dashboard-chart
+              [config]="progressChart"
+              ariaLabel="Project progress stacked bar chart"
+            />
+          </div>
+        </article>
+      }
     }
   </section>
 }

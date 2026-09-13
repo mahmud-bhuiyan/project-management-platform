@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-14  
-**Current step:** 11.1 (not started)
+**Current step:** 12.1 (not started)
 
 ### Decisions (Phase 2)
 
@@ -39,7 +39,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 8 | Task details, comments, activity | 4 / 4 | Complete |
 | 9 | Notifications | 3 / 3 | Complete |
 | 10 | Real-time updates | 3 / 3 | Complete |
-| 11 | Dashboard charts | 0 / 1 | Not started |
+| 11 | Dashboard charts | 1 / 1 | Complete |
 | 12 | Search & permission audit | 0 / 3 | Not started |
 | 13 | UI polish | 0 / 2 | Not started |
 | 14 | Testing pass | 0 / 1 | Not started |
@@ -183,7 +183,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 11.1 | Chart.js + stats endpoints | [ ] | | |
+| 11.1 | Chart.js + stats endpoints | [x] | 2026-09-14 | Extended `GET /dashboard/stats` with `charts` (tasks by status/priority, project progress); Chart.js doughnut + bar UI; Playwright e2e 15/15; Postman repo + cloud synced — user verified |
 
 ---
 
@@ -293,3 +293,4 @@ Use this for quick notes across sessions.
 | 2026-09-14 | 10.1 | Socket.IO gateway — JWT connect + project room join | Pass — `verify-socket-connection.mjs`; 10 realtime unit tests; build OK |
 | 2026-09-14 | 10.2 | Real-time events — Kanban reorder, comments, notifications | Built — server emits + client store sync; 119 client + server tests; builds OK |
 | 2026-09-14 | 10.3 | Phase 10 integration — WS_URL + two-tab simulation script | Pass — `verify:realtime`; interceptor WS ack fix; Phase 10 complete |
+| 2026-09-14 | 11.1 | Dashboard charts — stats API chart data + Chart.js UI | Pass — Playwright e2e 15/15 (`dashboard-charts-phase11.mjs`); 3 chart canvases with demo data; Phase 11 complete |

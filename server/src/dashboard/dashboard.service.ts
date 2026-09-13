@@ -1,8 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { ProjectStatus, TaskStatus } from '@prisma/client';
+import {
+  ProjectStatus,
+  TaskPriority,
+  TaskStatus,
+} from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { OrganizationsService } from '../organizations/organizations.service.js';
-import type { DashboardStats } from './dashboard.types.js';
+import type {
+  DashboardCharts,
+  DashboardStats,
+  ProjectProgressItem,
+  TaskPriorityCount,
+  TaskStatusCount,
+} from './dashboard.types.js';
+
+const TASK_STATUSES = Object.values(TaskStatus);
+const TASK_PRIORITIES = Object.values(TaskPriority);
+const MAX_PROJECT_PROGRESS_ITEMS = 10;
 
 @Injectable()
 export class DashboardService {
@@ -22,6 +36,7 @@ export class DashboardService {
       totalTasks,
       completedTasks,
       overdueTasks,
+      charts,
     ] = await Promise.all([
       this.prisma.project.count({
         where: { organizationId, archivedAt: null },
@@ -49,6 +64,7 @@ export class DashboardService {
           dueDate: { lt: now },
         },
       }),
+      this.getCharts(organizationId),
     ]);
 
     return {
@@ -57,6 +73,99 @@ export class DashboardService {
       totalTasks,
       completedTasks,
       overdueTasks,
+      charts,
     };
+  }
+
+  private async getCharts(organizationId: string): Promise<DashboardCharts> {
+    const [tasksByStatus, tasksByPriority, projectProgress] = await Promise.all([
+      this.getTasksByStatus(organizationId),
+      this.getTasksByPriority(organizationId),
+      this.getProjectProgress(organizationId),
+    ]);
+
+    return {
+      tasksByStatus,
+      tasksByPriority,
+      projectProgress,
+    };
+  }
+
+  private async getTasksByStatus(
+    organizationId: string,
+  ): Promise<TaskStatusCount[]> {
+    const groups = await this.prisma.task.groupBy({
+      by: ['status'],
+      where: { project: { organizationId } },
+      _count: { _all: true },
+    });
+
+    const countByStatus = new Map(
+      groups.map((group) => [group.status, group._count._all]),
+    );
+
+    return TASK_STATUSES.map((status) => ({
+      status,
+      count: countByStatus.get(status) ?? 0,
+    }));
+  }
+
+  private async getTasksByPriority(
+    organizationId: string,
+  ): Promise<TaskPriorityCount[]> {
+    const groups = await this.prisma.task.groupBy({
+      by: ['priority'],
+      where: { project: { organizationId } },
+      _count: { _all: true },
+    });
+
+    const countByPriority = new Map(
+      groups.map((group) => [group.priority, group._count._all]),
+    );
+
+    return TASK_PRIORITIES.map((priority) => ({
+      priority,
+      count: countByPriority.get(priority) ?? 0,
+    }));
+  }
+
+  private async getProjectProgress(
+    organizationId: string,
+  ): Promise<ProjectProgressItem[]> {
+    const [projects, completedGroups] = await Promise.all([
+      this.prisma.project.findMany({
+        where: { organizationId, archivedAt: null },
+        select: {
+          id: true,
+          name: true,
+          _count: {
+            select: { tasks: true },
+          },
+        },
+      }),
+      this.prisma.task.groupBy({
+        by: ['projectId'],
+        where: {
+          project: { organizationId, archivedAt: null },
+          status: TaskStatus.DONE,
+        },
+        _count: { _all: true },
+      }),
+    ]);
+
+    const completedByProject = new Map(
+      completedGroups.map((group) => [group.projectId, group._count._all]),
+    );
+
+    return projects
+      .map((project) => ({
+        projectId: project.id,
+        projectName: project.name,
+        totalTasks: project._count.tasks,
+        completedTasks: completedByProject.get(project.id) ?? 0,
+      }))
+      .filter((project) => project.totalTasks > 0)
+      .sort((left, right) => right.totalTasks - left.totalTasks)
+      .slice(0, MAX_PROJECT_PROGRESS_ITEMS);
   }
 }

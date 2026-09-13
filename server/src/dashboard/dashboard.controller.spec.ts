@@ -49,6 +49,11 @@ describe('DashboardController', () => {
       totalTasks: 0,
       completedTasks: 0,
       overdueTasks: 0,
+      charts: {
+        tasksByStatus: [],
+        tasksByPriority: [],
+        projectProgress: [],
+      },
     });
 
     const result = await dashboardController.getStats(createAuthenticatedRequest(), {
@@ -62,6 +67,11 @@ describe('DashboardController', () => {
       totalTasks: 0,
       completedTasks: 0,
       overdueTasks: 0,
+      charts: {
+        tasksByStatus: [],
+        tasksByPriority: [],
+        projectProgress: [],
+      },
     });
     expect(result.message).toBe('Dashboard stats retrieved successfully');
   });

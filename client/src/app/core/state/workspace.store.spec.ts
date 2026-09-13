@@ -31,6 +31,11 @@ const stats = {
   totalTasks: 8,
   completedTasks: 3,
   overdueTasks: 1,
+  charts: {
+    tasksByStatus: [{ status: 'TODO', count: 3 }],
+    tasksByPriority: [{ priority: 'MEDIUM', count: 5 }],
+    projectProgress: [],
+  },
 };
 
 describe('WorkspaceStore', () => {

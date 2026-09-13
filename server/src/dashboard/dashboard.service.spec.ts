@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ProjectStatus, TaskStatus } from '@prisma/client';
+import {
+  ProjectStatus,
+  TaskPriority,
+  TaskStatus,
+} from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { OrganizationsService } from '../organizations/organizations.service.js';
 import { DashboardService } from './dashboard.service.js';
@@ -15,9 +19,11 @@ describe('DashboardService', () => {
   const prisma = {
     project: {
       count: vi.fn(),
+      findMany: vi.fn(),
     },
     task: {
       count: vi.fn(),
+      groupBy: vi.fn(),
     },
   };
 
@@ -41,6 +47,32 @@ describe('DashboardService', () => {
       .mockResolvedValueOnce(4)
       .mockResolvedValueOnce(1);
 
+    prisma.task.groupBy
+      .mockResolvedValueOnce([
+        { status: TaskStatus.TODO, _count: { _all: 3 } },
+        { status: TaskStatus.DONE, _count: { _all: 4 } },
+      ])
+      .mockResolvedValueOnce([
+        { priority: TaskPriority.MEDIUM, _count: { _all: 6 } },
+        { priority: TaskPriority.HIGH, _count: { _all: 2 } },
+      ])
+      .mockResolvedValueOnce([
+        { projectId: 'project-1', _count: { _all: 2 } },
+      ]);
+
+    prisma.project.findMany.mockResolvedValue([
+      {
+        id: 'project-1',
+        name: 'Website',
+        _count: { tasks: 5 },
+      },
+      {
+        id: 'project-2',
+        name: 'Mobile',
+        _count: { tasks: 0 },
+      },
+    ]);
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DashboardService,
@@ -52,7 +84,7 @@ describe('DashboardService', () => {
     dashboardService = module.get(DashboardService);
   });
 
-  it('returns dashboard stats for organization members', async () => {
+  it('returns dashboard stats and chart data for organization members', async () => {
     const stats = await dashboardService.getStats('user-1', 'org-1');
 
     expect(organizationsService.findOneForUser).toHaveBeenCalledWith(
@@ -84,6 +116,29 @@ describe('DashboardService', () => {
       totalTasks: 10,
       completedTasks: 4,
       overdueTasks: 1,
+      charts: {
+        tasksByStatus: [
+          { status: TaskStatus.BACKLOG, count: 0 },
+          { status: TaskStatus.TODO, count: 3 },
+          { status: TaskStatus.IN_PROGRESS, count: 0 },
+          { status: TaskStatus.REVIEW, count: 0 },
+          { status: TaskStatus.DONE, count: 4 },
+        ],
+        tasksByPriority: [
+          { priority: TaskPriority.LOW, count: 0 },
+          { priority: TaskPriority.MEDIUM, count: 6 },
+          { priority: TaskPriority.HIGH, count: 2 },
+          { priority: TaskPriority.CRITICAL, count: 0 },
+        ],
+        projectProgress: [
+          {
+            projectId: 'project-1',
+            projectName: 'Website',
+            totalTasks: 5,
+            completedTasks: 2,
+          },
+        ],
+      },
     });
   });
 });
