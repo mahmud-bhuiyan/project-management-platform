@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
+import { NotificationsModule } from '../notifications/notifications.module.js';
 import { OrganizationsModule } from '../organizations/organizations.module.js';
 import { ProjectsModule } from '../projects/projects.module.js';
 import { UsersModule } from '../users/users.module.js';
@@ -16,6 +17,7 @@ import { TasksService } from './tasks.service.js';
 
 @Module({
   imports: [
+    NotificationsModule,
     OrganizationsModule,
     ProjectsModule,
     UsersModule,

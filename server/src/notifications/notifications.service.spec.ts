@@ -29,6 +29,9 @@ describe('NotificationsService', () => {
       update: vi.fn(),
       updateMany: vi.fn(),
     },
+    task: {
+      findMany: vi.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -43,6 +46,7 @@ describe('NotificationsService', () => {
       readAt: new Date('2026-01-02T00:00:00.000Z'),
     });
     prisma.notification.updateMany.mockResolvedValue({ count: 2 });
+    prisma.task.findMany.mockResolvedValue([]);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

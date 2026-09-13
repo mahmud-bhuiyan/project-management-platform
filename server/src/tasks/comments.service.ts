@@ -4,6 +4,7 @@ import { ApiException } from '../common/exceptions/api.exception.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { UsersService } from '../users/users.service.js';
 import { ActivityAction } from './activity.types.js';
+import { NotificationTriggersService } from '../notifications/notification-triggers.service.js';
 import { ActivityLogService } from './activity-log.service.js';
 import type {
   CommentResponse,
@@ -24,6 +25,7 @@ export class CommentsService {
     private readonly tasksService: TasksService,
     private readonly usersService: UsersService,
     private readonly activityLogService: ActivityLogService,
+    private readonly notificationTriggersService: NotificationTriggersService,
   ) {}
 
   async create(
@@ -58,6 +60,30 @@ export class CommentsService {
         body: comment.body,
       },
     });
+
+    const task = await this.prisma.task.findFirst({
+      where: { id: taskId, projectId },
+      select: {
+        id: true,
+        title: true,
+        project: {
+          select: { organizationId: true },
+        },
+      },
+    });
+
+    if (task) {
+      await this.notificationTriggersService.notifyCommentMentions({
+        actorId: userId,
+        authorName: comment.author.name,
+        organizationId: task.project.organizationId,
+        projectId,
+        taskId,
+        taskTitle: task.title,
+        commentId: comment.id,
+        body: comment.body,
+      });
+    }
 
     return this.toCommentResponse(comment);
   }
