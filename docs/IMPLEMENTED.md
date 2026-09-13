@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-13  
-**Current step:** 3.1
+**Current step:** 3.6 (ready for manual test)
 
 ### Decisions (Phase 2)
 
@@ -18,6 +18,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 - **Demo login** — persona picker + `GET/POST /auth/demo-*` for local/CV demos; gated by `DEMO_LOGIN_ENABLED` / `NG_APP_DEMO_LOGIN_ENABLED`.
 - **Postman** — repo `docs/postman/` **and** cloud **My Workspace** (`Flowdesk API` + `Flowdesk — Local`). After every API change, agent must update **both** in the same session (never repo-only). Sync via Postman MCP **browser auth only** — no Postman API key. See `.cursor/rules/postman-cloud-sync.mdc` and PLAN § Postman cloud sync.
 - **UI design** — modern, eye-catching product UI from Phase 2 onward (mesh hero, glass panels, icon inputs, app shell). No plain form-only pages. See PLAN §2 UI design standards.
+- **Shared UI** — reuse `app-page-hero`, `app-modal`, and `app-password-input` before adding new markup; extract at two uses. See PLAN §2 Reusable components.
 - **Responsiveness** — fully usable on phone, tablet, desktop; mobile nav drawer in app shell; test at 375px / 768px / 1280px before marking UI steps done. See PLAN §2 Responsiveness.
 - **Client state** — Signals + services; app shell persists across routes; button-only form loading; partial view updates; no full-page spinners. See PLAN §2 Client state management.
 
@@ -29,7 +30,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 |-------|------|------------|--------|
 | 1 | Project setup | 12 / 12 | Complete |
 | 2 | Authentication | 12 / 12 | Complete |
-| 3 | Organization & team | 0 / 8 | Not started |
+| 3 | Organization & team | 5 / 8 | In progress |
 | 4 | Dashboard shell | 0 / 3 | Not started |
 | 5 | Project management | 0 / 7 | Not started |
 | 6 | Task management | 0 / 3 | Not started |
@@ -90,12 +91,12 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 3.1 | Organizations API (CRUD) | [ ] | | |
-| 3.2 | Organization members API | [ ] | | |
-| 3.3 | Organization role guards | [ ] | | |
-| 3.4 | App shell layout | [ ] | | |
-| 3.5 | Organization switcher | [ ] | | |
-| 3.6 | Team page | [ ] | | |
+| 3.1 | Organizations API (CRUD) | [x] | 2026-09-13 | `POST/GET/PATCH /organizations`; slug auto-gen; Postman repo + cloud synced — user verified |
+| 3.2 | Organization members API | [x] | 2026-09-13 | `GET/POST/PATCH/DELETE /organizations/:id/members`; OWNER/ADMIN role checks; Postman repo + cloud synced — user verified |
+| 3.3 | Organization role guards | [x] | 2026-09-13 | `OrganizationRoleGuard` on org/member mutations; viewer blocked from update + member add; 82 server tests; Postman repo + cloud synced — user verified |
+| 3.4 | App shell layout | [x] | 2026-09-13 | Sidebar + header + outlet; workspace/delivery nav placeholders; mobile drawer; page title; shell unit tests — user verified |
+| 3.5 | Organization switcher | [x] | 2026-09-13 | `OrganizationService` + sidebar switcher; localStorage persistence; refresh on open — user verified |
+| 3.6 | Team page | [~] | 2026-09-13 | `/team` list/add/remove/role; OWNER/ADMIN controls; viewer read-only — pending manual UI test |
 | 3.7 | Organization settings (basic) | [ ] | | |
 | 3.8 | Phase 3 integration check | [ ] | | |
 

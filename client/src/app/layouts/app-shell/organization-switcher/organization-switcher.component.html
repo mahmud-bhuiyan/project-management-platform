@@ -1,0 +1,64 @@
+<div class="org-switcher" [class.org-switcher--open]="menuOpen()">
+  <button
+    type="button"
+    class="org-switcher__trigger"
+    data-testid="organization-switcher-trigger"
+    [attr.aria-expanded]="menuOpen()"
+    aria-haspopup="listbox"
+    [disabled]="isLoading() && organizations().length === 0"
+    (click)="toggleMenu()"
+  >
+    <span class="org-switcher__icon" aria-hidden="true">
+      {{ activeOrganization()?.name?.charAt(0) ?? 'O' }}
+    </span>
+
+    <span class="org-switcher__text">
+      <span class="org-switcher__label">Organization</span>
+      <span class="org-switcher__name">
+        @if (activeOrganization(); as organization) {
+          {{ organization.name }}
+        } @else if (isLoading()) {
+          Loading organizations…
+        } @else {
+          No organization
+        }
+      </span>
+    </span>
+
+    @if (organizations().length > 0 || isLoading()) {
+      <svg
+        class="org-switcher__chevron"
+        [class.org-switcher__chevron--spinning]="isLoading()"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="1.8"
+        aria-hidden="true"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+      </svg>
+    }
+  </button>
+
+  @if (menuOpen() && organizations().length > 0) {
+    <ul class="org-switcher__menu" role="listbox" aria-label="Organizations">
+      @for (organization of organizations(); track organization.id) {
+        <li>
+          <button
+            type="button"
+            class="org-switcher__option"
+            role="option"
+            [attr.aria-selected]="organization.id === activeOrganizationId()"
+            [class.org-switcher__option--active]="
+              organization.id === activeOrganizationId()
+            "
+            (click)="selectOrganization(organization)"
+          >
+            <span class="org-switcher__option-name">{{ organization.name }}</span>
+            <span class="org-switcher__option-role">{{ formatRole(organization.role) }}</span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

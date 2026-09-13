@@ -1,0 +1,44 @@
+@if (isOpen()) {
+  <div
+    class="modal-backdrop"
+    data-testid="modal-backdrop"
+    (click)="onBackdropClick($event)"
+  >
+    <div
+      class="modal-panel glass-panel"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="title()"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div class="min-w-0">
+          <h2 class="modal-title">{{ title() }}</h2>
+          @if (description(); as text) {
+            <p class="modal-description">{{ text }}</p>
+          }
+        </div>
+        <button
+          type="button"
+          class="modal-close-btn"
+          aria-label="Close dialog"
+          data-testid="modal-close"
+          (click)="close()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M6 6l12 12M18 6L6 18"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </header>
+
+      <div class="modal-body">
+        <ng-content />
+      </div>
+    </div>
+  </div>
+}
