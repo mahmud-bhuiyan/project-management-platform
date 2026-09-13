@@ -42,9 +42,7 @@
 } @else {
   <div class="data-table-wrap">
     <table
-      class="data-table"
-      [class.data-table--bordered]="tableConfig().showColumnBorders"
-      [class.data-table--striped]="tableConfig().stripedRows"
+      [class]="tableClass()"
       [attr.data-testid]="tableTestId()"
     >
       <colgroup>
@@ -71,7 +69,7 @@
             <ng-container
               *ngTemplateOutlet="
                 rowTemplate().templateRef;
-                context: buildRowContext(item)
+                context: buildRowContext(item, $index)
               "
             />
           </tr>

@@ -358,6 +358,7 @@ Before adding new UI markup, check `client/src/app/shared/components/` and **reu
 |-----------|----------|---------|
 | Page hero | `app-page-hero` | App-shell page headers (eyebrow, title, description, badge slots) |
 | Modal | `app-modal` | Dialogs and confirmation flows |
+| Data table | `app-data-table` | Searchable, paginated list tables with projected row templates |
 | Password input | `app-password-input` | Password fields with show/hide toggle |
 
 **Rules:**
@@ -366,6 +367,18 @@ Before adding new UI markup, check `client/src/app/shared/components/` and **reu
 2. **Extract at two uses** — when the same UI pattern appears on two or more pages, move it to `shared/components/` in the same phase (do not defer to Phase 13).
 3. **Page heroes** — authenticated routes inside `AppShellComponent` use `app-page-hero` with inputs and projection slots (`pageHeroDescription`, `pageHeroBadge`, `pageHeroLeading`); login and other auth-only layouts may keep bespoke split heroes until a shared auth variant exists.
 4. **Document new shared components** — add each new shared component to this table when introduced.
+
+**`app-data-table` defaults** (override per page via `[config]` and column defs):
+
+| Setting | Default |
+|---------|---------|
+| Header / cell alignment | center |
+| Column borders | off (card-style rows with rounded ends) |
+| Striped rows | off |
+| Header background | `flow-100` |
+| Page size | 20 (options: 5, 10, 20, 50, 100) |
+
+Styling uses Tailwind utilities on headers/cells (projected `<td>` content); table row gap uses component CSS where Tailwind `border-spacing` in TS is unreliable.
 
 ---
 
@@ -660,6 +673,7 @@ client/src/app/
     components/
       page-hero/       # app-page-hero — page header band
       modal/           # app-modal
+      data-table/      # app-data-table — searchable paginated tables
       password-input/  # app-password-input
   features/
     auth/
@@ -739,7 +753,7 @@ User → Organization → Projects
 - Add existing user by email (no email invite system in v1)
 - Remove team members
 - View team members
-- Assign organization roles
+- Assign organization roles (inline dropdown; **confirm via modal** before PATCH — avoid accidental changes)
 - **Enforce role guards on all org endpoints**
 
 ### Database
@@ -748,7 +762,7 @@ User → Organization → Projects
 
 ### Frontend pages
 
-- Team page
+- Team page — `app-data-table` (search, pagination, striped rows); add-member modal; role-change confirmation modal
 - Organization settings (basic)
 
 ---
@@ -792,7 +806,7 @@ Low | Medium | High | Critical
 ### Frontend
 
 - Projects list, create, details, edit
-- Reusable: project card, status badge, priority badge, empty/loading states, confirm dialog
+- Reusable: `app-data-table` for lists, project card, status badge, priority badge, empty/loading states, confirm dialog (`app-modal`)
 
 ### Tests
 
@@ -1131,7 +1145,7 @@ When implementing each phase:
 9. Use DTO validation in NestJS on every input.
 10. Keep business logic in backend services, not controllers or Angular components.
 11. Enforce permissions in backend guards — UI checks are secondary.
-12. **Reuse shared components first** — check `shared/components/` before new markup; use `app-page-hero`, `app-modal`, and `app-password-input`; extract repeated patterns at two uses (see §2 Reusable components).
+12. **Reuse shared components first** — check `shared/components/` before new markup; use `app-page-hero`, `app-modal`, `app-data-table`, and `app-password-input`; extract repeated patterns at two uses (see §2 Reusable components).
 13. Follow **UI design standards** (§2) — modern, distinctive, recruiter-demo ready; no plain form-only pages in the app shell.
 14. Every list/detail page needs loading, error, and empty states.
 15. Do not hardcode API URLs — use environment variables.

@@ -34,14 +34,16 @@ import { DEFAULT_PAGE_SIZE } from '../../shared/components/data-table/data-table
 import { ModalComponent } from '../../shared/components/modal/modal.component';
 import { PageHeroComponent } from '../../shared/components/page-hero/page-hero.component';
 
-const ASSIGNABLE_ROLES: OrganizationRole[] = [
-  'OWNER',
-  'ADMIN',
-  'MEMBER',
-  'VIEWER',
-];
+const ASSIGNABLE_ROLES: OrganizationRole[] = ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'];
 
 const ADD_MEMBER_ROLES: OrganizationRole[] = ['ADMIN', 'MEMBER', 'VIEWER'];
+
+interface PendingRoleChange {
+  memberId: string;
+  member: OrganizationMember;
+  previousRole: OrganizationRole;
+  nextRole: OrganizationRole;
+}
 
 @Component({
   selector: 'app-team',
@@ -62,8 +64,7 @@ export class TeamComponent {
   private readonly organizationService = inject(OrganizationService);
   private readonly formBuilder = inject(NonNullableFormBuilder);
 
-  protected readonly activeOrganization =
-    this.organizationService.activeOrganization;
+  protected readonly activeOrganization = this.organizationService.activeOrganization;
   protected readonly members = signal<OrganizationMember[]>([]);
   protected readonly isLoadingMembers = signal(false);
   protected readonly membersError = signal<string | null>(null);
@@ -75,14 +76,28 @@ export class TeamComponent {
   protected readonly currentPage = signal(1);
   protected readonly pageSize = signal(DEFAULT_PAGE_SIZE);
   protected readonly isAddMemberModalOpen = signal(false);
+  protected readonly pendingRoleChange = signal<PendingRoleChange | null>(null);
+  protected readonly isConfirmingRoleChange = signal(false);
+
+  protected readonly isRoleChangeModalOpen = computed(
+    () => this.pendingRoleChange() !== null,
+  );
+
+  protected readonly roleChangeModalDescription = computed(() => {
+    const pending = this.pendingRoleChange();
+    if (!pending) {
+      return null;
+    }
+
+    return `You changed ${pending.member.user.name}'s role from ${this.roleLabel(pending.previousRole)} to ${this.roleLabel(pending.nextRole)}. Was this intentional?`;
+  });
 
   protected readonly teamTableConfig: Partial<DataTableConfig> = {
     pageSize: DEFAULT_PAGE_SIZE,
     pageSizeOptions: [5, 10, 20, 50, 100],
     defaultHeaderAlign: 'center',
     defaultCellAlign: 'center',
-    showColumnBorders: true,
-    stripedRows: false,
+    stripedRows: true,
   };
 
   protected readonly canManage = computed(() => {
@@ -102,11 +117,7 @@ export class TeamComponent {
       const email = member.user.email.toLowerCase();
       const role = organizationRoleLabel(member.role).toLowerCase();
 
-      return (
-        name.includes(query) ||
-        email.includes(query) ||
-        role.includes(query)
-      );
+      return name.includes(query) || email.includes(query) || role.includes(query);
     });
   });
 
@@ -138,26 +149,23 @@ export class TeamComponent {
     if (this.canManage()) {
       return [
         { id: 'member', label: 'Member', widthPercent: 25, cellAlign: 'left' },
-        { id: 'email', label: 'Email', widthPercent: 25, cellAlign: 'center' },
-        { id: 'role', label: 'Role', widthPercent: 15, cellAlign: 'center' },
+        { id: 'email', label: 'Email', widthPercent: 28, cellAlign: 'center' },
+        { id: 'role', label: 'Role', widthPercent: 17, cellAlign: 'center' },
         { id: 'joined', label: 'Joined', widthPercent: 15, cellAlign: 'center' },
         { id: 'actions', label: 'Actions', widthPercent: 15, cellAlign: 'center' },
       ];
     }
 
     return [
-      { id: 'member', label: 'Member', widthPercent: 25, cellAlign: 'left' },
-      { id: 'email', label: 'Email', widthPercent: 25, cellAlign: 'center' },
-      { id: 'role', label: 'Role', widthPercent: 25, cellAlign: 'center' },
-      { id: 'joined', label: 'Joined', widthPercent: 25, cellAlign: 'center' },
+      { id: 'member', label: 'Member', widthPercent: 28, cellAlign: 'left' },
+      { id: 'email', label: 'Email', widthPercent: 28, cellAlign: 'center' },
+      { id: 'role', label: 'Role', widthPercent: 22, cellAlign: 'center' },
+      { id: 'joined', label: 'Joined', widthPercent: 22, cellAlign: 'center' },
     ];
   });
 
   protected readonly addMemberForm = this.formBuilder.group({
-    email: [
-      '',
-      [Validators.required, Validators.email, Validators.maxLength(255)],
-    ],
+    email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
     role: this.formBuilder.control<OrganizationRole>('MEMBER'),
   });
 
@@ -218,9 +226,7 @@ export class TeamComponent {
       return [];
     }
 
-    return ADD_MEMBER_ROLES.filter((role) =>
-      canAssignOrganizationRole(actorRole, role),
-    );
+    return ADD_MEMBER_ROLES.filter((role) => canAssignOrganizationRole(actorRole, role));
   }
 
   protected roleOptionsForMember(member: OrganizationMember): OrganizationRole[] {
@@ -229,9 +235,7 @@ export class TeamComponent {
       return [member.role];
     }
 
-    return ASSIGNABLE_ROLES.filter((role) =>
-      canAssignOrganizationRole(actorRole, role),
-    );
+    return ASSIGNABLE_ROLES.filter((role) => canAssignOrganizationRole(actorRole, role));
   }
 
   protected canManageMember(member: OrganizationMember): boolean {
@@ -307,12 +311,47 @@ export class TeamComponent {
       });
   }
 
-  protected onRoleChange(member: OrganizationMember, nextRole: OrganizationRole): void {
+  protected roleSelectValue(member: OrganizationMember): OrganizationRole {
+    const pending = this.pendingRoleChange();
+    if (pending?.memberId === member.id) {
+      return pending.nextRole;
+    }
+
+    return member.role;
+  }
+
+  protected onRoleSelectChange(
+    member: OrganizationMember,
+    nextRole: OrganizationRole,
+  ): void {
     if (
       !this.canManageMember(member) ||
       member.role === nextRole ||
-      this.isRowBusy(member.id)
+      this.isRowBusy(member.id) ||
+      this.pendingRoleChange()
     ) {
+      return;
+    }
+
+    this.pendingRoleChange.set({
+      memberId: member.id,
+      member,
+      previousRole: member.role,
+      nextRole,
+    });
+  }
+
+  protected closeRoleChangeModal(): void {
+    if (this.isConfirmingRoleChange()) {
+      return;
+    }
+
+    this.pendingRoleChange.set(null);
+  }
+
+  protected confirmRoleChange(): void {
+    const pending = this.pendingRoleChange();
+    if (!pending || this.isConfirmingRoleChange()) {
       return;
     }
 
@@ -321,22 +360,29 @@ export class TeamComponent {
       return;
     }
 
+    const { member, nextRole } = pending;
+    this.isConfirmingRoleChange.set(true);
     this.rowActionMemberId.set(member.id);
     this.rowActionError.set(null);
 
     this.organizationService
       .updateMemberRole(organization.id, member.id, nextRole)
-      .pipe(finalize(() => this.rowActionMemberId.set(null)))
+      .pipe(
+        finalize(() => {
+          this.isConfirmingRoleChange.set(false);
+          this.rowActionMemberId.set(null);
+        }),
+      )
       .subscribe({
         next: (updatedMember) => {
           this.members.update((current) =>
-            current.map((item) =>
-              item.id === updatedMember.id ? updatedMember : item,
-            ),
+            current.map((item) => (item.id === updatedMember.id ? updatedMember : item)),
           );
+          this.pendingRoleChange.set(null);
         },
         error: (error: HttpErrorResponse) => {
           this.rowActionError.set(this.extractErrorMessage(error));
+          this.pendingRoleChange.set(null);
         },
       });
   }
@@ -359,9 +405,7 @@ export class TeamComponent {
       .pipe(finalize(() => this.rowActionMemberId.set(null)))
       .subscribe({
         next: () => {
-          this.members.update((current) =>
-            current.filter((item) => item.id !== member.id),
-          );
+          this.members.update((current) => current.filter((item) => item.id !== member.id));
         },
         error: (error: HttpErrorResponse) => {
           this.rowActionError.set(this.extractErrorMessage(error));

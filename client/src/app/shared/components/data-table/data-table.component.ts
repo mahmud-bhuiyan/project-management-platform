@@ -74,6 +74,23 @@ export class DataTableComponent {
     resolveDataTableConfig(this.config()),
   );
 
+  protected readonly tableClass = computed(() => {
+    const { showColumnBorders, stripedRows } = this.tableConfig();
+    const classes = ['data-table', 'w-full', 'table-fixed'];
+
+    if (showColumnBorders) {
+      classes.push('data-table--bordered', 'border-collapse');
+    } else {
+      classes.push('border-separate');
+    }
+
+    if (stripedRows) {
+      classes.push('data-table--striped');
+    }
+
+    return classes.join(' ');
+  });
+
   protected readonly effectivePageSize = computed(
     () => this.pageSize() ?? this.tableConfig().pageSize,
   );
@@ -120,27 +137,51 @@ export class DataTableComponent {
   }
 
   protected columnHeaderClass(column: DataTableColumn): string {
-    const align =
-      column.headerAlign ??
-      column.align ??
-      this.tableConfig().defaultHeaderAlign;
-    return this.alignClass(align);
+    const config = this.tableConfig();
+    const align = column.headerAlign ?? column.align ?? config.defaultHeaderAlign;
+    const parts = [
+      'py-3.5 px-4 text-xs font-semibold tracking-[0.04em] uppercase text-gray-500 whitespace-nowrap bg-flow-100',
+      this.alignClass(align),
+    ];
+    if (config.showColumnBorders) {
+      parts.push('border border-flow-200');
+    }
+    return parts.join(' ');
   }
 
-  protected columnCellClass(columnId: string): string {
-    const column = this.columns().find((entry) => entry.id === columnId);
-    const align =
-      column?.cellAlign ??
-      column?.align ??
-      this.tableConfig().defaultCellAlign;
-    return this.alignClass(align);
+  protected columnCellClass(columnId: string, rowIndex = 0): string {
+    const config = this.tableConfig();
+    const cols = this.columns();
+    const column = cols.find((entry) => entry.id === columnId);
+    const align = column?.cellAlign ?? column?.align ?? config.defaultCellAlign;
+
+    const bg =
+      config.stripedRows && rowIndex % 2 === 1
+        ? 'bg-flow-50/95'
+        : 'bg-[rgb(250_250_255/0.75)]';
+
+    const parts = [
+      'py-3 px-5 align-middle text-sm text-gray-700',
+      bg,
+      this.alignClass(align),
+    ];
+
+    if (config.showColumnBorders) {
+      parts.push('border border-flow-200');
+    } else {
+      const idx = cols.findIndex((c) => c.id === columnId);
+      if (idx === 0) parts.push('rounded-l-xl');
+      if (idx === cols.length - 1) parts.push('rounded-r-xl');
+    }
+
+    return parts.join(' ');
   }
 
-  protected buildRowContext(item: unknown) {
+  protected buildRowContext(item: unknown, rowIndex: number) {
     return {
       $implicit: item,
       item,
-      columnCellClass: (columnId: string) => this.columnCellClass(columnId),
+      columnCellClass: (columnId: string) => this.columnCellClass(columnId, rowIndex),
     };
   }
 

@@ -45,7 +45,7 @@ export const DEFAULT_DATA_TABLE_CONFIG: DataTableConfig = {
   pageSizeOptions: [...DEFAULT_PAGE_SIZE_OPTIONS],
   defaultHeaderAlign: 'center',
   defaultCellAlign: 'center',
-  showColumnBorders: true,
+  showColumnBorders: false,
   stripedRows: false,
 };
 

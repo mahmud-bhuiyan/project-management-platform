@@ -98,9 +98,9 @@
             <select
               class="team-role-select"
               [id]="'team-role-' + member.id"
-              [ngModel]="member.role"
-              [disabled]="isRowBusy(member.id)"
-              (ngModelChange)="onRoleChange(member, $event)"
+              [ngModel]="roleSelectValue(member)"
+              [disabled]="isRowBusy(member.id) || isRoleChangeModalOpen()"
+              (ngModelChange)="onRoleSelectChange(member, $event)"
             >
               @for (role of roleOptionsForMember(member); track role) {
                 <option [value]="role">{{ roleLabel(role) }}</option>
@@ -133,6 +133,35 @@
       </ng-template>
     </app-data-table>
   </section>
+
+  <app-modal
+    [isOpen]="isRoleChangeModalOpen()"
+    title="Change member role?"
+    [description]="roleChangeModalDescription()"
+    [closeOnBackdrop]="!isConfirmingRoleChange()"
+    (closed)="closeRoleChangeModal()"
+  >
+    <div class="team-modal-actions">
+      <button
+        type="button"
+        class="team-secondary-btn"
+        data-testid="team-role-change-cancel"
+        [disabled]="isConfirmingRoleChange()"
+        (click)="closeRoleChangeModal()"
+      >
+        No, keep current role
+      </button>
+      <button
+        type="button"
+        class="team-primary-btn"
+        data-testid="team-role-change-confirm"
+        [disabled]="isConfirmingRoleChange()"
+        (click)="confirmRoleChange()"
+      >
+        {{ isConfirmingRoleChange() ? 'Saving…' : 'Yes, change role' }}
+      </button>
+    </div>
+  </app-modal>
 
   <app-modal
     [isOpen]="isAddMemberModalOpen()"
