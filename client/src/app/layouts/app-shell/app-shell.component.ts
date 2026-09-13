@@ -6,8 +6,9 @@ import {
 } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
-import { AuthService } from '../../core/services/auth.service';
-import { OrganizationService } from '../../core/services/organization.service';
+import { AuthStore } from '../../core/state/auth.store';
+import { OrganizationStore } from '../../core/state/organization.store';
+import { WorkspaceStore } from '../../core/state/workspace.store';
 import { OrganizationSwitcherComponent } from './organization-switcher/organization-switcher.component';
 
 @Component({
@@ -23,12 +24,13 @@ import { OrganizationSwitcherComponent } from './organization-switcher/organizat
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppShellComponent {
-  private readonly authService = inject(AuthService);
-  private readonly organizationService = inject(OrganizationService);
+  private readonly authStore = inject(AuthStore);
+  private readonly workspaceStore = inject(WorkspaceStore);
   private readonly router = inject(Router);
 
-  protected readonly user = this.authService.currentUser;
-  protected readonly isSuperadmin = this.authService.isSuperadmin;
+  protected readonly user = this.authStore.currentUser;
+  protected readonly isSuperadmin = this.authStore.isSuperadmin;
+  protected readonly isBootstrapping = this.workspaceStore.isBootstrapping;
   protected readonly isSigningOut = signal(false);
   protected readonly mobileNavOpen = signal(false);
   protected readonly pageTitle = signal('Dashboard');
@@ -43,7 +45,7 @@ export class AppShellComponent {
         this.closeMobileNav();
       });
 
-    this.organizationService.loadOrganizations().subscribe();
+    this.workspaceStore.bootstrap().subscribe();
   }
 
   protected userInitials(): string {
@@ -94,6 +96,26 @@ export class AppShellComponent {
       return 'Team';
     }
 
+    if (url.includes('/projects/new')) {
+      return 'Create project';
+    }
+
+    if (url.includes('/projects/') && url.includes('/edit')) {
+      return 'Edit project';
+    }
+
+    if (url.includes('/projects/')) {
+      return 'Project';
+    }
+
+    if (url.includes('/projects')) {
+      return 'Projects';
+    }
+
+    if (url.includes('/organization')) {
+      return 'Organization';
+    }
+
     if (url.includes('/admin/company-admins')) {
       return 'Provision company';
     }
@@ -113,15 +135,15 @@ export class AppShellComponent {
     this.isSigningOut.set(true);
     this.closeMobileNav();
 
-    this.authService.logout().subscribe({
+    this.authStore.logout().subscribe({
       next: () => {
-        this.organizationService.clear();
+        this.workspaceStore.clearSession();
         this.isSigningOut.set(false);
         void this.router.navigate(['/login']);
       },
       error: () => {
-        this.authService.clearSession();
-        this.organizationService.clear();
+        this.authStore.clearSession();
+        this.workspaceStore.clearSession();
         this.isSigningOut.set(false);
         void this.router.navigate(['/login']);
       },

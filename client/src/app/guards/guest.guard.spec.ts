@@ -1,11 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { Router, UrlTree } from '@angular/router';
 import { firstValueFrom, of } from 'rxjs';
-import { AuthService } from '../core/services/auth.service';
+import { AuthStore } from '../core/state/auth.store';
 import { guestGuard } from './guest.guard';
 
 describe('guestGuard', () => {
-  const authService = {
+  const authStore = {
     isAuthenticated: vi.fn(),
     restoreSession: vi.fn(),
   };
@@ -15,7 +15,7 @@ describe('guestGuard', () => {
 
     TestBed.configureTestingModule({
       providers: [
-        { provide: AuthService, useValue: authService },
+        { provide: AuthStore, useValue: authStore },
         {
           provide: Router,
           useValue: {
@@ -33,7 +33,7 @@ describe('guestGuard', () => {
     const dashboardTree = new UrlTree();
     vi.spyOn(router, 'createUrlTree').mockReturnValue(dashboardTree);
 
-    authService.isAuthenticated.mockReturnValue(true);
+    authStore.isAuthenticated.mockReturnValue(true);
 
     const result = TestBed.runInInjectionContext(() =>
       guestGuard({} as never, {} as never),
@@ -44,15 +44,15 @@ describe('guestGuard', () => {
   });
 
   it('allows login when session cannot be restored', async () => {
-    authService.isAuthenticated.mockReturnValue(false);
-    authService.restoreSession.mockReturnValue(of(false));
+    authStore.isAuthenticated.mockReturnValue(false);
+    authStore.restoreSession.mockReturnValue(of(false));
 
     const result = await TestBed.runInInjectionContext(() =>
       firstValueFrom(guestGuard({} as never, {} as never) as never),
     );
 
     expect(result).toBe(true);
-    expect(authService.restoreSession).toHaveBeenCalled();
+    expect(authStore.restoreSession).toHaveBeenCalled();
   });
 
   it('redirects to dashboard when refresh cookie restores session', async () => {
@@ -60,8 +60,8 @@ describe('guestGuard', () => {
     const dashboardTree = new UrlTree();
     vi.spyOn(router, 'createUrlTree').mockReturnValue(dashboardTree);
 
-    authService.isAuthenticated.mockReturnValue(false);
-    authService.restoreSession.mockReturnValue(of(true));
+    authStore.isAuthenticated.mockReturnValue(false);
+    authStore.restoreSession.mockReturnValue(of(true));
 
     const result = await TestBed.runInInjectionContext(() =>
       firstValueFrom(guestGuard({} as never, {} as never) as never),

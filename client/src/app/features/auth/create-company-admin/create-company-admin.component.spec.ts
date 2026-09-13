@@ -3,11 +3,11 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthStore } from '../../../core/state/auth.store';
 import { CreateCompanyAdminComponent } from './create-company-admin.component';
 
 describe('CreateCompanyAdminComponent', () => {
-  const authService = {
+  const authStore = {
     createCompanyAdmin: vi.fn(),
   };
 
@@ -18,7 +18,7 @@ describe('CreateCompanyAdminComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
-        { provide: AuthService, useValue: authService },
+        { provide: AuthStore, useValue: authStore },
       ],
     }).compileComponents();
   });
@@ -41,7 +41,7 @@ describe('CreateCompanyAdminComponent', () => {
     expect(compiled.textContent).toContain('Name is required.');
     expect(compiled.textContent).toContain('Password is required.');
     expect(compiled.textContent).toContain('Organization name is required.');
-    expect(authService.createCompanyAdmin).not.toHaveBeenCalled();
+    expect(authStore.createCompanyAdmin).not.toHaveBeenCalled();
   });
 
   it('auto-generates organization slug from organization name', () => {
@@ -58,7 +58,7 @@ describe('CreateCompanyAdminComponent', () => {
   });
 
   it('shows success state after creating a company admin', () => {
-    authService.createCompanyAdmin.mockReturnValue(
+    authStore.createCompanyAdmin.mockReturnValue(
       of({
         user: {
           id: 'user-1',
@@ -94,7 +94,7 @@ describe('CreateCompanyAdminComponent', () => {
     component.submit();
     fixture.detectChanges();
 
-    expect(authService.createCompanyAdmin).toHaveBeenCalledWith({
+    expect(authStore.createCompanyAdmin).toHaveBeenCalledWith({
       email: 'admin@newco.com',
       name: 'New Admin',
       password: 'password123',
@@ -106,7 +106,7 @@ describe('CreateCompanyAdminComponent', () => {
   });
 
   it('shows API error message on duplicate email', () => {
-    authService.createCompanyAdmin.mockReturnValue(
+    authStore.createCompanyAdmin.mockReturnValue(
       throwError(() => ({
         error: {
           message: 'Email is already registered',

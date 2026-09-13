@@ -1,16 +1,16 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { AuthService } from '../core/services/auth.service';
+import { AuthStore } from '../core/state/auth.store';
 
 export const superadminGuard: CanActivateFn = () => {
-  const authService = inject(AuthService);
+  const authStore = inject(AuthStore);
   const router = inject(Router);
 
-  if (!authService.isAuthenticated()) {
+  if (!authStore.isAuthenticated()) {
     return router.createUrlTree(['/login']);
   }
 
-  if (authService.isSuperadmin()) {
+  if (authStore.isSuperadmin()) {
     return true;
   }
 

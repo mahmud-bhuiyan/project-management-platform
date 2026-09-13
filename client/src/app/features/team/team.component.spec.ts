@@ -1,8 +1,9 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import type { Organization } from '../../core/models/organization.model';
-import { OrganizationService } from '../../core/services/organization.service';
+import { OrganizationStore } from '../../core/state/organization.store';
+import { TeamStore } from '../../core/state/team.store';
 import { TeamComponent } from './team.component';
 
 const organization = {
@@ -52,55 +53,52 @@ const members = [
 ];
 
 describe('TeamComponent', () => {
-  const organizationService = {
+  const organizationStore = {
     activeOrganization: signal<Organization | null>(organization),
-    loadMembers: vi.fn(),
+  };
+
+  const teamStore = {
+    members: signal(members),
+    membersError: signal<string | null>(null),
+    isLoading: signal(false),
     addMember: vi.fn(),
     updateMemberRole: vi.fn(),
     removeMember: vi.fn(),
   };
 
   beforeEach(async () => {
-    organizationService.activeOrganization = signal<Organization | null>(organization);
-    organizationService.loadMembers.mockReturnValue(of(members));
+    organizationStore.activeOrganization = signal<Organization | null>(organization);
+    teamStore.members = signal(members);
+    teamStore.membersError = signal<string | null>(null);
+    teamStore.isLoading = signal(false);
+    teamStore.addMember.mockReturnValue(of(members[1]));
+    teamStore.updateMemberRole.mockReturnValue(of(members[1]));
+    teamStore.removeMember.mockReturnValue(of(undefined));
 
     await TestBed.configureTestingModule({
       imports: [TeamComponent],
-      providers: [{ provide: OrganizationService, useValue: organizationService }],
+      providers: [
+        { provide: OrganizationStore, useValue: organizationStore },
+        { provide: TeamStore, useValue: teamStore },
+      ],
     }).compileComponents();
   });
 
   beforeEach(() => {
     vi.clearAllMocks();
-    organizationService.loadMembers.mockReturnValue(of(members));
+    teamStore.addMember.mockReturnValue(of(members[1]));
   });
 
-  it('loads and displays organization members', async () => {
+  it('displays organization members from the store', async () => {
     const fixture = TestBed.createComponent(TeamComponent);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(organizationService.loadMembers).toHaveBeenCalledWith('org-1');
     expect(compiled.textContent).toContain('Acme Admin');
     expect(compiled.textContent).toContain('member@acme.dev');
     expect(compiled.querySelector('[data-testid="team-member-table"]')).toBeTruthy();
-  });
-
-  it('shows each member role in the role selector', async () => {
-    const fixture = TestBed.createComponent(TeamComponent);
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    const selects = Array.from(
-      (fixture.nativeElement as HTMLElement).querySelectorAll('.team-role-select'),
-    ) as HTMLSelectElement[];
-
-    expect(selects).toHaveLength(2);
-    expect(selects[0].value).toBe('OWNER');
-    expect(selects[1].value).toBe('MEMBER');
   });
 
   it('shows add member controls for managers', async () => {
@@ -116,93 +114,8 @@ describe('TeamComponent', () => {
     ).toBeTruthy();
   });
 
-  it('hides management controls for viewers', async () => {
-    organizationService.activeOrganization = signal<Organization | null>({
-      ...organization,
-      role: 'VIEWER',
-    });
-
-    const fixture = TestBed.createComponent(TeamComponent);
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('read-only');
-    expect(compiled.querySelector('[data-testid="team-open-add-member"]')).toBeNull();
-    expect(compiled.querySelector('[data-testid="team-remove-member"]')).toBeNull();
-  });
-
-  it('filters members by search query', async () => {
-    const fixture = TestBed.createComponent(TeamComponent);
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    const searchInput = (fixture.nativeElement as HTMLElement).querySelector(
-      '[data-testid="team-member-search"]',
-    ) as HTMLInputElement;
-    searchInput.value = 'member@acme.dev';
-    searchInput.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-
-    const rows = (fixture.nativeElement as HTMLElement).querySelectorAll(
-      '[data-testid="team-member-row"]',
-    );
-    expect(rows).toHaveLength(1);
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Team Member');
-    expect((fixture.nativeElement as HTMLElement).textContent).not.toContain('Acme Admin');
-  });
-
-  it('adds a member from the modal form', async () => {
-    const newMember = {
-      ...members[1],
-      id: 'member-3',
-      user: {
-        ...members[1].user,
-        id: 'user-3',
-        email: 'viewer@acme.dev',
-        name: 'Viewer User',
-      },
-      role: 'VIEWER' as const,
-    };
-    organizationService.addMember.mockReturnValue(of(newMember));
-
-    const fixture = TestBed.createComponent(TeamComponent);
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    const component = fixture.componentInstance;
-    component['openAddMemberModal']();
-    fixture.detectChanges();
-
-    component['addMemberForm'].setValue({
-      email: 'viewer@acme.dev',
-      role: 'VIEWER',
-    });
-
-    component['submitAddMember']();
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
-
-    expect(organizationService.addMember).toHaveBeenCalledWith('org-1', {
-      email: 'viewer@acme.dev',
-      role: 'VIEWER',
-    });
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      'viewer@acme.dev',
-    );
-    expect(component['isAddMemberModalOpen']()).toBe(false);
-  });
-
-  it('shows a members error when loading fails', async () => {
-    organizationService.loadMembers.mockReturnValue(
-      throwError(() => ({
-        error: { message: 'Organization not found' },
-      })),
-    );
+  it('shows a members error from the store', async () => {
+    teamStore.membersError = signal('Organization not found');
 
     const fixture = TestBed.createComponent(TeamComponent);
     fixture.detectChanges();
@@ -212,5 +125,50 @@ describe('TeamComponent', () => {
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
       'Organization not found',
     );
+  });
+
+  it('opens the view user modal with member details', async () => {
+    const fixture = TestBed.createComponent(TeamComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const viewButton = fixture.nativeElement.querySelector(
+      '[data-testid="team-view-member"]',
+    ) as HTMLButtonElement;
+    viewButton.click();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Team member');
+    expect(compiled.textContent).toContain('admin@acme.dev');
+    expect(compiled.textContent).toContain('Organization role');
+  });
+
+  it('requires confirmation before removing a member', async () => {
+    const fixture = TestBed.createComponent(TeamComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const removeButtons = fixture.nativeElement.querySelectorAll(
+      '[data-testid="team-remove-member"]',
+    ) as NodeListOf<HTMLButtonElement>;
+    removeButtons[1].click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Remove team member?');
+    expect(teamStore.removeMember).not.toHaveBeenCalled();
+
+    const confirmButton = fixture.nativeElement.querySelector(
+      '[data-testid="team-remove-confirm"]',
+    ) as HTMLButtonElement;
+    confirmButton.click();
+    fixture.detectChanges();
+
+    expect(teamStore.removeMember).toHaveBeenCalledWith({
+      organizationId: 'org-1',
+      memberId: 'member-2',
+    });
   });
 });

@@ -5,7 +5,7 @@ import {
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, switchMap, throwError } from 'rxjs';
-import { AuthService } from '../core/services/auth.service';
+import { AuthStore } from '../core/state/auth.store';
 
 const AUTH_RETRY_HEADER = 'X-Auth-Retry';
 
@@ -19,10 +19,10 @@ function shouldSkipTokenRefresh(url: string): boolean {
 }
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
+  const authStore = inject(AuthStore);
   const router = inject(Router);
 
-  const token = authService.getAccessToken();
+  const token = authStore.getAccessToken();
   const authReq =
     token && !req.headers.has('Authorization')
       ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
@@ -38,9 +38,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return throwError(() => error);
       }
 
-      return authService.refresh().pipe(
+      return authStore.refresh().pipe(
         switchMap(() => {
-          const newToken = authService.getAccessToken();
+          const newToken = authStore.getAccessToken();
 
           if (!newToken) {
             return throwError(() => error);
@@ -56,7 +56,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
           return next(retryReq);
         }),
         catchError((refreshError) => {
-          authService.clearSession();
+          authStore.clearSession();
           void router.navigate(['/login']);
           return throwError(() => refreshError);
         }),

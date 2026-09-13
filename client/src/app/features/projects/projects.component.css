@@ -1,0 +1,61 @@
+.projects-placeholder__line {
+  border-radius: 0.5rem;
+  background: linear-gradient(
+    90deg,
+    rgb(237 233 254 / 0.55) 0%,
+    rgb(212 204 252 / 0.35) 50%,
+    rgb(237 233 254 / 0.55) 100%
+  );
+  background-size: 200% 100%;
+  animation: projects-placeholder-shimmer 1.4s ease-in-out infinite;
+}
+
+.projects-placeholder__line--title {
+  height: 1.25rem;
+  width: 70%;
+}
+
+.projects-placeholder__line--badge {
+  margin-top: 0.85rem;
+  height: 1.5rem;
+  width: 45%;
+}
+
+.projects-placeholder__line--body {
+  margin-top: 0.85rem;
+  height: 3rem;
+  width: 100%;
+}
+
+@keyframes projects-placeholder-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.projects-primary-btn {
+  display: inline-flex;
+  min-width: 8.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  padding: 0.7rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: none;
+  background: linear-gradient(
+    135deg,
+    var(--color-flow-500) 0%,
+    var(--color-accent) 100%
+  );
+  color: white;
+}
+
+.projects-empty-action {
+  margin-top: 1rem;
+}

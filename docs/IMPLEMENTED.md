@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-13  
-**Current step:** 3.7
+**Current step:** 5.8 (ready for manual test)
 
 ### Decisions (Phase 2)
 
@@ -19,8 +19,9 @@ Track what you have **built and manually tested**. Compare against the master pl
 - **Postman** — repo `docs/postman/` **and** cloud **My Workspace** (`Flowdesk API` + `Flowdesk — Local`). After every API change, agent must update **both** in the same session (never repo-only). Sync via Postman MCP **browser auth only** — no Postman API key. See `.cursor/rules/postman-cloud-sync.mdc` and PLAN § Postman cloud sync.
 - **UI design** — modern, eye-catching product UI from Phase 2 onward (mesh hero, glass panels, icon inputs, app shell). No plain form-only pages. See PLAN §2 UI design standards.
 - **Shared UI** — reuse `app-page-hero`, `app-modal`, `app-data-table`, and `app-password-input` before adding new markup; extract at two uses. See PLAN §2 Reusable components.
+- **Form layout** — `app-modal` for forms with **≤2 fields** only; **3+ fields** use a dedicated app-shell page (hero + glass panel). See PLAN §2 Reusable components.
 - **Responsiveness** — fully usable on phone, tablet, desktop; mobile nav drawer in app shell; test at 375px / 768px / 1280px before marking UI steps done. See PLAN §2 Responsiveness.
-- **Client state** — Signals + services; app shell persists across routes; button-only form loading; partial view updates; no full-page spinners. See PLAN §2 Client state management.
+- **Client state** — **NgRx Signal Store** (`@ngrx/signals`) for all server-backed UI state; thin HTTP services called by stores only; app shell bootstraps once; no fetch on route enter; instant navigation between pages; button-only form loading; inline empty/error (no full-page spinners). See PLAN §2 Client state management. Migration in step **5.3**.
 
 ---
 
@@ -30,9 +31,9 @@ Track what you have **built and manually tested**. Compare against the master pl
 |-------|------|------------|--------|
 | 1 | Project setup | 12 / 12 | Complete |
 | 2 | Authentication | 12 / 12 | Complete |
-| 3 | Organization & team | 6 / 8 | In progress |
-| 4 | Dashboard shell | 0 / 3 | Not started |
-| 5 | Project management | 0 / 7 | Not started |
+| 3 | Organization & team | 8 / 8 | Complete |
+| 4 | Dashboard shell | 3 / 3 | Complete |
+| 5 | Project management | 7 / 8 | In progress |
 | 6 | Task management | 0 / 3 | Not started |
 | 7 | Kanban board | 0 / 3 | Not started |
 | 8 | Task details, comments, activity | 0 / 4 | Not started |
@@ -97,8 +98,8 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 3.4 | App shell layout | [x] | 2026-09-13 | Sidebar + header + outlet; workspace/delivery nav placeholders; mobile drawer; page title; shell unit tests — user verified |
 | 3.5 | Organization switcher | [x] | 2026-09-13 | `OrganizationService` + sidebar switcher; localStorage persistence; refresh on open — user verified |
 | 3.6 | Team page | [x] | 2026-09-13 | `/team` via `app-data-table` (search, pagination, striped rows, Tailwind cell/header styling); add-member modal; remove member; role dropdown with confirmation modal before save; OWNER/ADMIN controls; viewer read-only — user verified |
-| 3.7 | Organization settings (basic) | [ ] | | |
-| 3.8 | Phase 3 integration check | [ ] | | |
+| 3.7 | Organization settings (basic) | [x] | 2026-09-13 | `/organization` edit name form; OWNER/ADMIN save via PATCH; viewer read-only disabled input; org switcher updates from service signal — user verified |
+| 3.8 | Phase 3 integration check | [x] | 2026-09-13 | Org create/add member/switch/role enforcement verified in UI + API; 82 server + 66 client tests; builds OK — user verified |
 
 ---
 
@@ -106,9 +107,9 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 4.1 | Dashboard stats API | [ ] | | |
-| 4.2 | Dashboard page | [ ] | | |
-| 4.3 | Activity feed stub (optional) | [ ] | | |
+| 4.1 | Dashboard stats API | [x] | 2026-09-13 | `GET /dashboard/stats?organizationId=` — project/task counts; org membership required; 84 server tests; Postman repo + cloud synced — user verified |
+| 4.2 | Dashboard page | [x] | 2026-09-13 | Summary cards wired to stats API; loading skeletons, error + no-org states; reloads on org switch — user verified |
+| 4.3 | Activity feed stub (optional) | [x] | 2026-09-13 | “Recent activity” section with empty state on dashboard — user verified |
 
 ---
 
@@ -116,13 +117,14 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 5.1 | Projects API (CRUD + archive) | [ ] | | |
-| 5.2 | Project members API | [ ] | | |
-| 5.3 | Project backend tests | [ ] | | |
-| 5.4 | Shared UI components | [ ] | | |
-| 5.5 | Projects list page | [ ] | | |
-| 5.6 | Create + edit project | [ ] | | |
-| 5.7 | Project detail page | [ ] | | |
+| 5.1 | Projects API (CRUD + archive) | [x] | 2026-09-13 | CRUD + archive + delete under `/organizations/:id/projects`; OWNER/ADMIN mutations; Postman repo + cloud synced — user verified |
+| 5.2 | Project members API | [x] | 2026-09-13 | Add/remove/list members; project detail requires membership (OWNER/ADMIN bypass); owner auto-added on create; 102 server tests; Postman repo + cloud synced — user verified |
+| 5.3 | Client state stores (NgRx Signal Store) | [x] | 2026-09-13 | `@ngrx/signals` stores (auth, org, dashboard, team, workspace, projects scaffold); shell bootstrap overlay; instant navigation; 61 client tests — user verified |
+| 5.4 | Project backend tests | [x] | 2026-09-13 | Projects + project-members service/controller specs; 102 server tests pass |
+| 5.5 | Shared UI components | [x] | 2026-09-13 | `app-project-card`, `app-project-status-badge`, `app-project-priority-badge`, `app-empty-state`; project model + utils — user verified |
+| 5.6 | Projects list page | [x] | 2026-09-13 | `/projects` reads from `ProjectsStore`; shell bootstrap loads projects; nav link enabled; empty/error states — user verified |
+| 5.7 | Create + edit project | [x] | 2026-09-13 | `/projects/new` + `/projects/:id/edit` pages; shared `app-project-form`; store patches without refetch; form spacing tightened — user verified |
+| 5.8 | Project detail page | [~] | 2026-09-13 | `/projects/:id` reads from store; members section; instant list navigation — pending manual UI test |
 
 ---
 
@@ -267,3 +269,13 @@ Use this for quick notes across sessions.
 | 2026-09-13 | 2.11 | Profile page display + sign out → login | Pass — user verified in browser |
 | 2026-09-13 | 2.12 | Phase 2 integration — Provision company + demo flows, automated checks | Pass — Phase 2 complete |
 | 2026-09-13 | 3.6 | Team page — list/add/remove/role confirm modal; data-table UX | Pass — user verified |
+| 2026-09-13 | 3.7 | Organization settings — edit name, viewer read-only | Pass — user verified |
+| 2026-09-13 | 3.8 | Phase 3 integration check | Pass — Phase 3 complete |
+| 2026-09-13 | 4.1 | Dashboard stats API — GET /dashboard/stats | Pass — user verified |
+| 2026-09-13 | 4.2 | Dashboard page — stats cards wired to API | Pass — user verified |
+| 2026-09-13 | 4.3 | Activity feed stub — Recent activity empty state | Pass — user verified; Phase 4 complete |
+| 2026-09-13 | 5.1 | Projects API — CRUD, archive, delete | Pass — user verified |
+| 2026-09-13 | Postman | Cloud sync: Projects folder (7 requests) + `projectId` env var | Done |
+| 2026-09-13 | 5.2 | Project members API — add/remove/list + access control | Pass — user verified |
+| 2026-09-13 | Postman | Cloud sync: project member requests + `projectMemberId` env var | Done |
+| 2026-09-13 | 5.3 | NgRx Signal Store migration — bootstrap, org switch, store patches | Built — 61 client tests; pending manual UI test |

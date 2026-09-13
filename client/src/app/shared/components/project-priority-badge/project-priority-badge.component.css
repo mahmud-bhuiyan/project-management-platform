@@ -1,0 +1,5 @@
+@import '../../styles/project-badge.css';
+
+:host {
+  display: inline-flex;
+}

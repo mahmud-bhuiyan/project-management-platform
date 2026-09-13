@@ -1,0 +1,41 @@
+.project-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.project-badge--neutral {
+  background: rgb(237 233 254 / 0.85);
+  color: rgb(76 29 149);
+}
+
+.project-badge--info {
+  background: rgb(224 242 254 / 0.95);
+  color: rgb(3 105 161);
+}
+
+.project-badge--success {
+  background: rgb(209 250 229 / 0.95);
+  color: rgb(4 120 87);
+}
+
+.project-badge--warning {
+  background: rgb(254 243 199 / 0.95);
+  color: rgb(180 83 9);
+}
+
+.project-badge--danger {
+  background: rgb(254 226 226 / 0.95);
+  color: rgb(185 28 28);
+}
+
+.project-badge--muted {
+  background: rgb(243 244 246 / 0.95);
+  color: rgb(75 85 99);
+}

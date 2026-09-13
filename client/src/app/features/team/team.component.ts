@@ -17,7 +17,8 @@ import {
 import { finalize } from 'rxjs';
 import type { OrganizationMember } from '../../core/models/organization-member.model';
 import type { OrganizationRole } from '../../core/models/organization.model';
-import { OrganizationService } from '../../core/services/organization.service';
+import { OrganizationStore } from '../../core/state/organization.store';
+import { TeamStore } from '../../core/state/team.store';
 import {
   canAssignOrganizationRole,
   canManageOrganizationMembers,
@@ -61,13 +62,16 @@ interface PendingRoleChange {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TeamComponent {
-  private readonly organizationService = inject(OrganizationService);
+  private readonly organizationStore = inject(OrganizationStore);
+  private readonly teamStore = inject(TeamStore);
   private readonly formBuilder = inject(NonNullableFormBuilder);
 
-  protected readonly activeOrganization = this.organizationService.activeOrganization;
-  protected readonly members = signal<OrganizationMember[]>([]);
-  protected readonly isLoadingMembers = signal(false);
-  protected readonly membersError = signal<string | null>(null);
+  protected readonly activeOrganization = this.organizationStore.activeOrganization;
+  protected readonly members = this.teamStore.members;
+  protected readonly membersError = this.teamStore.membersError;
+  protected readonly isLoadingMembers = computed(
+    () => this.teamStore.isLoading() && this.members().length === 0,
+  );
   protected readonly isAddingMember = signal(false);
   protected readonly addMemberError = signal<string | null>(null);
   protected readonly rowActionMemberId = signal<string | null>(null);
@@ -78,9 +82,20 @@ export class TeamComponent {
   protected readonly isAddMemberModalOpen = signal(false);
   protected readonly pendingRoleChange = signal<PendingRoleChange | null>(null);
   protected readonly isConfirmingRoleChange = signal(false);
+  protected readonly selectedMemberForView = signal<OrganizationMember | null>(null);
+  protected readonly pendingRemoveMember = signal<OrganizationMember | null>(null);
+  protected readonly isRemovingMember = signal(false);
 
   protected readonly isRoleChangeModalOpen = computed(
     () => this.pendingRoleChange() !== null,
+  );
+
+  protected readonly isViewMemberModalOpen = computed(
+    () => this.selectedMemberForView() !== null,
+  );
+
+  protected readonly isRemoveMemberModalOpen = computed(
+    () => this.pendingRemoveMember() !== null,
   );
 
   protected readonly roleChangeModalDescription = computed(() => {
@@ -90,6 +105,15 @@ export class TeamComponent {
     }
 
     return `You changed ${pending.member.user.name}'s role from ${this.roleLabel(pending.previousRole)} to ${this.roleLabel(pending.nextRole)}. Was this intentional?`;
+  });
+
+  protected readonly removeMemberModalDescription = computed(() => {
+    const member = this.pendingRemoveMember();
+    if (!member) {
+      return null;
+    }
+
+    return `Remove ${member.user.name} from this organization? They will lose access immediately.`;
   });
 
   protected readonly teamTableConfig: Partial<DataTableConfig> = {
@@ -145,24 +169,13 @@ export class TeamComponent {
     return { start, end, total };
   });
 
-  protected readonly memberColumns = computed<DataTableColumn[]>(() => {
-    if (this.canManage()) {
-      return [
-        { id: 'member', label: 'Member', widthPercent: 25, cellAlign: 'left' },
-        { id: 'email', label: 'Email', widthPercent: 28, cellAlign: 'center' },
-        { id: 'role', label: 'Role', widthPercent: 17, cellAlign: 'center' },
-        { id: 'joined', label: 'Joined', widthPercent: 15, cellAlign: 'center' },
-        { id: 'actions', label: 'Actions', widthPercent: 15, cellAlign: 'center' },
-      ];
-    }
-
-    return [
-      { id: 'member', label: 'Member', widthPercent: 28, cellAlign: 'left' },
-      { id: 'email', label: 'Email', widthPercent: 28, cellAlign: 'center' },
-      { id: 'role', label: 'Role', widthPercent: 22, cellAlign: 'center' },
-      { id: 'joined', label: 'Joined', widthPercent: 22, cellAlign: 'center' },
-    ];
-  });
+  protected readonly memberColumns = computed<DataTableColumn[]>(() => [
+    { id: 'member', label: 'Member', widthPercent: 22, cellAlign: 'left' },
+    { id: 'email', label: 'Email', widthPercent: 24, cellAlign: 'center' },
+    { id: 'role', label: 'Role', widthPercent: 16, cellAlign: 'center' },
+    { id: 'joined', label: 'Joined', widthPercent: 14, cellAlign: 'center' },
+    { id: 'actions', label: 'Actions', widthPercent: 24, cellAlign: 'center' },
+  ]);
 
   protected readonly addMemberForm = this.formBuilder.group({
     email: ['', [Validators.required, Validators.email, Validators.maxLength(255)]],
@@ -170,21 +183,6 @@ export class TeamComponent {
   });
 
   constructor() {
-    effect((onCleanup) => {
-      const organization = this.activeOrganization();
-
-      if (!organization) {
-        this.members.set([]);
-        this.membersError.set(null);
-        this.searchQuery.set('');
-        this.currentPage.set(1);
-        return;
-      }
-
-      const subscription = this.loadMembers(organization.id);
-      onCleanup(() => subscription.unsubscribe());
-    });
-
     effect(() => {
       this.searchQuery();
       this.members();
@@ -218,6 +216,20 @@ export class TeamComponent {
 
   protected roleLabel(role: OrganizationRole): string {
     return organizationRoleLabel(role);
+  }
+
+  protected platformRoleLabel(member: OrganizationMember): string {
+    return member.user.platformRole === 'SUPERADMIN'
+      ? 'Platform superadmin'
+      : 'Company user';
+  }
+
+  protected openViewMember(member: OrganizationMember): void {
+    this.selectedMemberForView.set(member);
+  }
+
+  protected closeViewMemberModal(): void {
+    this.selectedMemberForView.set(null);
   }
 
   protected addRoleOptions(): OrganizationRole[] {
@@ -296,12 +308,11 @@ export class TeamComponent {
 
     const { email, role } = this.addMemberForm.getRawValue();
 
-    this.organizationService
-      .addMember(organization.id, { email, role })
+    this.teamStore
+      .addMember({ organizationId: organization.id, email, role })
       .pipe(finalize(() => this.isAddingMember.set(false)))
       .subscribe({
-        next: (member) => {
-          this.members.update((current) => [...current, member]);
+        next: () => {
           this.isAddMemberModalOpen.set(false);
           this.addMemberForm.reset({ email: '', role: 'MEMBER' });
         },
@@ -365,8 +376,12 @@ export class TeamComponent {
     this.rowActionMemberId.set(member.id);
     this.rowActionError.set(null);
 
-    this.organizationService
-      .updateMemberRole(organization.id, member.id, nextRole)
+    this.teamStore
+      .updateMemberRole({
+        organizationId: organization.id,
+        memberId: member.id,
+        role: nextRole,
+      })
       .pipe(
         finalize(() => {
           this.isConfirmingRoleChange.set(false);
@@ -374,10 +389,7 @@ export class TeamComponent {
         }),
       )
       .subscribe({
-        next: (updatedMember) => {
-          this.members.update((current) =>
-            current.map((item) => (item.id === updatedMember.id ? updatedMember : item)),
-          );
+        next: () => {
           this.pendingRoleChange.set(null);
         },
         error: (error: HttpErrorResponse) => {
@@ -387,8 +399,29 @@ export class TeamComponent {
       });
   }
 
-  protected removeMember(member: OrganizationMember): void {
-    if (!this.canManageMember(member) || this.isRowBusy(member.id)) {
+  protected openRemoveMemberModal(member: OrganizationMember): void {
+    if (
+      !this.canManageMember(member) ||
+      this.isRowBusy(member.id) ||
+      this.pendingRemoveMember()
+    ) {
+      return;
+    }
+
+    this.pendingRemoveMember.set(member);
+  }
+
+  protected closeRemoveMemberModal(): void {
+    if (this.isRemovingMember()) {
+      return;
+    }
+
+    this.pendingRemoveMember.set(null);
+  }
+
+  protected confirmRemoveMember(): void {
+    const member = this.pendingRemoveMember();
+    if (!member || this.isRemovingMember()) {
       return;
     }
 
@@ -397,18 +430,25 @@ export class TeamComponent {
       return;
     }
 
+    this.isRemovingMember.set(true);
     this.rowActionMemberId.set(member.id);
     this.rowActionError.set(null);
 
-    this.organizationService
-      .removeMember(organization.id, member.id)
-      .pipe(finalize(() => this.rowActionMemberId.set(null)))
+    this.teamStore
+      .removeMember({ organizationId: organization.id, memberId: member.id })
+      .pipe(
+        finalize(() => {
+          this.isRemovingMember.set(false);
+          this.rowActionMemberId.set(null);
+        }),
+      )
       .subscribe({
         next: () => {
-          this.members.update((current) => current.filter((item) => item.id !== member.id));
+          this.pendingRemoveMember.set(null);
         },
         error: (error: HttpErrorResponse) => {
           this.rowActionError.set(this.extractErrorMessage(error));
+          this.pendingRemoveMember.set(null);
         },
       });
   }
@@ -416,24 +456,6 @@ export class TeamComponent {
   protected hasAddError(field: 'email', errorCode: string): boolean {
     const control = this.addMemberForm.controls[field];
     return control.touched && control.hasError(errorCode);
-  }
-
-  private loadMembers(organizationId: string) {
-    this.isLoadingMembers.set(true);
-    this.membersError.set(null);
-    this.searchQuery.set('');
-    this.currentPage.set(1);
-
-    return this.organizationService
-      .loadMembers(organizationId)
-      .pipe(finalize(() => this.isLoadingMembers.set(false)))
-      .subscribe({
-        next: (members) => this.members.set(members),
-        error: (error: HttpErrorResponse) => {
-          this.members.set([]);
-          this.membersError.set(this.extractErrorMessage(error));
-        },
-      });
   }
 
   private extractErrorMessage(error: HttpErrorResponse): string {

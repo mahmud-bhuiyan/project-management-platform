@@ -12,3 +12,7 @@ export interface Organization {
 export interface OrganizationsResponseData {
   organizations: Organization[];
 }
+
+export interface OrganizationResponseData {
+  organization: Pick<Organization, 'id' | 'name' | 'slug' | 'createdAt' | 'updatedAt'>;
+}

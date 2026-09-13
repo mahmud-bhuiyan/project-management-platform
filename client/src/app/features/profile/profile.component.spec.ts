@@ -2,7 +2,8 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthStore } from '../../core/state/auth.store';
+import { WorkspaceStore } from '../../core/state/workspace.store';
 import { ProfileComponent } from './profile.component';
 
 const mockUser = {
@@ -17,27 +18,32 @@ const mockUser = {
 };
 
 describe('ProfileComponent', () => {
-  const authService = {
+  const authStore = {
     currentUser: signal(mockUser),
     logout: vi.fn(),
     clearSession: vi.fn(),
   };
 
+  const workspaceStore = {
+    clearSession: vi.fn(),
+  };
+
   beforeEach(async () => {
-    authService.currentUser = signal(mockUser);
+    authStore.currentUser = signal(mockUser);
 
     await TestBed.configureTestingModule({
       imports: [ProfileComponent],
       providers: [
         provideRouter([]),
-        { provide: AuthService, useValue: authService },
+        { provide: AuthStore, useValue: authStore },
+        { provide: WorkspaceStore, useValue: workspaceStore },
       ],
     }).compileComponents();
   });
 
   beforeEach(() => {
     vi.clearAllMocks();
-    authService.currentUser = signal(mockUser);
+    authStore.currentUser = signal(mockUser);
   });
 
   it('displays current user name and email', () => {
@@ -52,7 +58,7 @@ describe('ProfileComponent', () => {
   it('signs out and redirects to login', async () => {
     const router = TestBed.inject(Router);
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    authService.logout.mockReturnValue(of(undefined));
+    authStore.logout.mockReturnValue(of(undefined));
 
     const fixture = TestBed.createComponent(ProfileComponent);
     fixture.detectChanges();
@@ -63,14 +69,15 @@ describe('ProfileComponent', () => {
     button.click();
     fixture.detectChanges();
 
-    expect(authService.logout).toHaveBeenCalled();
+    expect(authStore.logout).toHaveBeenCalled();
+    expect(workspaceStore.clearSession).toHaveBeenCalled();
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 
   it('clears session and redirects when logout fails', async () => {
     const router = TestBed.inject(Router);
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    authService.logout.mockReturnValue(
+    authStore.logout.mockReturnValue(
       throwError(() => new Error('Network error')),
     );
 
@@ -83,7 +90,8 @@ describe('ProfileComponent', () => {
     button.click();
     fixture.detectChanges();
 
-    expect(authService.clearSession).toHaveBeenCalled();
+    expect(authStore.clearSession).toHaveBeenCalled();
+    expect(workspaceStore.clearSession).toHaveBeenCalled();
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 });

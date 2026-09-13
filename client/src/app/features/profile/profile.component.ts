@@ -1,7 +1,8 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
+import { AuthStore } from '../../core/state/auth.store';
+import { WorkspaceStore } from '../../core/state/workspace.store';
 import { PageHeroComponent } from '../../shared/components/page-hero/page-hero.component';
 
 @Component({
@@ -12,10 +13,11 @@ import { PageHeroComponent } from '../../shared/components/page-hero/page-hero.c
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent {
-  private readonly authService = inject(AuthService);
+  private readonly authStore = inject(AuthStore);
+  private readonly workspaceStore = inject(WorkspaceStore);
   private readonly router = inject(Router);
 
-  protected readonly user = this.authService.currentUser;
+  protected readonly user = this.authStore.currentUser;
   protected readonly isLoggingOut = signal(false);
 
   protected userInitials(): string {
@@ -47,13 +49,15 @@ export class ProfileComponent {
 
     this.isLoggingOut.set(true);
 
-    this.authService.logout().subscribe({
+    this.authStore.logout().subscribe({
       next: () => {
+        this.workspaceStore.clearSession();
         this.isLoggingOut.set(false);
         void this.router.navigate(['/login']);
       },
       error: () => {
-        this.authService.clearSession();
+        this.authStore.clearSession();
+        this.workspaceStore.clearSession();
         this.isLoggingOut.set(false);
         void this.router.navigate(['/login']);
       },

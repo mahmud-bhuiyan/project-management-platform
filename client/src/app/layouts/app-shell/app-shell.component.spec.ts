@@ -2,8 +2,8 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { AuthService } from '../../core/services/auth.service';
-import { OrganizationService } from '../../core/services/organization.service';
+import { AuthStore } from '../../core/state/auth.store';
+import { WorkspaceStore } from '../../core/state/workspace.store';
 import { DashboardComponent } from '../../features/dashboard/dashboard.component';
 import { AppShellComponent } from './app-shell.component';
 
@@ -19,26 +19,23 @@ const mockUser = {
 };
 
 describe('AppShellComponent', () => {
-  const authService = {
+  const authStore = {
     currentUser: signal(mockUser),
     isSuperadmin: signal(false),
     logout: vi.fn(),
     clearSession: vi.fn(),
   };
 
-  const organizationService = {
-    organizations: signal([]),
-    activeOrganization: signal(null),
-    activeOrganizationId: signal(null),
-    isLoading: signal(false),
-    loadOrganizations: vi.fn(() => of([])),
-    clear: vi.fn(),
+  const workspaceStore = {
+    isBootstrapping: signal(false),
+    bootstrap: vi.fn(() => of(undefined)),
+    clearSession: vi.fn(),
   };
 
   beforeEach(async () => {
-    authService.currentUser = signal(mockUser);
-    authService.isSuperadmin = signal(false);
-    organizationService.loadOrganizations.mockReturnValue(of([]));
+    authStore.currentUser = signal(mockUser);
+    authStore.isSuperadmin = signal(false);
+    workspaceStore.bootstrap.mockReturnValue(of(undefined));
 
     await TestBed.configureTestingModule({
       imports: [AppShellComponent],
@@ -50,16 +47,17 @@ describe('AppShellComponent', () => {
             children: [{ path: 'dashboard', component: DashboardComponent }],
           },
         ]),
-        { provide: AuthService, useValue: authService },
-        { provide: OrganizationService, useValue: organizationService },
+        { provide: AuthStore, useValue: authStore },
+        { provide: WorkspaceStore, useValue: workspaceStore },
       ],
     }).compileComponents();
   });
 
   beforeEach(() => {
     vi.clearAllMocks();
-    authService.currentUser = signal(mockUser);
-    authService.isSuperadmin = signal(false);
+    authStore.currentUser = signal(mockUser);
+    authStore.isSuperadmin = signal(false);
+    workspaceStore.bootstrap.mockReturnValue(of(undefined));
   });
 
   it('renders sidebar navigation, header, and outlet', async () => {
@@ -77,6 +75,7 @@ describe('AppShellComponent', () => {
     expect(compiled.textContent).toContain('Team');
     expect(compiled.textContent).toContain('Organization');
     expect(compiled.textContent).toContain('Acme Admin');
+    expect(workspaceStore.bootstrap).toHaveBeenCalled();
   });
 
   it('shows the dashboard page title on the dashboard route', async () => {
@@ -98,7 +97,7 @@ describe('AppShellComponent', () => {
     const router = TestBed.inject(Router);
     await router.navigateByUrl('/dashboard');
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    authService.logout.mockReturnValue(of(undefined));
+    authStore.logout.mockReturnValue(of(undefined));
 
     const fixture = TestBed.createComponent(AppShellComponent);
     fixture.detectChanges();
@@ -109,8 +108,8 @@ describe('AppShellComponent', () => {
     button.click();
     fixture.detectChanges();
 
-    expect(authService.logout).toHaveBeenCalled();
-    expect(organizationService.clear).toHaveBeenCalled();
+    expect(authStore.logout).toHaveBeenCalled();
+    expect(workspaceStore.clearSession).toHaveBeenCalled();
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 
@@ -118,7 +117,7 @@ describe('AppShellComponent', () => {
     const router = TestBed.inject(Router);
     await router.navigateByUrl('/dashboard');
     const navigateSpy = vi.spyOn(router, 'navigate').mockResolvedValue(true);
-    authService.logout.mockReturnValue(
+    authStore.logout.mockReturnValue(
       throwError(() => new Error('Network error')),
     );
 
@@ -131,8 +130,8 @@ describe('AppShellComponent', () => {
     button.click();
     fixture.detectChanges();
 
-    expect(authService.clearSession).toHaveBeenCalled();
-    expect(organizationService.clear).toHaveBeenCalled();
+    expect(authStore.clearSession).toHaveBeenCalled();
+    expect(workspaceStore.clearSession).toHaveBeenCalled();
     expect(navigateSpy).toHaveBeenCalledWith(['/login']);
   });
 });

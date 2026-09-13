@@ -1,0 +1,102 @@
+<app-page-hero eyebrow="Workspace" title="Organization settings">
+  <p pageHeroDescription class="mt-2 max-w-2xl text-base text-flow-200/90">
+    @if (activeOrganization(); as organization) {
+      Manage settings for <strong class="text-white">{{ organization.name }}</strong>.
+    } @else {
+      Select an organization to view its settings.
+    }
+  </p>
+
+  @if (activeOrganization(); as organization) {
+    <p pageHeroBadge class="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm text-white/90">
+      <span class="h-2 w-2 rounded-full bg-accent"></span>
+      {{ organization.slug }}
+      @if (!canEdit()) {
+        <span class="text-white/70">· read-only</span>
+      }
+    </p>
+  }
+</app-page-hero>
+
+@if (!activeOrganization()) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">No organization selected</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      Use the organization switcher in the sidebar to choose a workspace.
+    </p>
+  </section>
+} @else {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">General</h2>
+    <p class="mt-1 text-sm text-gray-600">
+      @if (canEdit()) {
+        Update how this workspace appears across Flowdesk.
+      } @else {
+        You have view-only access to organization settings.
+      }
+    </p>
+
+    <form class="mt-6 max-w-xl" [formGroup]="settingsForm" (ngSubmit)="submit()">
+      <div class="org-settings-field">
+        <label class="org-settings-label" for="org-settings-name">Organization name</label>
+        <input
+          id="org-settings-name"
+          type="text"
+          class="org-settings-input"
+          formControlName="name"
+          data-testid="org-settings-name"
+          [attr.aria-invalid]="hasError('required') || hasError('maxlength')"
+        />
+        <div class="org-settings-field-error-slot" aria-live="polite">
+          @if (hasError('required')) {
+            <p class="org-settings-field-error">Organization name is required.</p>
+          } @else if (hasError('maxlength')) {
+            <p class="org-settings-field-error">Name must be 120 characters or fewer.</p>
+          }
+        </div>
+      </div>
+
+      <dl class="mt-6 grid gap-4 sm:grid-cols-2">
+        <div class="org-settings-meta rounded-xl bg-flow-50/80 px-4 py-3">
+          <dt class="text-xs font-semibold uppercase tracking-wide text-flow-500">Slug</dt>
+          <dd class="mt-1 text-sm font-medium text-flow-900 break-all">
+            {{ activeOrganization()!.slug }}
+          </dd>
+        </div>
+
+        <div class="org-settings-meta rounded-xl bg-flow-50/80 px-4 py-3">
+          <dt class="text-xs font-semibold uppercase tracking-wide text-flow-500">Your role</dt>
+          <dd class="mt-1 text-sm font-medium text-flow-900">{{ roleLabel() }}</dd>
+        </div>
+
+        <div class="org-settings-meta rounded-xl bg-flow-50/80 px-4 py-3 sm:col-span-2">
+          <dt class="text-xs font-semibold uppercase tracking-wide text-flow-500">Created</dt>
+          <dd class="mt-1 text-sm font-medium text-flow-900">
+            {{ activeOrganization()!.createdAt | date: 'mediumDate' }}
+          </dd>
+        </div>
+      </dl>
+
+      @if (saveError(); as error) {
+        <p class="org-settings-inline-error mt-4" role="alert">{{ error }}</p>
+      }
+
+      @if (saveSuccess()) {
+        <p class="org-settings-success mt-4" role="status">Organization name updated.</p>
+      }
+
+      @if (canEdit()) {
+        <div class="org-settings-actions">
+          <button
+            type="submit"
+            class="org-settings-primary-btn"
+            data-testid="org-settings-save"
+            [disabled]="isSaving()"
+          >
+            {{ isSaving() ? 'Saving…' : 'Save changes' }}
+          </button>
+        </div>
+      }
+    </form>
+  </section>
+}

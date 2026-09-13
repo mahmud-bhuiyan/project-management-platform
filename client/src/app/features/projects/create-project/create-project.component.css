@@ -1,0 +1,12 @@
+.project-page-back-link {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(76 29 149);
+  text-decoration: none;
+}
+
+.project-page-back-link:hover {
+  text-decoration: underline;
+}

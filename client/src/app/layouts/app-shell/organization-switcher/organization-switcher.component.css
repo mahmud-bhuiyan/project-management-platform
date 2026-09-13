@@ -1,6 +1,6 @@
 .org-switcher {
   position: relative;
-  padding: 0 0.75rem 0.75rem;
+  padding: 0.75rem 0.75rem 0.25rem;
 }
 
 .org-switcher__trigger {

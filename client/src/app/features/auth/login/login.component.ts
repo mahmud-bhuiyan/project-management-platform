@@ -14,7 +14,7 @@ import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthStore } from '../../../core/state/auth.store';
 import { PasswordInputComponent } from '../../../shared/components/password-input/password-input.component';
 import type { DemoPersona } from './demo-personas';
 
@@ -26,7 +26,7 @@ import type { DemoPersona } from './demo-personas';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent implements OnInit {
-  private readonly authService = inject(AuthService);
+  private readonly authStore = inject(AuthStore);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(NonNullableFormBuilder);
 
@@ -53,7 +53,7 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    this.authService.getDemoPersonas().subscribe({
+    this.authStore.getDemoPersonas().subscribe({
       next: (personas) => this.demoPersonas.set(personas),
       error: () => this.demoPersonas.set([]),
     });
@@ -71,7 +71,7 @@ export class LoginComponent implements OnInit {
       this.isSubmitting.set(true);
       this.errorMessage.set(null);
 
-      this.authService
+      this.authStore
         .demoLogin(demoEmail)
         .pipe(finalize(() => this.isSubmitting.set(false)))
         .subscribe({
@@ -95,7 +95,7 @@ export class LoginComponent implements OnInit {
 
     const { email, password } = this.form.getRawValue();
 
-    this.authService
+    this.authStore
       .login({ email, password })
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({

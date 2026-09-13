@@ -11,7 +11,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { finalize } from 'rxjs';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthStore } from '../../../core/state/auth.store';
 import type { CreateCompanyAdminResponseData } from '../../../core/models/auth.model';
 import { PasswordInputComponent } from '../../../shared/components/password-input/password-input.component';
 
@@ -35,7 +35,7 @@ function slugifyOrganizationName(value: string): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateCompanyAdminComponent {
-  private readonly authService = inject(AuthService);
+  private readonly authStore = inject(AuthStore);
   private readonly formBuilder = inject(NonNullableFormBuilder);
 
   readonly isSubmitting = signal(false);
@@ -90,7 +90,7 @@ export class CreateCompanyAdminComponent {
     this.isSubmitting.set(true);
     this.errorMessage.set(null);
 
-    this.authService
+    this.authStore
       .createCompanyAdmin(this.form.getRawValue())
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({

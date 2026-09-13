@@ -29,6 +29,7 @@ The original plan was strong on scope and features, but had gaps that would caus
 | Demo seed before deploy | Production is hard to demo without seed data. Seeding moves before final deployment. |
 | CV packaging checklist | Recruiters need live URL, demo login, README, and screenshots — not just working local code. |
 | B2B user provisioning (no public signup) | Flowdesk is multi-tenant for companies — users are created by admins, not self-registration. Superadmin seeds once; superadmin creates company admins; company admins add team members. |
+| Full client state management (NgRx Signal Store) | Per-page `ngOnInit` fetches cause loading flashes on every route change. Centralized feature stores preload and cache org-scoped data so navigation is instant; only the first session bootstrap may show shell-level loading. |
 
 ---
 
@@ -68,7 +69,8 @@ Re-check `@angular/*` and `@nestjs/*` package versions after scaffold and align 
 - TypeScript
 - Tailwind CSS
 - Angular Signals
-- RxJS (where async streams fit better than Signals)
+- **NgRx Signal Store** (`@ngrx/signals`) — centralized feature stores for all server-backed UI state
+- RxJS (HTTP calls and side effects inside stores; components do not subscribe directly)
 - Angular Router
 - Reactive Forms
 - Angular HTTP Client
@@ -315,27 +317,54 @@ Manual responsive check is required before marking any UI step done (see STEPS.m
 
 ### Client state management (mandatory from Phase 2 onward)
 
-Use **Angular Signals** + singleton services. No full-page reloads, no full-page loading overlays.
+Use **NgRx Signal Store** (`@ngrx/signals`) for all server-backed application state. Route components are **views only** — they read from stores; they do not fetch on `ngOnInit`. No full-page reloads, no per-route loading overlays.
+
+#### Architecture
+
+```
+AppShell bootstrap (once per session)
+  → AuthStore          session user, tokens
+  → OrganizationStore  org list, active org, members
+  → DashboardStore     stats for active org
+  → ProjectsStore      projects for active org (Phase 5+)
+  → TasksStore         tasks per project (Phase 6+)
+  → …                  one store per feature domain
+```
 
 | Layer | Where | Examples |
 |-------|--------|----------|
-| **Session state** | `AuthService` (and future feature services) | `currentUser`, `isAuthenticated`, `isSuperadmin` |
-| **Shell state** | `AppShellComponent` | `mobileNavOpen`, `isSigningOut` |
-| **Page / form state** | Feature component signals | `isSubmitting`, `errorMessage`, `successResult` |
-| **Server data** | Service methods return `Observable`; update signals in `tap` | login → `currentUser.set()` |
+| **Server-backed state** | `core/state/*.store.ts` (Signal Store) | `organizations`, `members`, `stats`, `projects`, `tasks` |
+| **HTTP facades** | `core/services/*.service.ts` | Thin API clients called **by stores only** — not by components |
+| **Shell / local UI state** | `AppShellComponent` or component signals | `mobileNavOpen`, `isSigningOut`, modal open |
+| **Form state** | Feature component signals | `isSubmitting`, `errorMessage`, field values |
 
-**Rules:**
+Store files live under `client/src/app/core/state/`. Each store uses `signalStore`, `withState`, `withComputed`, and `withMethods`. Register stores with `providedIn: 'root'` or provide at shell level when scoped.
+
+#### Navigation must feel instant
+
+1. **Bootstrap once** — after login, `AppShellComponent` (or an `APP_INITIALIZER` tied to auth) loads session + active-org data into stores. This is the **only** time the app may show a shell-level loading state.
+2. **No fetch on route enter** — route components bind to store selectors/computed signals. Navigating Dashboard → Team → Projects must **not** trigger new HTTP calls if that slice is already loaded for the active org.
+3. **Cached-first render** — when revisiting a page, show the last known store data immediately. If a silent refresh is in flight, update in place when the response arrives — never replace the whole page with skeletons.
+4. **Org switch invalidates scoped slices** — changing active org clears org-scoped store slices and reloads them in the background. Pages still render instantly (empty state or stale-until-refresh is OK; full-page spinner is not).
+5. **Mutations patch the store** — create/update/delete/update-role flows update the relevant store slice on success (optimistic where safe, e.g. Kanban drag). Lists and detail views stay in sync without refetching the whole page.
+6. **Stale refresh rules** — background refresh only when: org switched, user explicitly clicks refresh, mutation failed rollback, or optional TTL elapsed (e.g. 5 min). Never refresh just because the router navigated.
+
+#### UX rules (unchanged intent, stricter enforcement)
 
 1. **No browser reload** — never `window.location.reload()` or full document navigation for in-app actions.
-2. **No page-level loading** — on route change or form submit, do **not** show full-page spinners, skeleton screens that replace the whole page, or blank flashes.
-3. **Button-only submit loading** — `isSubmitting` disables the submit button and shows inline spinner text; form fields stay visible and editable until success.
-4. **Partial view updates** — success/error swaps only the affected block (e.g. `provision-main` panel); hero, sidebar, and app shell stay mounted.
+2. **No page-level loading on navigation** — no full-page spinners, no skeleton screens that replace the entire route outlet, no blank flashes when switching sidebar links.
+3. **Button-only submit loading** — `isSubmitting` disables the submit button and shows inline spinner text; form fields stay visible until success.
+4. **Partial view updates** — success/error swaps only the affected block; hero, sidebar, and app shell stay mounted.
 5. **Persistent app shell** — authenticated routes are children of `AppShellComponent`; only `<router-outlet>` content swaps. Bundle shell + pages in one lazy chunk (`authenticated.routes.ts`) to avoid per-route chunk flash.
-6. **OnPush + signals** — feature components use `ChangeDetectionStrategy.OnPush`; templates read signals with `()` so only changed blocks re-render.
-7. **No refetch on navigation** — do not call `loadMe()` or list APIs on every `ngOnInit` unless data is stale; session user comes from `AuthService.currentUser`.
-8. **RxJS cleanup** — use `finalize()` to reset `isSubmitting` on both success and error.
+6. **OnPush + signals** — feature components use `ChangeDetectionStrategy.OnPush`; templates read store/computed signals with `()`.
+7. **Inline empty/error only** — empty and error states are **inline panels** inside the page layout, not full-page gates. Show empty when store slice has no data; show inline error banner when bootstrap or silent refresh fails.
+8. **RxJS inside stores** — HTTP subscriptions live in store methods; use `finalize()` for in-flight flags. Components do not call `subscribe()` on API observables.
 
 Phase 2.10 (auth interceptor) must follow the same rules — silent token refresh, no redirect loop flash.
+
+#### Migration note (Phase 5 step 5.3)
+
+Existing singleton services (`AuthService`, `OrganizationService`, `DashboardService`, etc.) are refactored into Signal Stores **before** new feature UI (projects list onward). Services may remain as thin HTTP wrappers that stores inject. Completed Phase 3–4 pages are updated to read from stores so navigation between them is instant.
 
 ### Per-page quality bar
 
@@ -345,7 +374,7 @@ Before marking a UI step done:
 - [ ] Has `app-page-hero` or equivalent visual anchor (login page uses split hero).
 - [ ] Loading, error, empty, and success states styled (not raw text).
 - [ ] **Responsive:** usable at 375px, 768px, and 1280px — navigation, forms, and actions all reachable.
-- [ ] **State:** no full-page loading on route change or submit; button-only submit loading; only affected UI block updates.
+- [ ] **State:** data comes from Signal Stores; no HTTP fetch on route enter; no full-page loading on navigation or submit; button-only submit loading; only affected UI block updates.
 - [ ] Matches existing Flowdesk screens — recruiter-demo ready.
 
 Phase 13 is a **final polish pass**, not the first time UI quality or responsiveness is applied.
@@ -357,7 +386,7 @@ Before adding new UI markup, check `client/src/app/shared/components/` and **reu
 | Component | Selector | Use for |
 |-----------|----------|---------|
 | Page hero | `app-page-hero` | App-shell page headers (eyebrow, title, description, badge slots) |
-| Modal | `app-modal` | Dialogs and confirmation flows |
+| Modal | `app-modal` | Confirmations and **short forms (≤2 fields)** only |
 | Data table | `app-data-table` | Searchable, paginated list tables with projected row templates |
 | Password input | `app-password-input` | Password fields with show/hide toggle |
 
@@ -367,6 +396,7 @@ Before adding new UI markup, check `client/src/app/shared/components/` and **reu
 2. **Extract at two uses** — when the same UI pattern appears on two or more pages, move it to `shared/components/` in the same phase (do not defer to Phase 13).
 3. **Page heroes** — authenticated routes inside `AppShellComponent` use `app-page-hero` with inputs and projection slots (`pageHeroDescription`, `pageHeroBadge`, `pageHeroLeading`); login and other auth-only layouts may keep bespoke split heroes until a shared auth variant exists.
 4. **Document new shared components** — add each new shared component to this table when introduced.
+5. **Form layout rule** — use **`app-modal` only when the form has two fields or fewer** (e.g. add team member: email + role). Forms with **three or more fields** use a **dedicated app-shell page** with `app-page-hero` + glass panel (e.g. create/edit project, organization settings, company admin provisioning).
 
 **`app-data-table` defaults** (override per page via `[config]` and column defs):
 
@@ -669,6 +699,8 @@ See [docs/postman/README.md](./postman/README.md) for import, variables, and typ
 ```
 client/src/app/
   core/
+    state/           # NgRx Signal Store feature stores (auth, org, dashboard, projects, …)
+    services/        # thin HTTP facades — called by stores, not components
   shared/
     components/
       page-hero/       # app-page-hero — page header band
@@ -785,6 +817,13 @@ Gives the app a product feel immediately after auth instead of jumping straight 
 
 ## Phase 5: Project Management
 
+### Client state (step 5.3 — before project UI)
+
+- Install `@ngrx/signals` and scaffold `core/state/`
+- Migrate auth, organization, team members, and dashboard data into Signal Stores
+- App shell bootstraps stores once; Phase 3–4 pages read from stores (no per-route fetch)
+- Add `ProjectsStore` wired to projects API — list/detail UI in steps 5.5+ reads cached projects
+
 ### Project fields
 
 - Name, description, status, priority, start date, due date, owner, created/updated dates
@@ -805,8 +844,8 @@ Low | Medium | High | Critical
 
 ### Frontend
 
-- Projects list, create, details, edit
-- Reusable: `app-data-table` for lists, project card, status badge, priority badge, empty/loading states, confirm dialog (`app-modal`)
+- Projects list, create, details, edit — all read/write via `ProjectsStore` (instant navigation, no list refetch on route enter)
+- Reusable: `app-data-table` for lists, project card, status badge, priority badge, inline empty states, confirm dialog (`app-modal`)
 
 ### Tests
 
@@ -816,7 +855,7 @@ Low | Medium | High | Critical
 
 ## Phase 6: Task Management
 
-Main feature — list view before Kanban.
+Main feature — list view before Kanban. Add `TasksStore` (org- and project-scoped); task list and detail pages read from store — same instant-navigation rules as Phase 5.
 
 ### Task fields
 
@@ -953,7 +992,7 @@ Per-phase UI quality is required from Phase 2 (see **UI design standards** in §
 ### Add / verify
 
 - Responsive layout audit across all breakpoints (see §2 Responsiveness)
-- Skeleton loaders, empty states, error states
+- Inline empty states and error banners (not full-page skeletons on navigation)
 - Toast notifications
 - Form validation messages
 - 404 and unauthorized pages
@@ -1071,7 +1110,7 @@ Do not add features after this phase.
 
 ### Technical skills demonstrated
 
-- Angular, TypeScript, Signals, RxJS, Reactive Forms, Router, Guards, Interceptors, Tailwind, CDK drag-drop
+- Angular, TypeScript, Signals, NgRx Signal Store, RxJS, Reactive Forms, Router, Guards, Interceptors, Tailwind, CDK drag-drop
 - NestJS, REST, JWT + refresh tokens, RBAC, Prisma, PostgreSQL, Neon
 - WebSockets, server-side search/filter/pagination
 - Swagger, testing, production deployment
@@ -1147,7 +1186,7 @@ When implementing each phase:
 11. Enforce permissions in backend guards — UI checks are secondary.
 12. **Reuse shared components first** — check `shared/components/` before new markup; use `app-page-hero`, `app-modal`, `app-data-table`, and `app-password-input`; extract repeated patterns at two uses (see §2 Reusable components).
 13. Follow **UI design standards** (§2) — modern, distinctive, recruiter-demo ready; no plain form-only pages in the app shell.
-14. Every list/detail page needs loading, error, and empty states.
+14. Every list/detail page needs **inline** empty and error states (from store slice); no full-page loading on navigation — data is preloaded in Signal Stores.
 15. Do not hardcode API URLs — use environment variables.
 16. Keep database access inside the backend only.
 17. Add Swagger decorators when adding endpoints.

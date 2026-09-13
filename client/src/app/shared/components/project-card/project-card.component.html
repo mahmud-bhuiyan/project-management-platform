@@ -1,0 +1,55 @@
+<article
+  class="project-card"
+  [class.project-card--linked]="!!link()"
+  [attr.data-testid]="'project-card-' + project().id"
+>
+  @if (link(); as projectLink) {
+    <a
+      class="project-card__overlay"
+      [routerLink]="projectLink"
+      [attr.aria-label]="'View ' + project().name"
+      [attr.data-testid]="'project-card-link-' + project().id"
+    ></a>
+  }
+
+  <div class="project-card__header">
+    <div class="project-card__title-row">
+      <h3 class="project-card__title">{{ project().name }}</h3>
+
+      @if (editable() && editLink(); as editRoute) {
+        <a
+          class="project-card__edit-btn"
+          [routerLink]="editRoute"
+          [attr.data-testid]="'project-edit-' + project().id"
+        >
+          Edit
+        </a>
+      }
+    </div>
+    <div class="project-card__badges">
+      <app-project-status-badge [status]="project().status" />
+      <app-project-priority-badge [priority]="project().priority" />
+    </div>
+  </div>
+
+  @if (descriptionPreview(); as description) {
+    <p class="project-card__description">{{ description }}</p>
+  } @else {
+    <p class="project-card__description project-card__description--placeholder">
+      No description yet.
+    </p>
+  }
+
+  <div class="project-card__footer">
+    <div class="project-card__owner">
+      <span class="project-card__avatar" aria-hidden="true">{{ ownerInitials() }}</span>
+      <span class="project-card__owner-name">{{ project().owner.name }}</span>
+    </div>
+
+    @if (dueDateLabel(); as dueDate) {
+      <p class="project-card__due-date">
+        Due {{ dueDate }}
+      </p>
+    }
+  </div>
+</article>
