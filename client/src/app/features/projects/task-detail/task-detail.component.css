@@ -1,0 +1,331 @@
+.task-detail-back-link {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(91 33 182);
+  text-decoration: none;
+}
+
+.task-detail-back-link:hover {
+  color: rgb(67 56 202);
+}
+
+.task-detail-grid {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .task-detail-grid {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    align-items: start;
+  }
+
+  .task-detail-grid > :nth-child(1),
+  .task-detail-grid > :nth-child(2) {
+    grid-column: 1;
+  }
+
+  .task-detail-grid > :nth-child(3),
+  .task-detail-grid > :nth-child(4) {
+    grid-column: 2;
+  }
+}
+
+.task-detail-section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.task-detail-section-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: rgb(15 11 46);
+}
+
+.task-detail-section-description {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+}
+
+.task-detail-edit-link {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(91 33 182);
+  text-decoration: none;
+}
+
+.task-detail-edit-link:hover {
+  color: rgb(67 56 202);
+}
+
+.task-detail-description {
+  margin: 0 0 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: rgb(31 41 55);
+  white-space: pre-wrap;
+}
+
+.task-detail-description--empty {
+  color: rgb(107 114 128);
+}
+
+.task-detail-meta {
+  display: grid;
+  gap: 0.875rem;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  margin: 0;
+}
+
+.task-detail-meta__item dt {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(107 114 128);
+}
+
+.task-detail-meta__item dd {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  color: rgb(17 24 39);
+}
+
+.task-detail-progress {
+  height: 0.5rem;
+  margin-bottom: 1rem;
+  border-radius: 9999px;
+  background: rgb(237 233 254);
+  overflow: hidden;
+}
+
+.task-detail-progress__bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    var(--color-flow-500) 0%,
+    var(--color-accent) 100%
+  );
+  transition: width 0.2s ease;
+}
+
+.task-detail-subtask-list,
+.task-detail-comment-list,
+.task-detail-activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.task-detail-subtask-item + .task-detail-subtask-item,
+.task-detail-comment-item + .task-detail-comment-item {
+  margin-top: 0.75rem;
+}
+
+.task-detail-subtask-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.9375rem;
+  color: rgb(31 41 55);
+}
+
+.task-detail-subtask-check input {
+  margin-top: 0.2rem;
+  width: 1rem;
+  height: 1rem;
+}
+
+.task-detail-subtask-check__label--done {
+  text-decoration: line-through;
+  color: rgb(107 114 128);
+}
+
+.task-detail-subtask-form,
+.task-detail-comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 640px) {
+  .task-detail-subtask-form {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.task-detail-input,
+.task-detail-textarea {
+  width: 100%;
+  border: 1px solid rgb(221 214 254);
+  border-radius: 0.75rem;
+  padding: 0.75rem 0.875rem;
+  font: inherit;
+  color: rgb(17 24 39);
+  background: rgb(255 255 255 / 0.9);
+}
+
+.task-detail-input:focus,
+.task-detail-textarea:focus {
+  outline: 2px solid rgb(167 139 250);
+  outline-offset: 1px;
+}
+
+.task-detail-primary-btn,
+.task-detail-secondary-btn,
+.task-detail-link-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.task-detail-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 6rem;
+  border-radius: 0.75rem;
+  padding: 0.7rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(
+    135deg,
+    var(--color-flow-500) 0%,
+    var(--color-accent) 100%
+  );
+}
+
+.task-detail-primary-btn:disabled,
+.task-detail-secondary-btn:disabled,
+.task-detail-link-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.task-detail-secondary-btn {
+  border-radius: 0.75rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(55 65 81);
+  background: rgb(249 250 251);
+  border: 1px solid rgb(229 231 235);
+}
+
+.task-detail-comment-item {
+  padding: 0.875rem 0;
+  border-top: 1px solid rgb(237 233 254);
+}
+
+.task-detail-comment-item:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.task-detail-comment-item__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.8125rem;
+  color: rgb(107 114 128);
+}
+
+.task-detail-comment-item__header strong {
+  color: rgb(17 24 39);
+}
+
+.task-detail-comment-body {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: rgb(31 41 55);
+  white-space: pre-wrap;
+}
+
+.task-detail-comment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.task-detail-link-btn {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: rgb(91 33 182);
+}
+
+.task-detail-link-btn--danger {
+  color: rgb(185 28 28);
+}
+
+.task-detail-activity-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+}
+
+.task-detail-activity-item + .task-detail-activity-item {
+  border-top: 1px solid rgb(237 233 254);
+}
+
+.task-detail-activity-item__dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  margin-top: 0.35rem;
+  border-radius: 9999px;
+  background: linear-gradient(
+    135deg,
+    var(--color-flow-500) 0%,
+    var(--color-accent) 100%
+  );
+}
+
+.task-detail-activity-item__message {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: rgb(31 41 55);
+}
+
+.task-detail-activity-item__time {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  color: rgb(107 114 128);
+}
+
+.task-detail-empty {
+  margin: 0;
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+}
+
+.task-detail-inline-error {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  color: rgb(153 27 27);
+  background: rgb(254 242 242);
+  border: 1px solid rgb(254 202 202);
+}

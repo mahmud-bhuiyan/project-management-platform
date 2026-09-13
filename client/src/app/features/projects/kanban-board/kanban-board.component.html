@@ -118,7 +118,13 @@
                   <div class="kanban-card__placeholder" *cdkDragPlaceholder></div>
 
                   <div class="kanban-card__header">
-                    <h4 class="kanban-card__title">{{ task.title }}</h4>
+                    <a
+                      [routerLink]="['/projects', currentProject.id, 'tasks', task.id]"
+                      class="kanban-card__title-link"
+                      [attr.data-testid]="'kanban-task-link-' + task.id"
+                    >
+                      <h4 class="kanban-card__title">{{ task.title }}</h4>
+                    </a>
                     <app-task-priority-badge [priority]="task.priority" />
                   </div>
 

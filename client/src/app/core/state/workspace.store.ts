@@ -4,6 +4,7 @@ import { forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { DashboardStore } from './dashboard.store';
 import { OrganizationStore } from './organization.store';
 import { ProjectsStore } from './projects.store';
+import { TaskDetailStore } from './task-detail.store';
 import { TasksStore } from './tasks.store';
 import { TeamStore } from './team.store';
 
@@ -28,6 +29,7 @@ export const WorkspaceStore = signalStore(
       teamStore = inject(TeamStore),
       projectsStore = inject(ProjectsStore),
       tasksStore = inject(TasksStore),
+      taskDetailStore = inject(TaskDetailStore),
     ) => ({
       bootstrap() {
         if (store.hasBootstrapped()) {
@@ -89,6 +91,7 @@ export const WorkspaceStore = signalStore(
         teamStore.resetForOrganizationSwitch();
         projectsStore.resetForOrganizationSwitch();
         tasksStore.resetForOrganizationSwitch();
+        taskDetailStore.resetForOrganizationSwitch();
         patchState(store, {
           isBootstrapping: false,
           bootstrapError: null,
@@ -103,6 +106,7 @@ export const WorkspaceStore = signalStore(
         teamStore.resetForOrganizationSwitch();
         projectsStore.resetForOrganizationSwitch();
         tasksStore.resetForOrganizationSwitch();
+        taskDetailStore.resetForOrganizationSwitch();
 
         if (!organizationId) {
           return of(undefined);

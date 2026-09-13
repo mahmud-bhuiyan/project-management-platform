@@ -11,6 +11,8 @@ import { canManageOrganizationMembers } from '../organizations/utils/organizatio
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ProjectsService } from '../projects/projects.service.js';
 import { UsersService } from '../users/users.service.js';
+import { ActivityAction } from './activity.types.js';
+import { ActivityLogService } from './activity-log.service.js';
 import type {
   CreateTaskInput,
   ListTasksQuery,
@@ -34,6 +36,7 @@ export class TasksService {
     private readonly organizationsService: OrganizationsService,
     private readonly projectsService: ProjectsService,
     private readonly usersService: UsersService,
+    private readonly activityLogService: ActivityLogService,
   ) {}
 
   async create(
@@ -69,6 +72,22 @@ export class TasksService {
       },
       include: taskInclude,
     });
+
+    await this.activityLogService.record({
+      taskId: task.id,
+      actorId: userId,
+      action: ActivityAction.TASK_CREATED,
+      metadata: { title: task.title },
+    });
+
+    if (task.assigneeId) {
+      await this.activityLogService.record({
+        taskId: task.id,
+        actorId: userId,
+        action: ActivityAction.TASK_ASSIGNED,
+        metadata: { assigneeId: task.assigneeId },
+      });
+    }
 
     return this.toTaskResponse(task);
   }
@@ -198,6 +217,8 @@ export class TasksService {
       include: taskInclude,
     });
 
+    await this.recordTaskUpdateActivity(userId, existingTask, input);
+
     return this.toTaskResponse(task);
   }
 
@@ -252,6 +273,18 @@ export class TasksService {
           item.position,
         );
       });
+
+      if (existingTask.status !== item.status) {
+        await this.activityLogService.record({
+          taskId: existingTask.id,
+          actorId: userId,
+          action: ActivityAction.TASK_STATUS_CHANGED,
+          metadata: {
+            from: existingTask.status,
+            to: item.status,
+          },
+        });
+      }
     } else {
       this.assertBatchReorderPositions(items);
 
@@ -266,6 +299,21 @@ export class TasksService {
           });
         }
       });
+
+      for (const item of items) {
+        const existingTask = existingById.get(item.taskId)!;
+        if (existingTask.status !== item.status) {
+          await this.activityLogService.record({
+            taskId: item.taskId,
+            actorId: userId,
+            action: ActivityAction.TASK_STATUS_CHANGED,
+            metadata: {
+              from: existingTask.status,
+              to: item.status,
+            },
+          });
+        }
+      }
     }
 
     const updatedTasks = await this.prisma.task.findMany({
@@ -288,12 +336,45 @@ export class TasksService {
     projectId: string,
     taskId: string,
   ): Promise<void> {
-    await this.assertCanMutateTasks(userId, organizationId, projectId);
-    await this.getTaskInProject(projectId, taskId);
+    await this.ensureTaskMutationAccess(
+      userId,
+      organizationId,
+      projectId,
+      taskId,
+    );
 
     await this.prisma.task.delete({
       where: { id: taskId },
     });
+  }
+
+  async ensureTaskReadAccess(
+    userId: string,
+    organizationId: string,
+    projectId: string,
+    taskId: string,
+  ): Promise<TaskResponse> {
+    await this.projectsService.assertCanAccessProject(
+      userId,
+      organizationId,
+      projectId,
+    );
+
+    const task = await this.getTaskInProject(projectId, taskId);
+    return this.toTaskResponse(task);
+  }
+
+  async ensureTaskMutationAccess(
+    userId: string,
+    organizationId: string,
+    projectId: string,
+    taskId: string,
+  ): Promise<TaskResponse> {
+    await this.assertCanMutateTasks(userId, organizationId, projectId);
+    await this.assertProjectIsActive(organizationId, projectId);
+
+    const task = await this.getTaskInProject(projectId, taskId);
+    return this.toTaskResponse(task);
   }
 
   private async assertCanMutateTasks(
@@ -481,6 +562,57 @@ export class TasksService {
     });
 
     return (result._max.position ?? -1) + 1;
+  }
+
+  private async recordTaskUpdateActivity(
+    userId: string,
+    existingTask: Task,
+    input: UpdateTaskInput,
+  ): Promise<void> {
+    if (
+      input.status !== undefined &&
+      input.status !== existingTask.status
+    ) {
+      await this.activityLogService.record({
+        taskId: existingTask.id,
+        actorId: userId,
+        action: ActivityAction.TASK_STATUS_CHANGED,
+        metadata: {
+          from: existingTask.status,
+          to: input.status,
+        },
+      });
+    }
+
+    if (
+      input.priority !== undefined &&
+      input.priority !== existingTask.priority
+    ) {
+      await this.activityLogService.record({
+        taskId: existingTask.id,
+        actorId: userId,
+        action: ActivityAction.TASK_PRIORITY_CHANGED,
+        metadata: {
+          from: existingTask.priority,
+          to: input.priority,
+        },
+      });
+    }
+
+    if (
+      input.assigneeId !== undefined &&
+      input.assigneeId !== existingTask.assigneeId
+    ) {
+      await this.activityLogService.record({
+        taskId: existingTask.id,
+        actorId: userId,
+        action: ActivityAction.TASK_ASSIGNED,
+        metadata: {
+          assigneeId: input.assigneeId,
+          previousAssigneeId: existingTask.assigneeId,
+        },
+      });
+    }
   }
 
   private toTaskResponse(

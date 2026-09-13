@@ -180,11 +180,13 @@ async function main() {
     await page.getByTestId('task-form-status').selectOption('REVIEW');
     await page.getByTestId('task-form-priority').selectOption('HIGH');
     await page.getByTestId('task-form-submit').click();
-    await page.waitForURL(/\/projects\/[^/]+$/, { timeout: 30000 });
+    await page.waitForURL(/\/tasks\/[^/]+$/, { timeout: 30000 });
+    await page.getByTestId('task-detail-back').click({ noWaitAfter: true });
+    await page.waitForURL(/\/projects\/[^/]+$/, { timeout: 15000 });
     await page.getByText(editedTitle).waitFor({ state: 'visible', timeout: 15000 });
     log('edit task', true, editedTitle);
 
-    await page.getByRole('link', { name: 'Dashboard' }).click({ noWaitAfter: true });
+    await page.getByRole('link', { name: 'Dashboard', exact: true }).click({ noWaitAfter: true });
     await page.waitForURL('**/dashboard', { timeout: 15000 });
     await page.getByTestId('dashboard-stats').waitFor({ state: 'visible', timeout: 15000 });
     log('dashboard stats visible', true, 'stats loaded from store cache at bootstrap');

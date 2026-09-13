@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-13  
-**Current step:** 7.3 (next)
+**Current step:** 9.1 (not started)
 
 ### Decisions (Phase 2)
 
@@ -35,8 +35,8 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 4 | Dashboard shell | 3 / 3 | Complete |
 | 5 | Project management | 8 / 8 | Complete |
 | 6 | Task management | 3 / 3 | Complete |
-| 7 | Kanban board | 2 / 3 | In progress |
-| 8 | Task details, comments, activity | 0 / 4 | Not started |
+| 7 | Kanban board | 3 / 3 | Complete |
+| 8 | Task details, comments, activity | 4 / 4 | Complete |
 | 9 | Notifications | 0 / 3 | Not started |
 | 10 | Real-time updates | 0 / 3 | Not started |
 | 11 | Dashboard charts | 0 / 1 | Not started |
@@ -144,7 +144,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 |------|-------|------|------|-------|
 | 7.1 | Kanban order API | [x] | 2026-09-13 | `PATCH .../tasks/reorder`; single + batch; position shifting; 114 server tests; Postman repo + cloud synced — user verified |
 | 7.2 | Kanban board UI (CDK drag-drop) | [x] | 2026-09-13 | `/projects/:id/board`; CDK drag-drop; List/Board tabs; `@angular/cdk`; 106 client tests — user verified |
-| 7.3 | Optimistic UI + rollback | [ ] | | |
+| 7.3 | Optimistic UI + rollback | [x] | 2026-09-13 | Optimistic store patch on drop; rollback on API failure; 108 client tests — user verified |
 
 ---
 
@@ -152,10 +152,10 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 8.1 | Subtasks API | [ ] | | |
-| 8.2 | Comments API | [ ] | | |
-| 8.3 | Activity log | [ ] | | |
-| 8.4 | Task detail page (full) | [ ] | | |
+| 8.1 | Subtasks API | [x] | 2026-09-13 | CRUD + completion toggle; 124 server tests; Postman repo + cloud synced — user verified |
+| 8.2 | Comments API | [x] | 2026-09-13 | Add/edit own/delete own; 135 server tests; Postman repo + cloud synced — user verified |
+| 8.3 | Activity log | [x] | 2026-09-13 | Auto-log on task/comment/subtask actions + list API; 139 server tests; Postman repo + cloud synced — user verified |
+| 8.4 | Task detail page (full) | [x] | 2026-09-13 | Overview, subtasks, comments, activity; activity refresh on re-entry; Playwright 20/20 — user verified |
 
 ---
 
@@ -283,3 +283,7 @@ Use this for quick notes across sessions.
 | 2026-09-13 | 6.1 | Tasks API — CRUD, pagination, filters | Pass — user verified; Postman repo + cloud synced |
 | 2026-09-13 | 6.3 | Task list UI — TasksStore, project detail table, create/edit pages | Pass — Playwright e2e + 103 client tests; fixed tasks effect/store loading loop |
 | 2026-09-13 | 6.3 | Task list UI polish — list view, search, no pagination, delete icons | Pass — user verified; Phase 6 complete |
+| 2026-09-13 | 8.1 | Subtasks API — CRUD + toggle complete under `/tasks/:taskId/subtasks` | Pass — user verified in Postman |
+| 2026-09-13 | 8.2 | Comments API — add/edit own/delete own under `/tasks/:taskId/comments` | Pass — user verified in Postman |
+| 2026-09-13 | 8.3 | Activity log — auto-record + GET `/tasks/:taskId/activity` | Pass — user verified in Postman |
+| 2026-09-13 | 8.4 | Task detail page — fields, subtasks, comments, activity UI | Pass — Playwright e2e 20/20 + user verified; Phase 8 complete |

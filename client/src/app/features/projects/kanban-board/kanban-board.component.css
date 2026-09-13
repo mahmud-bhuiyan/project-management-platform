@@ -244,6 +244,15 @@
   gap: 0.5rem;
 }
 
+.kanban-card__title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.kanban-card__title-link:hover .kanban-card__title {
+  color: rgb(91 33 182);
+}
+
 .kanban-card__title {
   margin: 0;
   font-size: 0.9375rem;

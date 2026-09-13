@@ -223,18 +223,18 @@ export const TasksStore = signalStore(
             const cache = getCache(store.byProjectId(), params.projectId);
             const exists = cache.tasks.some((entry) => entry.id === task.id);
 
-            if (!exists) {
-              return;
-            }
-
             patchState(store, {
+              organizationId: params.organizationId,
               byProjectId: {
                 ...store.byProjectId(),
                 [params.projectId]: {
                   ...cache,
-                  tasks: cache.tasks.map((entry) =>
-                    entry.id === task.id ? task : entry,
-                  ),
+                  tasks: exists
+                    ? cache.tasks.map((entry) =>
+                        entry.id === task.id ? task : entry,
+                      )
+                    : [...cache.tasks, task],
+                  hasLoaded: true,
                 },
               },
             });

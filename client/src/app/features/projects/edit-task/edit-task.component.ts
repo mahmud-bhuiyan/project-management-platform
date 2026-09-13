@@ -172,7 +172,7 @@ export class EditTaskComponent {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
-          void this.router.navigate(['/projects', projectId]);
+          void this.router.navigate(['/projects', projectId, 'tasks', taskId]);
         },
         error: (error) => {
           this.formError.set(this.extractErrorMessage(error));
