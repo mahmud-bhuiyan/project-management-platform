@@ -182,15 +182,14 @@ export class TaskDetailComponent {
         onCleanup(() => taskSubscription.unsubscribe());
       }
 
-      if (untracked(() => this.taskDetailStore.isDetailLoaded(projectId, taskId))) {
-        return;
-      }
-
       const detailSubscription = this.taskDetailStore
         .loadDetail({
           organizationId: organization.id,
           projectId,
           taskId,
+          force: untracked(() =>
+            this.taskDetailStore.isDetailLoaded(projectId, taskId),
+          ),
         })
         .subscribe();
 
