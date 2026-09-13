@@ -1,0 +1,164 @@
+<div class="data-table-toolbar">
+  <div>
+    <h2 class="data-table-title">{{ title() }}</h2>
+    @if (description(); as text) {
+      <p class="data-table-description">{{ text }}</p>
+    }
+  </div>
+
+  <ng-content select="[dataTableActions]" />
+</div>
+
+@if (showSearch()) {
+  <div class="data-table-search-row">
+    <label class="sr-only" [for]="searchInputId()">Search {{ title() }}</label>
+    <input
+      [id]="searchInputId()"
+      type="search"
+      class="data-table-search-input"
+      [placeholder]="searchPlaceholder()"
+      [value]="searchValue()"
+      [attr.data-testid]="searchTestId()"
+      (input)="onSearchInput($event)"
+    />
+  </div>
+}
+
+<ng-content select="[dataTableAlert]" />
+
+@if (loading()) {
+  <div class="data-table-skeleton-list" aria-hidden="true">
+    @for (row of [1, 2, 3]; track row) {
+      <div class="data-table-skeleton-row"></div>
+    }
+  </div>
+  <p class="sr-only">{{ loadingMessage() }}</p>
+} @else if (error(); as message) {
+  <p class="data-table-error" role="alert">{{ message }}</p>
+} @else if (totalCount() === 0) {
+  <p class="data-table-empty">{{ emptyMessage() }}</p>
+} @else if (filteredCount() === 0) {
+  <p class="data-table-empty">{{ noResultsMessage() }}</p>
+} @else {
+  <div class="data-table-wrap">
+    <table
+      [class]="tableClass()"
+      [attr.data-testid]="tableTestId()"
+    >
+      <colgroup>
+        @for (column of columns(); track column.id) {
+          <col [style.width]="columnWidth(column)" />
+        }
+      </colgroup>
+      <thead>
+        <tr>
+          @for (column of columns(); track column.id) {
+            <th
+              scope="col"
+              [class]="columnHeaderClass(column)"
+              [style.width]="columnWidth(column)"
+            >
+              {{ column.label }}
+            </th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of items(); track trackBy()(item, $index)) {
+          <tr [attr.data-testid]="rowTestId() ? rowTestId() + '-row' : null">
+            <ng-container
+              *ngTemplateOutlet="
+                rowTemplate().templateRef;
+                context: buildRowContext(item, $index)
+              "
+            />
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="data-table-pagination">
+    <div class="data-table-pagination__meta">
+      <label class="data-table-page-size">
+        <span class="data-table-page-size__label">Rows per page</span>
+        <select
+          class="data-table-page-size__select"
+          [value]="effectivePageSize()"
+          [attr.data-testid]="pageSizeTestId()"
+          (change)="onPageSizeSelect($event)"
+        >
+          @for (size of pageSizeOptions(); track size) {
+            <option [value]="size">{{ size }}</option>
+          }
+        </select>
+      </label>
+
+      <p class="data-table-pagination__summary">
+        Showing {{ pageSummary().start }}–{{ pageSummary().end }} of
+        {{ pageSummary().total }}
+        {{ itemLabelPlural(pageSummary().total) }}
+      </p>
+    </div>
+
+    @if (totalPages() > 1) {
+    <div class="data-table-pagination__controls">
+      <button
+        type="button"
+        class="data-table-pagination-btn"
+        [attr.data-testid]="pageFirstTestId()"
+        [disabled]="currentPage() <= 1"
+        (click)="goToPage(1)"
+      >
+        First
+      </button>
+      <button
+        type="button"
+        class="data-table-pagination-btn"
+        [attr.data-testid]="pagePreviousTestId()"
+        [disabled]="currentPage() <= 1"
+        (click)="goToPage(currentPage() - 1)"
+      >
+        Previous
+      </button>
+
+      <div class="data-table-pagination__pages" role="group" aria-label="Pagination">
+        @for (token of pageTokens(); track token) {
+          @if (token === 'ellipsis') {
+            <span class="data-table-pagination__ellipsis" aria-hidden="true">…</span>
+          } @else {
+            <button
+              type="button"
+              class="data-table-pagination-page"
+              [class.data-table-pagination-page--active]="token === currentPage()"
+              [attr.aria-current]="token === currentPage() ? 'page' : null"
+              (click)="goToPage(token)"
+            >
+              {{ token }}
+            </button>
+          }
+        }
+      </div>
+
+      <button
+        type="button"
+        class="data-table-pagination-btn"
+        [attr.data-testid]="pageNextTestId()"
+        [disabled]="currentPage() >= totalPages()"
+        (click)="goToPage(currentPage() + 1)"
+      >
+        Next
+      </button>
+      <button
+        type="button"
+        class="data-table-pagination-btn"
+        [attr.data-testid]="pageLastTestId()"
+        [disabled]="currentPage() >= totalPages()"
+        (click)="goToPage(totalPages())"
+      >
+        Last
+      </button>
+    </div>
+    }
+  </div>
+}

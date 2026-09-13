@@ -491,12 +491,15 @@
 **Layer:** UI
 
 **Build:**
-- List members, add by email, remove, role dropdown.
+- List members via `app-data-table` (search, pagination, striped rows).
+- Add by email (`app-modal`), remove member, role dropdown.
+- Role change opens confirmation modal (`app-modal`) before PATCH — cancel reverts dropdown.
 
 **Manual test:**
 - [ ] Team list matches API.
-- [ ] Add/remove/role change reflected after refresh.
-- [ ] Viewer sees read-only UI (buttons hidden/disabled).
+- [ ] Add/remove works; list updates without full reload.
+- [ ] Role dropdown → confirm modal → save updates role; cancel/escape/backdrop reverts dropdown.
+- [ ] Viewer sees read-only UI (no add/remove; role shown as badge, not dropdown).
 
 **Done when:** Team page works.
 
@@ -618,7 +621,8 @@
 **Layer:** UI
 
 **Build:**
-- Project card, status badge, priority badge, confirm dialog, empty/loading states.
+- Project card, status badge, priority badge, empty/loading states.
+- Reuse existing `app-data-table` and `app-modal` (confirm flows) from Phase 3 — do not rebuild list/confirm patterns.
 
 **Manual test:**
 - [ ] Storybook optional; at least used on projects list.

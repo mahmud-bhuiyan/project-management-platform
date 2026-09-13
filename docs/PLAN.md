@@ -283,7 +283,7 @@ Flowdesk is a **CV showcase** — every screen must feel like a polished product
 
 Every page inside `AppShellComponent` must include:
 
-1. **Page hero** — full-width `mesh-bg` header with title, subtitle, and optional status badge (match dashboard / provision company pattern).
+1. **Page hero** — full-width `app-page-hero` (`mesh-bg` header with eyebrow, title, subtitle, optional badge). Do not duplicate inline hero markup on app-shell pages.
 2. **Page body** — content below the hero (grids, cards, forms) — never a lone centered form floating in empty space.
 3. **App shell** — fixed sidebar + sticky top bar (shared layout); page content renders in `<main>` via router outlet only.
 
@@ -342,13 +342,43 @@ Phase 2.10 (auth interceptor) must follow the same rules — silent token refres
 Before marking a UI step done:
 
 - [ ] Uses app shell (if authenticated).
-- [ ] Has page hero or equivalent visual anchor (login page uses split hero).
+- [ ] Has `app-page-hero` or equivalent visual anchor (login page uses split hero).
 - [ ] Loading, error, empty, and success states styled (not raw text).
 - [ ] **Responsive:** usable at 375px, 768px, and 1280px — navigation, forms, and actions all reachable.
 - [ ] **State:** no full-page loading on route change or submit; button-only submit loading; only affected UI block updates.
 - [ ] Matches existing Flowdesk screens — recruiter-demo ready.
 
 Phase 13 is a **final polish pass**, not the first time UI quality or responsiveness is applied.
+
+### Reusable components (mandatory from Phase 2 onward)
+
+Before adding new UI markup, check `client/src/app/shared/components/` and **reuse existing components first**.
+
+| Component | Selector | Use for |
+|-----------|----------|---------|
+| Page hero | `app-page-hero` | App-shell page headers (eyebrow, title, description, badge slots) |
+| Modal | `app-modal` | Dialogs and confirmation flows |
+| Data table | `app-data-table` | Searchable, paginated list tables with projected row templates |
+| Password input | `app-password-input` | Password fields with show/hide toggle |
+
+**Rules:**
+
+1. **Reuse before rebuild** — new pages and features must compose shared components; do not copy-paste repeated hero/card/input markup.
+2. **Extract at two uses** — when the same UI pattern appears on two or more pages, move it to `shared/components/` in the same phase (do not defer to Phase 13).
+3. **Page heroes** — authenticated routes inside `AppShellComponent` use `app-page-hero` with inputs and projection slots (`pageHeroDescription`, `pageHeroBadge`, `pageHeroLeading`); login and other auth-only layouts may keep bespoke split heroes until a shared auth variant exists.
+4. **Document new shared components** — add each new shared component to this table when introduced.
+
+**`app-data-table` defaults** (override per page via `[config]` and column defs):
+
+| Setting | Default |
+|---------|---------|
+| Header / cell alignment | center |
+| Column borders | off (card-style rows with rounded ends) |
+| Striped rows | off |
+| Header background | `flow-100` |
+| Page size | 20 (options: 5, 10, 20, 50, 100) |
+
+Styling uses Tailwind utilities on headers/cells (projected `<td>` content); table row gap uses component CSS where Tailwind `border-spacing` in TS is unreliable.
 
 ---
 
@@ -640,6 +670,11 @@ See [docs/postman/README.md](./postman/README.md) for import, variables, and typ
 client/src/app/
   core/
   shared/
+    components/
+      page-hero/       # app-page-hero — page header band
+      modal/           # app-modal
+      data-table/      # app-data-table — searchable paginated tables
+      password-input/  # app-password-input
   features/
     auth/
     dashboard/
@@ -718,7 +753,7 @@ User → Organization → Projects
 - Add existing user by email (no email invite system in v1)
 - Remove team members
 - View team members
-- Assign organization roles
+- Assign organization roles (inline dropdown; **confirm via modal** before PATCH — avoid accidental changes)
 - **Enforce role guards on all org endpoints**
 
 ### Database
@@ -727,7 +762,7 @@ User → Organization → Projects
 
 ### Frontend pages
 
-- Team page
+- Team page — `app-data-table` (search, pagination, striped rows); add-member modal; role-change confirmation modal
 - Organization settings (basic)
 
 ---
@@ -771,7 +806,7 @@ Low | Medium | High | Critical
 ### Frontend
 
 - Projects list, create, details, edit
-- Reusable: project card, status badge, priority badge, empty/loading states, confirm dialog
+- Reusable: `app-data-table` for lists, project card, status badge, priority badge, empty/loading states, confirm dialog (`app-modal`)
 
 ### Tests
 
@@ -1110,7 +1145,7 @@ When implementing each phase:
 9. Use DTO validation in NestJS on every input.
 10. Keep business logic in backend services, not controllers or Angular components.
 11. Enforce permissions in backend guards — UI checks are secondary.
-12. Create reusable Angular components for repeated UI patterns.
+12. **Reuse shared components first** — check `shared/components/` before new markup; use `app-page-hero`, `app-modal`, `app-data-table`, and `app-password-input`; extract repeated patterns at two uses (see §2 Reusable components).
 13. Follow **UI design standards** (§2) — modern, distinctive, recruiter-demo ready; no plain form-only pages in the app shell.
 14. Every list/detail page needs loading, error, and empty states.
 15. Do not hardcode API URLs — use environment variables.

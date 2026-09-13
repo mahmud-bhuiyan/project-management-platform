@@ -1,0 +1,225 @@
+<app-page-hero eyebrow="Workspace" title="Team members">
+  <p pageHeroDescription class="mt-2 max-w-2xl text-base text-flow-200/90">
+    @if (activeOrganization(); as organization) {
+      Manage who has access to <strong class="text-white">{{ organization.name }}</strong>.
+    } @else {
+      Select an organization to view its team.
+    }
+  </p>
+
+  @if (activeOrganization()) {
+    <p pageHeroBadge class="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm text-white/90">
+      <span class="h-2 w-2 rounded-full bg-accent"></span>
+      {{ members().length }} member{{ members().length === 1 ? '' : 's' }}
+      @if (!canManage()) {
+        <span class="text-white/70">· read-only</span>
+      }
+    </p>
+  }
+</app-page-hero>
+
+@if (!activeOrganization()) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">No organization selected</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      Use the organization switcher in the sidebar to choose a workspace.
+    </p>
+  </section>
+} @else {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <app-data-table
+      title="Members"
+      [config]="teamTableConfig"
+      [description]="canManage()
+        ? 'Search, update roles, or remove members from this organization.'
+        : 'You have view-only access to this team list.'"
+      [columns]="memberColumns()"
+      [items]="paginatedMembers()"
+      [loading]="isLoadingMembers()"
+      [error]="membersError()"
+      [totalCount]="members().length"
+      [filteredCount]="filteredMembers().length"
+      emptyMessage="No members yet."
+      noResultsMessage="No members match your search."
+      loadingMessage="Loading team members…"
+      searchInputId="team-member-search"
+      searchPlaceholder="Search by name, email, or role…"
+      searchTestId="team-member-search"
+      tableTestId="team-member-table"
+      rowTestId="team-member"
+      itemLabel="member"
+      [searchValue]="searchQuery()"
+      [pageSummary]="pageSummary()"
+      [currentPage]="currentPage()"
+      [totalPages]="totalPages()"
+      [pageSize]="pageSize()"
+      pageFirstTestId="team-page-first"
+      pagePreviousTestId="team-page-prev"
+      pageNextTestId="team-page-next"
+      pageLastTestId="team-page-last"
+      pageSizeTestId="team-page-size"
+      (searchChange)="onSearchChange($event)"
+      (pageChange)="onPageChange($event)"
+      (pageSizeChange)="onPageSizeChange($event)"
+    >
+      @if (canManage()) {
+        <button
+          type="button"
+          class="team-primary-btn"
+          dataTableActions
+          data-testid="team-open-add-member"
+          (click)="openAddMemberModal()"
+        >
+          Add member
+        </button>
+      }
+
+      @if (rowActionError(); as error) {
+        <p class="team-inline-error" dataTableAlert role="alert">{{ error }}</p>
+      }
+
+      <ng-template appDataTableRow let-member let-columnCellClass="columnCellClass">
+        <td [class]="columnCellClass('member')">
+          <div class="team-member-identity">
+            <div class="team-member-avatar" aria-hidden="true">
+              {{ memberInitials(member) }}
+            </div>
+            <span class="team-member-name">{{ member.user.name }}</span>
+          </div>
+        </td>
+        <td class="team-table__email" [class]="columnCellClass('email')">
+          {{ member.user.email }}
+        </td>
+        <td [class]="columnCellClass('role')">
+          @if (canManageMember(member)) {
+            <label class="sr-only" [for]="'team-role-' + member.id">
+              Role for {{ member.user.name }}
+            </label>
+            <select
+              class="team-role-select"
+              [id]="'team-role-' + member.id"
+              [ngModel]="roleSelectValue(member)"
+              [disabled]="isRowBusy(member.id) || isRoleChangeModalOpen()"
+              (ngModelChange)="onRoleSelectChange(member, $event)"
+            >
+              @for (role of roleOptionsForMember(member); track role) {
+                <option [value]="role">{{ roleLabel(role) }}</option>
+              }
+            </select>
+          } @else {
+            <span class="team-role-badge">{{ roleLabel(member.role) }}</span>
+          }
+        </td>
+        <td class="team-table__joined" [class]="columnCellClass('joined')">
+          {{ member.createdAt | date: 'mediumDate' }}
+        </td>
+        @if (canManage()) {
+          <td [class]="columnCellClass('actions')">
+            @if (canManageMember(member)) {
+              <button
+                type="button"
+                class="team-remove-btn"
+                data-testid="team-remove-member"
+                [disabled]="isRowBusy(member.id)"
+                (click)="removeMember(member)"
+              >
+                {{ isRowBusy(member.id) ? 'Working…' : 'Remove' }}
+              </button>
+            } @else {
+              <span class="team-table__muted">—</span>
+            }
+          </td>
+        }
+      </ng-template>
+    </app-data-table>
+  </section>
+
+  <app-modal
+    [isOpen]="isRoleChangeModalOpen()"
+    title="Change member role?"
+    [description]="roleChangeModalDescription()"
+    [closeOnBackdrop]="!isConfirmingRoleChange()"
+    (closed)="closeRoleChangeModal()"
+  >
+    <div class="team-modal-actions">
+      <button
+        type="button"
+        class="team-secondary-btn"
+        data-testid="team-role-change-cancel"
+        [disabled]="isConfirmingRoleChange()"
+        (click)="closeRoleChangeModal()"
+      >
+        No, keep current role
+      </button>
+      <button
+        type="button"
+        class="team-primary-btn"
+        data-testid="team-role-change-confirm"
+        [disabled]="isConfirmingRoleChange()"
+        (click)="confirmRoleChange()"
+      >
+        {{ isConfirmingRoleChange() ? 'Saving…' : 'Yes, change role' }}
+      </button>
+    </div>
+  </app-modal>
+
+  <app-modal
+    [isOpen]="isAddMemberModalOpen()"
+    title="Add team member"
+    description="Invite an existing Flowdesk user by email. They must already have an account."
+    (closed)="closeAddMemberModal()"
+  >
+    <form [formGroup]="addMemberForm" (ngSubmit)="submitAddMember()">
+      <div class="team-modal-field">
+        <label class="team-label" for="team-add-email">Email</label>
+        <input
+          id="team-add-email"
+          type="email"
+          class="team-input"
+          placeholder="member@acme.dev"
+          formControlName="email"
+          [attr.aria-invalid]="hasAddError('email', 'required') || hasAddError('email', 'email')"
+        />
+        <div class="team-field-error-slot" aria-live="polite">
+          @if (hasAddError('email', 'required')) {
+            <p class="team-field-error">Email is required.</p>
+          } @else if (hasAddError('email', 'email')) {
+            <p class="team-field-error">Enter a valid email address.</p>
+          }
+        </div>
+      </div>
+
+      <div class="team-modal-field">
+        <label class="team-label" for="team-add-role">Role</label>
+        <select id="team-add-role" class="team-input" formControlName="role">
+          @for (role of addRoleOptions(); track role) {
+            <option [value]="role">{{ roleLabel(role) }}</option>
+          }
+        </select>
+      </div>
+
+      @if (addMemberError(); as error) {
+        <p class="team-inline-error" role="alert">{{ error }}</p>
+      }
+
+      <div class="team-modal-actions">
+        <button
+          type="button"
+          class="team-secondary-btn"
+          [disabled]="isAddingMember()"
+          (click)="closeAddMemberModal()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="team-primary-btn"
+          data-testid="team-add-member"
+          [disabled]="isAddingMember()"
+        >
+          {{ isAddingMember() ? 'Adding…' : 'Add member' }}
+        </button>
+      </div>
+    </form>
+  </app-modal>
+}
