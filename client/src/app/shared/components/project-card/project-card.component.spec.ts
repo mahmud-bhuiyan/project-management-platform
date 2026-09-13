@@ -63,16 +63,17 @@ describe('ProjectCardComponent', () => {
     expect(editLink?.getAttribute('href')).toContain('/projects/project-1/edit');
   });
 
-  it('links the project title when link input is provided', () => {
+  it('links the whole card when link input is provided', () => {
     const fixture = TestBed.createComponent(ProjectCardComponent);
     fixture.componentRef.setInput('project', sampleProject);
     fixture.componentRef.setInput('link', ['/projects', 'project-1']);
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    const link = compiled.querySelector('a.project-card__title-link');
+    const link = compiled.querySelector('[data-testid="project-card-link-project-1"]');
     expect(link).toBeTruthy();
     expect(link?.getAttribute('href')).toContain('/projects/project-1');
+    expect(link?.getAttribute('aria-label')).toBe('View Website Redesign');
   });
 });
 

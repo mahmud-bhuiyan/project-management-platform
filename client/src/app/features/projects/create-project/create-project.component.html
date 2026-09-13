@@ -16,7 +16,17 @@
     </p>
   </section>
 } @else {
-  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+  <section class="mt-8">
+    <a
+      routerLink="/projects"
+      class="project-page-back-link"
+      data-testid="project-create-back"
+    >
+      ← Back to projects
+    </a>
+  </section>
+
+  <section class="mt-4 glass-panel rounded-2xl p-6 sm:p-8">
     <h2 class="font-display text-lg font-bold text-flow-900">Project details</h2>
     <p class="mt-1 text-sm text-gray-600">
       Set the basics now — you can refine scope and membership later.

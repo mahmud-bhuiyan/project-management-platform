@@ -3,15 +3,18 @@
   [class.project-card--linked]="!!link()"
   [attr.data-testid]="'project-card-' + project().id"
 >
+  @if (link(); as projectLink) {
+    <a
+      class="project-card__overlay"
+      [routerLink]="projectLink"
+      [attr.aria-label]="'View ' + project().name"
+      [attr.data-testid]="'project-card-link-' + project().id"
+    ></a>
+  }
+
   <div class="project-card__header">
     <div class="project-card__title-row">
-      @if (link(); as projectLink) {
-        <a class="project-card__title-link" [routerLink]="projectLink">
-          <h3 class="project-card__title">{{ project().name }}</h3>
-        </a>
-      } @else {
-        <h3 class="project-card__title">{{ project().name }}</h3>
-      }
+      <h3 class="project-card__title">{{ project().name }}</h3>
 
       @if (editable() && editLink(); as editRoute) {
         <a

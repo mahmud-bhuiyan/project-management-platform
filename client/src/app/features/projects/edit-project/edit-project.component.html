@@ -23,10 +23,20 @@
     <p class="mt-2 text-sm text-gray-600">
       This project is not in your current workspace cache. Return to the projects list.
     </p>
-    <a routerLink="/projects" class="project-edit-back-link">Back to projects</a>
+    <a routerLink="/projects" class="project-page-back-link">← Back to projects</a>
   </section>
 } @else if (project(); as currentProject) {
-  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+  <section class="mt-8">
+    <a
+      [routerLink]="backToProjectLink()"
+      class="project-page-back-link"
+      data-testid="project-edit-back"
+    >
+      ← Back to project
+    </a>
+  </section>
+
+  <section class="mt-4 glass-panel rounded-2xl p-6 sm:p-8">
     <h2 class="font-display text-lg font-bold text-flow-900">Project details</h2>
     <p class="mt-1 text-sm text-gray-600">
       @if (currentProject.status === 'ARCHIVED') {
@@ -41,6 +51,7 @@
         [form]="projectForm"
         [isSubmitting]="isSubmitting()"
         [formError]="formError()"
+        [cancelLink]="backToProjectLink()"
         submitLabel="Save changes"
         submittingLabel="Saving…"
         (submitted)="submit()"

@@ -7,6 +7,7 @@ import {
   inject,
   untracked,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { OrganizationStore } from '../../../core/state/organization.store';
 import { ProjectsStore } from '../../../core/state/projects.store';
@@ -41,8 +42,12 @@ export class ProjectDetailComponent {
 
   protected readonly activeOrganization = this.organizationStore.activeOrganization;
 
+  private readonly routeParams = toSignal(this.route.paramMap, {
+    initialValue: this.route.snapshot.paramMap,
+  });
+
   private readonly projectId = computed(
-    () => this.route.snapshot.paramMap.get('projectId') ?? '',
+    () => this.routeParams()?.get('projectId') ?? '',
   );
 
   protected readonly project = computed(() => {

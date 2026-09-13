@@ -112,7 +112,7 @@ describe('EditProjectComponent', () => {
       },
     });
 
-    expect(navigateSpy).toHaveBeenCalledWith(['/projects']);
+    expect(navigateSpy).toHaveBeenCalledWith(['/projects', 'project-1']);
   });
 
   it('shows a not-found message when the project is missing from the store', () => {

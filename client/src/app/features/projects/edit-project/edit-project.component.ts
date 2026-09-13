@@ -7,6 +7,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import {
   NonNullableFormBuilder,
   ReactiveFormsModule,
@@ -49,9 +50,18 @@ export class EditProjectComponent {
   protected readonly isSubmitting = signal(false);
   protected readonly formError = signal<string | null>(null);
 
-  private readonly projectId = computed(
-    () => this.route.snapshot.paramMap.get('projectId') ?? '',
+  private readonly routeParams = toSignal(this.route.paramMap, {
+    initialValue: this.route.snapshot.paramMap,
+  });
+
+  protected readonly projectId = computed(
+    () => this.routeParams()?.get('projectId') ?? '',
   );
+
+  protected readonly backToProjectLink = computed(() => {
+    const id = this.projectId();
+    return id ? (['/projects', id] as const) : (['/projects'] as const);
+  });
 
   protected readonly project = computed(() => {
     const id = this.projectId();
@@ -126,7 +136,7 @@ export class EditProjectComponent {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
-          void this.router.navigate(['/projects']);
+          void this.router.navigate(this.backToProjectLink());
         },
         error: (error: HttpErrorResponse) => {
           this.formError.set(this.extractErrorMessage(error));

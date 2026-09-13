@@ -10,7 +10,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import type {
   EditableProjectStatus,
@@ -23,7 +23,7 @@ import { ProjectFormComponent } from '../project-form/project-form.component';
 
 @Component({
   selector: 'app-create-project',
-  imports: [ReactiveFormsModule, PageHeroComponent, ProjectFormComponent],
+  imports: [ReactiveFormsModule, RouterLink, PageHeroComponent, ProjectFormComponent],
   templateUrl: './create-project.component.html',
   styleUrl: './create-project.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

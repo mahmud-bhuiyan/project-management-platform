@@ -1,12 +1,12 @@
-.project-edit-back-link {
+.project-page-back-link {
   display: inline-flex;
-  margin-top: 1rem;
+  align-items: center;
   font-size: 0.875rem;
   font-weight: 600;
   color: rgb(76 29 149);
   text-decoration: none;
 }
 
-.project-edit-back-link:hover {
+.project-page-back-link:hover {
   text-decoration: underline;
 }
