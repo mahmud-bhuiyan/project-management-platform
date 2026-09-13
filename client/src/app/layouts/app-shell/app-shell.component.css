@@ -78,6 +78,13 @@
   backdrop-filter: blur(20px);
 }
 
+.app-shell__header-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 @media (min-width: 640px) {
   .app-shell__header {
     padding: 0 1.5rem;

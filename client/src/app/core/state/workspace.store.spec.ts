@@ -105,6 +105,14 @@ describe('WorkspaceStore', () => {
       data: { projects: [] },
     });
 
+    const unreadRequest = httpMock.expectOne(
+      'http://localhost:3001/api/v1/notifications/unread-count',
+    );
+    unreadRequest.flush({
+      success: true,
+      data: { unreadCount: 0 },
+    });
+
     await bootstrapPromise;
 
     expect(workspaceStore.hasBootstrapped()).toBe(true);

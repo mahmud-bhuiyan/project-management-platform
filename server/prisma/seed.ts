@@ -127,6 +127,66 @@ async function seedDemoTeam(): Promise<void> {
 
     console.log(`Demo user ${email} (${persona.role}) ready`);
   }
+
+  await seedDemoNotifications(organization.id);
+}
+
+async function seedDemoNotifications(organizationId: string): Promise<void> {
+  const admin = await prisma.user.findUnique({
+    where: { email: 'admin@acme.dev' },
+  });
+
+  if (!admin) {
+    return;
+  }
+
+  const existingCount = await prisma.notification.count({
+    where: { userId: admin.id },
+  });
+
+  if (existingCount > 0) {
+    console.log('Demo notifications already exist');
+    return;
+  }
+
+  await prisma.notification.createMany({
+    data: [
+      {
+        userId: admin.id,
+        type: 'TASK_ASSIGNED',
+        title: 'Task assigned to you',
+        body: 'You were assigned to "Design landing page hero".',
+        metadata: {
+          organizationId,
+          projectId: null,
+          taskId: null,
+        },
+      },
+      {
+        userId: admin.id,
+        type: 'MENTION',
+        title: 'You were mentioned',
+        body: '@admin please review the mobile breakpoints.',
+        metadata: {
+          organizationId,
+          taskId: null,
+        },
+      },
+      {
+        userId: admin.id,
+        type: 'TASK_DUE_SOON',
+        title: 'Task due soon',
+        body: '"Ship onboarding flow" is due within 24 hours.',
+        readAt: new Date(),
+        metadata: {
+          organizationId,
+          taskId: null,
+        },
+      },
+    ],
+  });
+
+  console.log('Demo notifications seeded for admin@acme.dev');
 }
 
 async function main() {

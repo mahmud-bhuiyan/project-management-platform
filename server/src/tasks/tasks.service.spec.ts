@@ -11,6 +11,7 @@ import { OrganizationsService } from '../organizations/organizations.service.js'
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ProjectsService } from '../projects/projects.service.js';
 import { UsersService } from '../users/users.service.js';
+import { NotificationTriggersService } from '../notifications/notification-triggers.service.js';
 import { ActivityLogService } from './activity-log.service.js';
 import { TasksService } from './tasks.service.js';
 
@@ -56,6 +57,7 @@ describe('TasksService', () => {
   };
 
   const usersService = {
+    findById: vi.fn(),
     toSafeUser: vi.fn((user: typeof reporter) => {
       const { passwordHash: _passwordHash, ...safeUser } = user;
       return safeUser;
@@ -64,6 +66,11 @@ describe('TasksService', () => {
 
   const activityLogService = {
     record: vi.fn(),
+  };
+
+  const notificationTriggersService = {
+    notifyTaskAssigned: vi.fn(),
+    notifyTaskStatusChanged: vi.fn(),
   };
 
   const tx = {
@@ -116,6 +123,9 @@ describe('TasksService', () => {
     prisma.$transaction.mockImplementation(async (callback) => callback(tx));
     tx.task.updateMany.mockResolvedValue({ count: 1 });
     tx.task.update.mockResolvedValue(taskRecord);
+    usersService.findById.mockResolvedValue(reporter);
+    notificationTriggersService.notifyTaskAssigned.mockResolvedValue(undefined);
+    notificationTriggersService.notifyTaskStatusChanged.mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -125,6 +135,10 @@ describe('TasksService', () => {
         { provide: ProjectsService, useValue: projectsService },
         { provide: UsersService, useValue: usersService },
         { provide: ActivityLogService, useValue: activityLogService },
+        {
+          provide: NotificationTriggersService,
+          useValue: notificationTriggersService,
+        },
       ],
     }).compile();
 

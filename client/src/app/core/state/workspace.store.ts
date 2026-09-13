@@ -2,6 +2,7 @@ import { inject } from '@angular/core';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { forkJoin, map, of, switchMap, tap } from 'rxjs';
 import { DashboardStore } from './dashboard.store';
+import { NotificationsStore } from './notifications.store';
 import { OrganizationStore } from './organization.store';
 import { ProjectsStore } from './projects.store';
 import { TaskDetailStore } from './task-detail.store';
@@ -30,6 +31,7 @@ export const WorkspaceStore = signalStore(
       projectsStore = inject(ProjectsStore),
       tasksStore = inject(TasksStore),
       taskDetailStore = inject(TaskDetailStore),
+      notificationsStore = inject(NotificationsStore),
     ) => ({
       bootstrap() {
         if (store.hasBootstrapped()) {
@@ -42,18 +44,27 @@ export const WorkspaceStore = signalStore(
           switchMap(() => {
             const organizationId = organizationStore.activeOrganizationId();
 
+            const unreadCount$ = notificationsStore.loadUnreadCount({
+              silent: true,
+            });
+
             if (!organizationId) {
-              patchState(store, {
-                isBootstrapping: false,
-                hasBootstrapped: true,
-              });
-              return of(undefined);
+              return unreadCount$.pipe(
+                tap(() => {
+                  patchState(store, {
+                    isBootstrapping: false,
+                    hasBootstrapped: true,
+                  });
+                }),
+                map(() => undefined),
+              );
             }
 
             return forkJoin([
               dashboardStore.loadStats({ organizationId }),
               teamStore.loadMembers({ organizationId }),
               projectsStore.loadProjects({ organizationId }),
+              unreadCount$,
             ]).pipe(
               tap({
                 next: () => {
@@ -92,6 +103,7 @@ export const WorkspaceStore = signalStore(
         projectsStore.resetForOrganizationSwitch();
         tasksStore.resetForOrganizationSwitch();
         taskDetailStore.resetForOrganizationSwitch();
+        notificationsStore.resetForSessionClear();
         patchState(store, {
           isBootstrapping: false,
           bootstrapError: null,

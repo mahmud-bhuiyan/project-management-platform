@@ -179,15 +179,19 @@
         </div>
       </div>
 
-      <button
-        type="button"
-        class="app-shell__sign-out"
-        data-testid="app-shell-sign-out"
-        (click)="signOut()"
-        [disabled]="isSigningOut()"
-      >
-        {{ isSigningOut() ? 'Signing out…' : 'Sign out' }}
-      </button>
+      <div class="app-shell__header-actions">
+        <app-notification-bell />
+
+        <button
+          type="button"
+          class="app-shell__sign-out"
+          data-testid="app-shell-sign-out"
+          (click)="signOut()"
+          [disabled]="isSigningOut()"
+        >
+          {{ isSigningOut() ? 'Signing out…' : 'Sign out' }}
+        </button>
+      </div>
     </header>
 
     <main class="app-shell__content">

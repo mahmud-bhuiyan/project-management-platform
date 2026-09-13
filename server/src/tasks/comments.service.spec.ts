@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiException } from '../common/exceptions/api.exception.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { UsersService } from '../users/users.service.js';
+import { NotificationTriggersService } from '../notifications/notification-triggers.service.js';
 import { ActivityLogService } from './activity-log.service.js';
 import { CommentsService } from './comments.service.js';
 import { TasksService } from './tasks.service.js';
@@ -49,6 +50,10 @@ describe('CommentsService', () => {
     record: vi.fn(),
   };
 
+  const notificationTriggersService = {
+    notifyCommentMentions: vi.fn(),
+  };
+
   const prisma = {
     comment: {
       create: vi.fn(),
@@ -56,6 +61,9 @@ describe('CommentsService', () => {
       findFirst: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
+    },
+    task: {
+      findFirst: vi.fn(),
     },
   };
 
@@ -72,6 +80,12 @@ describe('CommentsService', () => {
       body: 'Updated comment body',
     });
     prisma.comment.delete.mockResolvedValue(commentRecord);
+    prisma.task.findFirst.mockResolvedValue({
+      id: 'task-1',
+      title: 'Design landing page hero',
+      project: { organizationId: 'org-1' },
+    });
+    notificationTriggersService.notifyCommentMentions.mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -80,6 +94,10 @@ describe('CommentsService', () => {
         { provide: TasksService, useValue: tasksService },
         { provide: UsersService, useValue: usersService },
         { provide: ActivityLogService, useValue: activityLogService },
+        {
+          provide: NotificationTriggersService,
+          useValue: notificationTriggersService,
+        },
       ],
     }).compile();
 
@@ -105,6 +123,7 @@ describe('CommentsService', () => {
       include: { author: true },
     });
     expect(comment.author.email).toBe(author.email);
+    expect(notificationTriggersService.notifyCommentMentions).toHaveBeenCalled();
   });
 
   it('lists comments for a task', async () => {

@@ -12,6 +12,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 import { ProjectsService } from '../projects/projects.service.js';
 import { UsersService } from '../users/users.service.js';
 import { ActivityAction } from './activity.types.js';
+import { NotificationTriggersService } from '../notifications/notification-triggers.service.js';
 import { ActivityLogService } from './activity-log.service.js';
 import type {
   CreateTaskInput,
@@ -37,6 +38,7 @@ export class TasksService {
     private readonly projectsService: ProjectsService,
     private readonly usersService: UsersService,
     private readonly activityLogService: ActivityLogService,
+    private readonly notificationTriggersService: NotificationTriggersService,
   ) {}
 
   async create(
@@ -86,6 +88,17 @@ export class TasksService {
         actorId: userId,
         action: ActivityAction.TASK_ASSIGNED,
         metadata: { assigneeId: task.assigneeId },
+      });
+
+      const actorName = await this.getActorName(userId);
+      await this.notificationTriggersService.notifyTaskAssigned({
+        actorId: userId,
+        assigneeId: task.assigneeId,
+        organizationId,
+        projectId,
+        taskId: task.id,
+        taskTitle: task.title,
+        actorName,
       });
     }
 
@@ -218,6 +231,14 @@ export class TasksService {
     });
 
     await this.recordTaskUpdateActivity(userId, existingTask, input);
+    await this.dispatchTaskUpdateNotifications(
+      userId,
+      organizationId,
+      projectId,
+      existingTask,
+      task,
+      input,
+    );
 
     return this.toTaskResponse(task);
   }
@@ -284,6 +305,21 @@ export class TasksService {
             to: item.status,
           },
         });
+
+        if (existingTask.assigneeId) {
+          const actorName = await this.getActorName(userId);
+          await this.notificationTriggersService.notifyTaskStatusChanged({
+            actorId: userId,
+            assigneeId: existingTask.assigneeId,
+            organizationId,
+            projectId,
+            taskId: existingTask.id,
+            taskTitle: existingTask.title,
+            actorName,
+            from: existingTask.status,
+            to: item.status,
+          });
+        }
       }
     } else {
       this.assertBatchReorderPositions(items);
@@ -312,6 +348,21 @@ export class TasksService {
               to: item.status,
             },
           });
+
+          if (existingTask.assigneeId) {
+            const actorName = await this.getActorName(userId);
+            await this.notificationTriggersService.notifyTaskStatusChanged({
+              actorId: userId,
+              assigneeId: existingTask.assigneeId,
+              organizationId,
+              projectId,
+              taskId: existingTask.id,
+              taskTitle: existingTask.title,
+              actorName,
+              from: existingTask.status,
+              to: item.status,
+            });
+          }
         }
       }
     }
@@ -562,6 +613,56 @@ export class TasksService {
     });
 
     return (result._max.position ?? -1) + 1;
+  }
+
+  private async getActorName(userId: string): Promise<string> {
+    const actor = await this.usersService.findById(userId);
+    return actor?.name ?? 'Someone';
+  }
+
+  private async dispatchTaskUpdateNotifications(
+    userId: string,
+    organizationId: string,
+    projectId: string,
+    existingTask: Task,
+    updatedTask: Task,
+    input: UpdateTaskInput,
+  ): Promise<void> {
+    const actorName = await this.getActorName(userId);
+
+    if (
+      input.assigneeId !== undefined &&
+      input.assigneeId !== existingTask.assigneeId &&
+      input.assigneeId
+    ) {
+      await this.notificationTriggersService.notifyTaskAssigned({
+        actorId: userId,
+        assigneeId: input.assigneeId,
+        organizationId,
+        projectId,
+        taskId: updatedTask.id,
+        taskTitle: updatedTask.title,
+        actorName,
+      });
+    }
+
+    if (
+      input.status !== undefined &&
+      input.status !== existingTask.status &&
+      updatedTask.assigneeId
+    ) {
+      await this.notificationTriggersService.notifyTaskStatusChanged({
+        actorId: userId,
+        assigneeId: updatedTask.assigneeId,
+        organizationId,
+        projectId,
+        taskId: updatedTask.id,
+        taskTitle: updatedTask.title,
+        actorName,
+        from: existingTask.status,
+        to: input.status,
+      });
+    }
   }
 
   private async recordTaskUpdateActivity(

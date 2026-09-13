@@ -9,6 +9,7 @@ import { filter } from 'rxjs';
 import { AuthStore } from '../../core/state/auth.store';
 import { OrganizationStore } from '../../core/state/organization.store';
 import { WorkspaceStore } from '../../core/state/workspace.store';
+import { NotificationBellComponent } from './notification-bell/notification-bell.component';
 import { OrganizationSwitcherComponent } from './organization-switcher/organization-switcher.component';
 
 @Component({
@@ -18,6 +19,7 @@ import { OrganizationSwitcherComponent } from './organization-switcher/organizat
     RouterLink,
     RouterLinkActive,
     OrganizationSwitcherComponent,
+    NotificationBellComponent,
   ],
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.css',
@@ -106,6 +108,18 @@ export class AppShellComponent {
 
     if (url.includes('/projects/') && url.includes('/board')) {
       return 'Kanban board';
+    }
+
+    if (url.includes('/projects/') && url.includes('/tasks/') && url.includes('/edit')) {
+      return 'Edit task';
+    }
+
+    if (url.includes('/projects/') && url.includes('/tasks/')) {
+      return 'Task details';
+    }
+
+    if (url.includes('/projects/') && url.includes('/tasks/new')) {
+      return 'Create task';
     }
 
     if (url.includes('/projects/')) {
