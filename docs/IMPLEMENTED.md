@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-13  
-**Current step:** 8.4 (built — pending manual test)
+**Current step:** 9.1 (not started)
 
 ### Decisions (Phase 2)
 
@@ -36,7 +36,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 5 | Project management | 8 / 8 | Complete |
 | 6 | Task management | 3 / 3 | Complete |
 | 7 | Kanban board | 3 / 3 | Complete |
-| 8 | Task details, comments, activity | 3 / 4 | In progress |
+| 8 | Task details, comments, activity | 4 / 4 | Complete |
 | 9 | Notifications | 0 / 3 | Not started |
 | 10 | Real-time updates | 0 / 3 | Not started |
 | 11 | Dashboard charts | 0 / 1 | Not started |
@@ -155,7 +155,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 8.1 | Subtasks API | [x] | 2026-09-13 | CRUD + completion toggle; 124 server tests; Postman repo + cloud synced — user verified |
 | 8.2 | Comments API | [x] | 2026-09-13 | Add/edit own/delete own; 135 server tests; Postman repo + cloud synced — user verified |
 | 8.3 | Activity log | [x] | 2026-09-13 | Auto-log on task/comment/subtask actions + list API; 139 server tests; Postman repo + cloud synced — user verified |
-| 8.4 | Task detail page (full) | [ ] | | Built — overview, subtasks progress, comments, activity timeline, @mention body stored — pending manual test |
+| 8.4 | Task detail page (full) | [x] | 2026-09-13 | Overview, subtasks, comments, activity; activity refresh on re-entry; Playwright 20/20 — user verified |
 
 ---
 
@@ -286,4 +286,4 @@ Use this for quick notes across sessions.
 | 2026-09-13 | 8.1 | Subtasks API — CRUD + toggle complete under `/tasks/:taskId/subtasks` | Pass — user verified in Postman |
 | 2026-09-13 | 8.2 | Comments API — add/edit own/delete own under `/tasks/:taskId/comments` | Pass — user verified in Postman |
 | 2026-09-13 | 8.3 | Activity log — auto-record + GET `/tasks/:taskId/activity` | Pass — user verified in Postman |
-| 2026-09-13 | 8.4 | Task detail page — fields, subtasks, comments, activity UI | Built — pending manual UI test |
+| 2026-09-13 | 8.4 | Task detail page — fields, subtasks, comments, activity UI | Pass — Playwright e2e 20/20 + user verified; Phase 8 complete |
