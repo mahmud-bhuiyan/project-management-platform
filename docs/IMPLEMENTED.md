@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-13  
-**Current step:** 5.6 (ready for manual test)
+**Current step:** 5.7 (ready for manual test)
 
 ### Decisions (Phase 2)
 
@@ -32,7 +32,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 2 | Authentication | 12 / 12 | Complete |
 | 3 | Organization & team | 8 / 8 | Complete |
 | 4 | Dashboard shell | 3 / 3 | Complete |
-| 5 | Project management | 5 / 8 | In progress |
+| 5 | Project management | 6 / 8 | In progress |
 | 6 | Task management | 0 / 3 | Not started |
 | 7 | Kanban board | 0 / 3 | Not started |
 | 8 | Task details, comments, activity | 0 / 4 | Not started |
@@ -121,8 +121,8 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 5.3 | Client state stores (NgRx Signal Store) | [x] | 2026-09-13 | `@ngrx/signals` stores (auth, org, dashboard, team, workspace, projects scaffold); shell bootstrap overlay; instant navigation; 61 client tests — user verified |
 | 5.4 | Project backend tests | [x] | 2026-09-13 | Projects + project-members service/controller specs; 102 server tests pass |
 | 5.5 | Shared UI components | [x] | 2026-09-13 | `app-project-card`, `app-project-status-badge`, `app-project-priority-badge`, `app-empty-state`; project model + utils — user verified |
-| 5.6 | Projects list page | [~] | 2026-09-13 | `/projects` reads from `ProjectsStore`; shell bootstrap loads projects; nav link enabled; empty/error states — pending manual UI test |
-| 5.7 | Create + edit project | [ ] | | |
+| 5.6 | Projects list page | [x] | 2026-09-13 | `/projects` reads from `ProjectsStore`; shell bootstrap loads projects; nav link enabled; empty/error states — user verified |
+| 5.7 | Create + edit project | [~] | 2026-09-13 | Create/edit modals; `ProjectsStore.createProject` + `updateProject` patch list without refetch; OWNER/ADMIN only — pending manual UI test |
 | 5.8 | Project detail page | [ ] | | |
 
 ---

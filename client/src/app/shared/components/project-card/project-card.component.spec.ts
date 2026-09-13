@@ -50,6 +50,16 @@ describe('ProjectCardComponent', () => {
     expect(compiled.textContent).toContain('…');
   });
 
+  it('renders an edit button when editable', () => {
+    const fixture = TestBed.createComponent(ProjectCardComponent);
+    fixture.componentRef.setInput('project', sampleProject);
+    fixture.componentRef.setInput('editable', true);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('[data-testid="project-edit-project-1"]')).toBeTruthy();
+  });
+
   it('renders as a router link when link input is provided', () => {
     const fixture = TestBed.createComponent(ProjectCardComponent);
     fixture.componentRef.setInput('project', sampleProject);

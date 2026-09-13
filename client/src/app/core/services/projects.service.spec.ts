@@ -63,4 +63,62 @@ describe('ProjectsService', () => {
 
     await expect(loadPromise).resolves.toEqual([project]);
   });
+
+  it('creates a project', async () => {
+    const createPromise = firstValueFrom(
+      projectsService.createProject('org-1', {
+        name: 'Website Redesign',
+        description: 'Refresh marketing site UX.',
+        status: 'PLANNING',
+        priority: 'HIGH',
+      }),
+    );
+
+    const request = httpMock.expectOne(
+      'http://localhost:3001/api/v1/organizations/org-1/projects',
+    );
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({
+      name: 'Website Redesign',
+      description: 'Refresh marketing site UX.',
+      status: 'PLANNING',
+      priority: 'HIGH',
+    });
+    request.flush({
+      success: true,
+      data: { project },
+    });
+
+    await expect(createPromise).resolves.toEqual(project);
+  });
+
+  it('updates a project', async () => {
+    const updatePromise = firstValueFrom(
+      projectsService.updateProject('org-1', 'project-1', {
+        name: 'Website Redesign v2',
+        status: 'ACTIVE',
+      }),
+    );
+
+    const request = httpMock.expectOne(
+      'http://localhost:3001/api/v1/organizations/org-1/projects/project-1',
+    );
+    expect(request.request.method).toBe('PATCH');
+    request.flush({
+      success: true,
+      data: {
+        project: {
+          ...project,
+          name: 'Website Redesign v2',
+          status: 'ACTIVE',
+        },
+      },
+    });
+
+    await expect(updatePromise).resolves.toMatchObject({
+      id: 'project-1',
+      name: 'Website Redesign v2',
+      status: 'ACTIVE',
+    });
+  });
 });

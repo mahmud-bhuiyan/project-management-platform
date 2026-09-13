@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatProjectDueDate,
+  toDateInputValue,
   projectPriorityBadgeTone,
   projectPriorityLabel,
   projectStatusBadgeTone,
@@ -25,5 +26,11 @@ describe('project.util', () => {
     expect(formatProjectDueDate(null)).toBeNull();
     expect(formatProjectDueDate('invalid')).toBeNull();
     expect(formatProjectDueDate('2026-03-15T00:00:00.000Z')).toMatch(/Mar/);
+  });
+
+  it('converts API dates to date input values', () => {
+    expect(toDateInputValue(null)).toBe('');
+    expect(toDateInputValue('invalid')).toBe('');
+    expect(toDateInputValue('2026-03-15T00:00:00.000Z')).toBe('2026-03-15');
   });
 });

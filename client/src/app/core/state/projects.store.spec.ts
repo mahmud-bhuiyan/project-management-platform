@@ -92,4 +92,88 @@ describe('ProjectsStore', () => {
     expect(projectsStore.projectsOrganizationId()).toBeNull();
     expect(projectsStore.hasLoaded()).toBe(false);
   });
+
+  it('createProject prepends the new project without refetching', async () => {
+    const loadPromise = firstValueFrom(
+      projectsStore.loadProjects({ organizationId: 'org-1' }),
+    );
+
+    const listRequest = httpMock.expectOne(
+      'http://localhost:3001/api/v1/organizations/org-1/projects',
+    );
+    listRequest.flush({
+      success: true,
+      data: { projects: [] },
+    });
+
+    await loadPromise;
+
+    const created = {
+      ...project,
+      id: 'project-2',
+      name: 'Mobile Application',
+    };
+
+    const createPromise = firstValueFrom(
+      projectsStore.createProject({
+        organizationId: 'org-1',
+        input: { name: 'Mobile Application' },
+      }),
+    );
+
+    const createRequest = httpMock.expectOne(
+      'http://localhost:3001/api/v1/organizations/org-1/projects',
+    );
+    createRequest.flush({
+      success: true,
+      data: { project: created },
+    });
+
+    await createPromise;
+
+    expect(projectsStore.projects()).toEqual([created]);
+  });
+
+  it('updateProject patches the matching project in the store', async () => {
+    const loadPromise = firstValueFrom(
+      projectsStore.loadProjects({ organizationId: 'org-1' }),
+    );
+
+    const listRequest = httpMock.expectOne(
+      'http://localhost:3001/api/v1/organizations/org-1/projects',
+    );
+    listRequest.flush({
+      success: true,
+      data: { projects: [project] },
+    });
+
+    await loadPromise;
+
+    const updated = {
+      ...project,
+      name: 'Website Redesign v2',
+      status: 'ACTIVE' as const,
+    };
+
+    const updatePromise = firstValueFrom(
+      projectsStore.updateProject({
+        organizationId: 'org-1',
+        projectId: 'project-1',
+        input: { name: 'Website Redesign v2', status: 'ACTIVE' },
+      }),
+    );
+
+    const updateRequest = httpMock.expectOne(
+      'http://localhost:3001/api/v1/organizations/org-1/projects/project-1',
+    );
+    updateRequest.flush({
+      success: true,
+      data: { project: updated },
+    });
+
+    await updatePromise;
+
+    expect(projectsStore.projects()[0].name).toBe('Website Redesign v2');
+    expect(projectsStore.projects()[0].status).toBe('ACTIVE');
+  });
 });
