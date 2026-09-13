@@ -105,26 +105,3 @@
   font-size: 0.75rem;
 }
 
-.input-flow-wrap {
-  position: relative;
-}
-
-.input-flow-icon {
-  position: absolute;
-  top: 50%;
-  left: 0.875rem;
-  z-index: 1;
-  display: flex;
-  color: rgb(156 163 175);
-  pointer-events: none;
-  transform: translateY(-50%);
-  transition: color 0.2s ease;
-}
-
-.input-flow-wrap:focus-within .input-flow-icon {
-  color: var(--color-flow-500);
-}
-
-.input-flow--icon {
-  padding-left: 2.75rem;
-}

@@ -1,4 +1,10 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import {
   NonNullableFormBuilder,
   ReactiveFormsModule,
@@ -6,15 +12,18 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { finalize } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/services/auth.service';
+import { PasswordInputComponent } from '../../../shared/components/password-input/password-input.component';
 import type { DemoPersona } from './demo-personas';
 
 @Component({
   selector: 'app-login',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, PasswordInputComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent implements OnInit {
   private readonly authService = inject(AuthService);
@@ -62,16 +71,17 @@ export class LoginComponent implements OnInit {
       this.isSubmitting.set(true);
       this.errorMessage.set(null);
 
-      this.authService.demoLogin(demoEmail).subscribe({
-        next: () => {
-          this.isSubmitting.set(false);
-          void this.router.navigate(['/dashboard']);
-        },
-        error: (error: HttpErrorResponse) => {
-          this.isSubmitting.set(false);
-          this.errorMessage.set(this.extractErrorMessage(error));
-        },
-      });
+      this.authService
+        .demoLogin(demoEmail)
+        .pipe(finalize(() => this.isSubmitting.set(false)))
+        .subscribe({
+          next: () => {
+            void this.router.navigate(['/dashboard']);
+          },
+          error: (error: HttpErrorResponse) => {
+            this.errorMessage.set(this.extractErrorMessage(error));
+          },
+        });
       return;
     }
 
@@ -85,16 +95,17 @@ export class LoginComponent implements OnInit {
 
     const { email, password } = this.form.getRawValue();
 
-    this.authService.login({ email, password }).subscribe({
-      next: () => {
-        this.isSubmitting.set(false);
-        void this.router.navigate(['/dashboard']);
-      },
-      error: (error: HttpErrorResponse) => {
-        this.isSubmitting.set(false);
-        this.errorMessage.set(this.extractErrorMessage(error));
-      },
-    });
+    this.authService
+      .login({ email, password })
+      .pipe(finalize(() => this.isSubmitting.set(false)))
+      .subscribe({
+        next: () => {
+          void this.router.navigate(['/dashboard']);
+        },
+        error: (error: HttpErrorResponse) => {
+          this.errorMessage.set(this.extractErrorMessage(error));
+        },
+      });
   }
 
   fillDemoPersona(persona: DemoPersona): void {
