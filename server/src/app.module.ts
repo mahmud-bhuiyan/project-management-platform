@@ -4,7 +4,9 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { AuthModule } from './auth/auth.module.js';
+import { DashboardModule } from './dashboard/dashboard.module.js';
 import { OrganizationsModule } from './organizations/organizations.module.js';
+import { ProjectsModule } from './projects/projects.module.js';
 import { UsersModule } from './users/users.module.js';
 
 @Module({
@@ -17,6 +19,8 @@ import { UsersModule } from './users/users.module.js';
     UsersModule,
     OrganizationsModule,
     AuthModule,
+    DashboardModule,
+    ProjectsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

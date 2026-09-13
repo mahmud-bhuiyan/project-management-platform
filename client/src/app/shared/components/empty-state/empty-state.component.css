@@ -1,0 +1,24 @@
+.empty-state {
+  border-radius: 0.875rem;
+  border: 1px dashed rgb(212 204 252);
+  background: rgb(245 243 255 / 0.55);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+
+.empty-state--compact {
+  padding: 1.5rem 1.25rem;
+}
+
+.empty-state__title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(42 34 96);
+}
+
+.empty-state__description {
+  margin: 0.35rem 0 0;
+  font-size: 0.875rem;
+  color: rgb(107 114 128);
+}

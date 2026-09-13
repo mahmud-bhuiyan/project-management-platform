@@ -3,18 +3,18 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthStore } from '../../../core/state/auth.store';
 import { LoginComponent } from './login.component';
 
 describe('LoginComponent', () => {
-  const authService = {
+  const authStore = {
     login: vi.fn(),
     demoLogin: vi.fn(),
     getDemoPersonas: vi.fn(),
   };
 
   beforeEach(async () => {
-    authService.getDemoPersonas.mockReturnValue(of([]));
+    authStore.getDemoPersonas.mockReturnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [LoginComponent],
@@ -22,14 +22,14 @@ describe('LoginComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([]),
-        { provide: AuthService, useValue: authService },
+        { provide: AuthStore, useValue: authStore },
       ],
     }).compileComponents();
   });
 
   beforeEach(() => {
     vi.clearAllMocks();
-    authService.getDemoPersonas.mockReturnValue(of([]));
+    authStore.getDemoPersonas.mockReturnValue(of([]));
   });
 
   it('shows validation errors when form is empty', () => {
@@ -44,11 +44,11 @@ describe('LoginComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.textContent).toContain('Email is required.');
     expect(compiled.textContent).toContain('Password is required.');
-    expect(authService.login).not.toHaveBeenCalled();
+    expect(authStore.login).not.toHaveBeenCalled();
   });
 
   it('redirects to dashboard after successful login', () => {
-    authService.login.mockReturnValue(
+    authStore.login.mockReturnValue(
       of({
         id: 'user-1',
         email: 'admin@acme.com',
@@ -73,7 +73,7 @@ describe('LoginComponent', () => {
     });
     component.submit();
 
-    expect(authService.login).toHaveBeenCalledWith({
+    expect(authStore.login).toHaveBeenCalledWith({
       email: 'admin@acme.com',
       password: 'password123',
     });
@@ -81,7 +81,7 @@ describe('LoginComponent', () => {
   });
 
   it('shows masked password and uses demo login when a persona is selected', () => {
-    authService.demoLogin.mockReturnValue(
+    authStore.demoLogin.mockReturnValue(
       of({
         id: 'user-1',
         email: 'admin@acme.dev',
@@ -120,12 +120,12 @@ describe('LoginComponent', () => {
 
     component.submit();
 
-    expect(authService.demoLogin).toHaveBeenCalledWith('admin@acme.dev');
-    expect(authService.login).not.toHaveBeenCalled();
+    expect(authStore.demoLogin).toHaveBeenCalledWith('admin@acme.dev');
+    expect(authStore.login).not.toHaveBeenCalled();
   });
 
   it('shows API error message on failed login', () => {
-    authService.login.mockReturnValue(
+    authStore.login.mockReturnValue(
       throwError(() => ({
         error: {
           message: 'Invalid email or password',

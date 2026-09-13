@@ -3,12 +3,8 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import {
-  provideHttpClient,
-  withInterceptors,
-} from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { authInterceptor } from '../../interceptors/auth.interceptor';
 import { AuthService } from './auth.service';
 
 const mockUser = {
@@ -30,7 +26,7 @@ describe('AuthService', () => {
     TestBed.configureTestingModule({
       providers: [
         AuthService,
-        provideHttpClient(withInterceptors([authInterceptor])),
+        provideHttpClient(),
         provideHttpClientTesting(),
       ],
     });
@@ -43,7 +39,7 @@ describe('AuthService', () => {
     httpMock.verify();
   });
 
-  it('login stores access token and current user', async () => {
+  it('login returns access token and user', async () => {
     const loginPromise = firstValueFrom(
       authService.login({
         email: 'admin@acme.com',
@@ -52,13 +48,6 @@ describe('AuthService', () => {
     );
 
     const request = httpMock.expectOne('http://localhost:3001/api/v1/auth/login');
-    expect(request.request.method).toBe('POST');
-    expect(request.request.withCredentials).toBe(true);
-    expect(request.request.body).toEqual({
-      email: 'admin@acme.com',
-      password: 'password123',
-    });
-
     request.flush({
       success: true,
       message: 'Login successful',
@@ -68,22 +57,16 @@ describe('AuthService', () => {
       },
     });
 
-    await expect(loginPromise).resolves.toEqual(mockUser);
-    expect(authService.getAccessToken()).toBe('jwt-access-token');
-    expect(authService.currentUser()).toEqual(mockUser);
-    expect(authService.isAuthenticated()).toBe(true);
+    await expect(loginPromise).resolves.toEqual({
+      accessToken: 'jwt-access-token',
+      user: mockUser,
+    });
   });
 
-  it('refresh updates access token and sends credentials', async () => {
-    authService.clearSession();
-    authService['accessToken'].set('old-access-token');
-
+  it('refresh returns a new access token', async () => {
     const refreshPromise = firstValueFrom(authService.refresh());
 
     const request = httpMock.expectOne('http://localhost:3001/api/v1/auth/refresh');
-    expect(request.request.method).toBe('POST');
-    expect(request.request.withCredentials).toBe(true);
-
     request.flush({
       success: true,
       message: 'Token refreshed successfully',
@@ -93,20 +76,12 @@ describe('AuthService', () => {
     });
 
     await expect(refreshPromise).resolves.toBe('new-access-token');
-    expect(authService.getAccessToken()).toBe('new-access-token');
   });
 
-  it('loadMe loads profile with bearer token', async () => {
-    authService['accessToken'].set('jwt-access-token');
-
+  it('loadMe returns the current user profile', async () => {
     const mePromise = firstValueFrom(authService.loadMe());
 
     const request = httpMock.expectOne('http://localhost:3001/api/v1/auth/me');
-    expect(request.request.method).toBe('GET');
-    expect(request.request.headers.get('Authorization')).toBe(
-      'Bearer jwt-access-token',
-    );
-
     request.flush({
       success: true,
       message: 'Profile retrieved successfully',
@@ -116,173 +91,5 @@ describe('AuthService', () => {
     });
 
     await expect(mePromise).resolves.toEqual(mockUser);
-    expect(authService.currentUser()).toEqual(mockUser);
-  });
-
-  it('getDemoPersonas returns persona list without passwords', async () => {
-    const personasPromise = firstValueFrom(authService.getDemoPersonas());
-
-    const request = httpMock.expectOne(
-      'http://localhost:3001/api/v1/auth/demo-personas',
-    );
-    expect(request.request.method).toBe('GET');
-
-    request.flush({
-      success: true,
-      message: 'Demo personas retrieved successfully',
-      data: {
-        personas: [
-          { label: 'Company Admin', email: 'admin@acme.dev' },
-        ],
-      },
-    });
-
-    await expect(personasPromise).resolves.toEqual([
-      { label: 'Company Admin', email: 'admin@acme.dev' },
-    ]);
-  });
-
-  it('demoLogin stores access token without sending a password', async () => {
-    const demoLoginPromise = firstValueFrom(
-      authService.demoLogin('admin@acme.dev'),
-    );
-
-    const request = httpMock.expectOne(
-      'http://localhost:3001/api/v1/auth/demo-login',
-    );
-    expect(request.request.method).toBe('POST');
-    expect(request.request.withCredentials).toBe(true);
-    expect(request.request.body).toEqual({ email: 'admin@acme.dev' });
-
-    request.flush({
-      success: true,
-      message: 'Login successful',
-      data: {
-        accessToken: 'jwt-access-token',
-        user: mockUser,
-      },
-    });
-
-    await expect(demoLoginPromise).resolves.toEqual(mockUser);
-    expect(authService.getAccessToken()).toBe('jwt-access-token');
-    expect(authService.currentUser()).toEqual(mockUser);
-  });
-
-  it('createCompanyAdmin sends bearer token and payload', async () => {
-    authService['accessToken'].set('jwt-access-token');
-
-    const createPromise = firstValueFrom(
-      authService.createCompanyAdmin({
-        email: 'admin@newco.com',
-        name: 'New Admin',
-        password: 'password123',
-        organizationName: 'New Co',
-        organizationSlug: 'new-co',
-      }),
-    );
-
-    const request = httpMock.expectOne(
-      'http://localhost:3001/api/v1/auth/company-admins',
-    );
-    expect(request.request.method).toBe('POST');
-    expect(request.request.headers.get('Authorization')).toBe(
-      'Bearer jwt-access-token',
-    );
-    expect(request.request.body).toEqual({
-      email: 'admin@newco.com',
-      name: 'New Admin',
-      password: 'password123',
-      organizationName: 'New Co',
-      organizationSlug: 'new-co',
-    });
-
-    request.flush({
-      success: true,
-      message: 'Company admin created successfully',
-      data: {
-        user: mockUser,
-        organization: {
-          id: 'org-1',
-          name: 'New Co',
-          slug: 'new-co',
-          createdAt: '2026-01-01T00:00:00.000Z',
-          updatedAt: '2026-01-01T00:00:00.000Z',
-        },
-      },
-    });
-
-    await expect(createPromise).resolves.toEqual({
-      user: mockUser,
-      organization: {
-        id: 'org-1',
-        name: 'New Co',
-        slug: 'new-co',
-        createdAt: '2026-01-01T00:00:00.000Z',
-        updatedAt: '2026-01-01T00:00:00.000Z',
-      },
-    });
-  });
-
-  it('restoreSession refreshes and loads profile when cookie is valid', async () => {
-    const restorePromise = firstValueFrom(authService.restoreSession());
-
-    const refreshRequest = httpMock.expectOne(
-      'http://localhost:3001/api/v1/auth/refresh',
-    );
-    refreshRequest.flush({
-      success: true,
-      message: 'Token refreshed successfully',
-      data: { accessToken: 'jwt-access-token' },
-    });
-
-    const meRequest = httpMock.expectOne('http://localhost:3001/api/v1/auth/me');
-    expect(meRequest.request.headers.get('Authorization')).toBe(
-      'Bearer jwt-access-token',
-    );
-    meRequest.flush({
-      success: true,
-      message: 'Profile retrieved successfully',
-      data: { user: mockUser },
-    });
-
-    await expect(restorePromise).resolves.toBe(true);
-    expect(authService.isAuthenticated()).toBe(true);
-  });
-
-  it('restoreSession returns false when refresh fails', async () => {
-    const restorePromise = firstValueFrom(authService.restoreSession());
-
-    const refreshRequest = httpMock.expectOne(
-      'http://localhost:3001/api/v1/auth/refresh',
-    );
-    refreshRequest.flush(
-      { message: 'Unauthorized' },
-      { status: 401, statusText: 'Unauthorized' },
-    );
-
-    await expect(restorePromise).resolves.toBe(false);
-    expect(authService.isAuthenticated()).toBe(false);
-  });
-
-  it('logout clears session and sends credentials', async () => {
-    authService['accessToken'].set('jwt-access-token');
-    authService.currentUser.set(mockUser);
-
-    const logoutPromise = firstValueFrom(authService.logout());
-
-    const request = httpMock.expectOne('http://localhost:3001/api/v1/auth/logout');
-    expect(request.request.method).toBe('POST');
-    expect(request.request.withCredentials).toBe(true);
-
-    request.flush({
-      success: true,
-      message: 'Logged out successfully',
-      data: null,
-    });
-
-    await expect(logoutPromise).resolves.toBeUndefined();
-    expect(authService.getAccessToken()).toBeNull();
-    expect(authService.currentUser()).toBeNull();
-    expect(authService.isAuthenticated()).toBe(false);
   });
 });

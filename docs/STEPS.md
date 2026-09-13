@@ -13,7 +13,7 @@
 3. After any **API** change: update `docs/postman/` **and sync Postman cloud in the same session** (Postman MCP **browser auth only** — never API key). Repo-only is not enough — see [PLAN.md § Postman cloud sync](./PLAN.md#postman-cloud-sync).
 4. Run the **Manual test** for that step yourself.
 5. For any **UI** step: verify responsiveness at **375px**, **768px**, and **1280px** (PLAN §2 Responsiveness).
-6. For any **UI** step: verify state rules — no full-page loading on navigation/submit; button-only submit loading; shell stays mounted (PLAN §2 Client state management).
+6. For any **UI** step: verify state rules — data from Signal Stores; no HTTP fetch on route enter; no full-page loading on navigation/submit; button-only submit loading; shell stays mounted (PLAN §2 Client state management).
 7. Mark the step in [IMPLEMENTED.md](./IMPLEMENTED.md) only after manual test passes.
 8. Tell Cursor: *"Implement step X.Y"* or *"Continue from next incomplete step"*.
 
@@ -607,7 +607,29 @@
 
 ---
 
-### Step 5.3 — Project backend tests
+### Step 5.3 — Client state stores (NgRx Signal Store)
+**Layer:** Full
+
+**Build:**
+- Add `@ngrx/signals`; create `client/src/app/core/state/`.
+- Migrate `AuthService`, `OrganizationService`, `DashboardService` session data into Signal Stores (`auth.store.ts`, `organization.store.ts`, `dashboard.store.ts`, `team.store.ts` or members slice on org store).
+- App shell bootstraps stores once after auth (session + active org + dashboard stats + team members).
+- Refactor Phase 3–4 pages (team, organization settings, dashboard) to read from stores — **remove `ngOnInit` fetches**.
+- Scaffold `ProjectsStore` (empty until step 5.5 wires list API).
+- Keep services as thin HTTP facades injected by stores only.
+
+**Manual test:**
+- [ ] Login → single shell-level load, then dashboard shows stats.
+- [ ] Navigate Dashboard → Team → Organization → Dashboard — **no loading skeletons**, data appears instantly.
+- [ ] Switch org — pages update without full-page spinner (inline empty/refresh OK).
+- [ ] Add/remove team member — list updates via store patch, no full page reload.
+- [ ] Store unit tests for bootstrap, org switch, and mutation patches.
+
+**Done when:** Navigation between existing pages is instant; stores are the single source of truth.
+
+---
+
+### Step 5.4 — Project backend tests
 **Layer:** API
 
 **Manual test:**
@@ -617,11 +639,11 @@
 
 ---
 
-### Step 5.4 — Shared UI components
+### Step 5.5 — Shared UI components
 **Layer:** UI
 
 **Build:**
-- Project card, status badge, priority badge, empty/loading states.
+- Project card, status badge, priority badge, inline empty states.
 - Reuse existing `app-data-table` and `app-modal` (confirm flows) from Phase 3 — do not rebuild list/confirm patterns.
 
 **Manual test:**
@@ -631,32 +653,39 @@
 
 ---
 
-### Step 5.5 — Projects list page
+### Step 5.6 — Projects list page
 **Layer:** UI
 
+**Build:**
+- `ProjectsStore` loads projects for active org during shell bootstrap (or on first need with cache).
+- List page reads from store — no fetch on route enter.
+
 **Manual test:**
-- [ ] Lists projects for active org.
+- [ ] Lists projects for active org from store.
+- [ ] Navigate away and back — list appears instantly (no reload).
 - [ ] Empty state when none.
 
-**Done when:** List works.
+**Done when:** List works with instant navigation.
 
 ---
 
-### Step 5.6 — Create + edit project
+### Step 5.7 — Create + edit project
 **Layer:** UI
 
 **Manual test:**
-- [ ] Create project → appears in list.
-- [ ] Edit fields persist.
+- [ ] Create project → `ProjectsStore` patched → appears in list without refetch.
+- [ ] Edit fields persist and update store.
 
 **Done when:** Create/edit work.
 
 ---
 
-### Step 5.7 — Project detail page
+### Step 5.8 — Project detail page
 **Layer:** UI
 
 **Manual test:**
+- [ ] Detail reads selected project from store (or store slice keyed by id).
+- [ ] Navigate list → detail → list — no loading flash.
 - [ ] Detail shows all fields + members section.
 
 **Done when:** Phase 5 complete.
@@ -695,9 +724,14 @@
 ### Step 6.3 — Task list UI
 **Layer:** UI
 
+**Build:**
+- `TasksStore` for project-scoped tasks; list reads from store (no fetch on route enter).
+- Pagination/filter changes update store query slice; Kanban (Phase 7) shares the same store.
+
 **Manual test:**
 - [ ] Task list per project with filters and pagination.
-- [ ] Create/edit task forms.
+- [ ] Navigate away and back — tasks appear instantly from store.
+- [ ] Create/edit task forms patch store on success.
 
 **Done when:** Phase 6 complete.
 

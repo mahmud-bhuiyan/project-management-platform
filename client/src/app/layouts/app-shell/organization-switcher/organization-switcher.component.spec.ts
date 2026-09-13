@@ -1,7 +1,8 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
-import { OrganizationService } from '../../../core/services/organization.service';
+import { OrganizationStore } from '../../../core/state/organization.store';
+import { WorkspaceStore } from '../../../core/state/workspace.store';
 import { OrganizationSwitcherComponent } from './organization-switcher.component';
 
 const organizations = [
@@ -24,7 +25,7 @@ const organizations = [
 ];
 
 describe('OrganizationSwitcherComponent', () => {
-  const organizationService = {
+  const organizationStore = {
     organizations: signal(organizations),
     activeOrganization: signal(organizations[0]),
     activeOrganizationId: signal('org-1'),
@@ -33,20 +34,28 @@ describe('OrganizationSwitcherComponent', () => {
     setActiveOrganization: vi.fn(),
   };
 
+  const workspaceStore = {
+    reloadForActiveOrganization: vi.fn(() => of(undefined)),
+  };
+
   beforeEach(async () => {
-    organizationService.organizations = signal(organizations);
-    organizationService.activeOrganization = signal(organizations[0]);
-    organizationService.activeOrganizationId = signal('org-1');
-    organizationService.isLoading = signal(false);
+    organizationStore.organizations = signal(organizations);
+    organizationStore.activeOrganization = signal(organizations[0]);
+    organizationStore.activeOrganizationId = signal('org-1');
+    organizationStore.isLoading = signal(false);
 
     await TestBed.configureTestingModule({
       imports: [OrganizationSwitcherComponent],
-      providers: [{ provide: OrganizationService, useValue: organizationService }],
+      providers: [
+        { provide: OrganizationStore, useValue: organizationStore },
+        { provide: WorkspaceStore, useValue: workspaceStore },
+      ],
     }).compileComponents();
   });
 
   beforeEach(() => {
     vi.clearAllMocks();
+    workspaceStore.reloadForActiveOrganization.mockReturnValue(of(undefined));
   });
 
   it('renders the active organization name', () => {
@@ -73,10 +82,11 @@ describe('OrganizationSwitcherComponent', () => {
 
     (options[1] as HTMLButtonElement).click();
 
-    expect(organizationService.setActiveOrganization).toHaveBeenCalledWith('org-2');
+    expect(organizationStore.setActiveOrganization).toHaveBeenCalledWith('org-2');
+    expect(workspaceStore.reloadForActiveOrganization).toHaveBeenCalled();
   });
 
-  it('refreshes organizations when opening the menu', () => {
+  it('opens immediately from cached state and refreshes in the background', () => {
     const fixture = TestBed.createComponent(OrganizationSwitcherComponent);
     fixture.detectChanges();
 
@@ -84,7 +94,9 @@ describe('OrganizationSwitcherComponent', () => {
       '[data-testid="organization-switcher-trigger"]',
     ) as HTMLButtonElement;
     trigger.click();
+    fixture.detectChanges();
 
-    expect(organizationService.loadOrganizations).toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelectorAll('.org-switcher__option').length).toBe(2);
+    expect(organizationStore.loadOrganizations).toHaveBeenCalledWith({ silent: true });
   });
 });

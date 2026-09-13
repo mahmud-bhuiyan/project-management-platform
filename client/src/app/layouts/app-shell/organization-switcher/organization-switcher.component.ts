@@ -6,7 +6,8 @@ import {
   signal,
 } from '@angular/core';
 import type { Organization } from '../../../core/models/organization.model';
-import { OrganizationService } from '../../../core/services/organization.service';
+import { OrganizationStore } from '../../../core/state/organization.store';
+import { WorkspaceStore } from '../../../core/state/workspace.store';
 
 @Component({
   selector: 'app-organization-switcher',
@@ -15,13 +16,14 @@ import { OrganizationService } from '../../../core/services/organization.service
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrganizationSwitcherComponent {
-  private readonly organizationService = inject(OrganizationService);
+  private readonly organizationStore = inject(OrganizationStore);
+  private readonly workspaceStore = inject(WorkspaceStore);
 
-  protected readonly organizations = this.organizationService.organizations;
-  protected readonly activeOrganization = this.organizationService.activeOrganization;
+  protected readonly organizations = this.organizationStore.organizations;
+  protected readonly activeOrganization = this.organizationStore.activeOrganization;
   protected readonly activeOrganizationId =
-    this.organizationService.activeOrganizationId;
-  protected readonly isLoading = this.organizationService.isLoading;
+    this.organizationStore.activeOrganizationId;
+  protected readonly isLoading = this.organizationStore.isLoading;
   protected readonly menuOpen = signal(false);
 
   protected toggleMenu(): void {
@@ -30,7 +32,15 @@ export class OrganizationSwitcherComponent {
       return;
     }
 
-    this.organizationService.loadOrganizations().subscribe({
+    const cached = this.organizations();
+
+    if (cached.length > 0) {
+      this.menuOpen.set(true);
+      this.organizationStore.loadOrganizations({ silent: true }).subscribe();
+      return;
+    }
+
+    this.organizationStore.loadOrganizations().subscribe({
       next: (organizations) => {
         if (organizations.length > 0) {
           this.menuOpen.set(true);
@@ -40,8 +50,14 @@ export class OrganizationSwitcherComponent {
   }
 
   protected selectOrganization(organization: Organization): void {
-    this.organizationService.setActiveOrganization(organization.id);
+    if (organization.id === this.activeOrganizationId()) {
+      this.menuOpen.set(false);
+      return;
+    }
+
+    this.organizationStore.setActiveOrganization(organization.id);
     this.menuOpen.set(false);
+    this.workspaceStore.reloadForActiveOrganization().subscribe();
   }
 
   protected formatRole(role: Organization['role']): string {

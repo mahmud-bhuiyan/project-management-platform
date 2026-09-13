@@ -1,0 +1,38 @@
+.projects-placeholder__line {
+  border-radius: 0.5rem;
+  background: linear-gradient(
+    90deg,
+    rgb(237 233 254 / 0.55) 0%,
+    rgb(212 204 252 / 0.35) 50%,
+    rgb(237 233 254 / 0.55) 100%
+  );
+  background-size: 200% 100%;
+  animation: projects-placeholder-shimmer 1.4s ease-in-out infinite;
+}
+
+.projects-placeholder__line--title {
+  height: 1.25rem;
+  width: 70%;
+}
+
+.projects-placeholder__line--badge {
+  margin-top: 0.85rem;
+  height: 1.5rem;
+  width: 45%;
+}
+
+.projects-placeholder__line--body {
+  margin-top: 0.85rem;
+  height: 3rem;
+  width: 100%;
+}
+
+@keyframes projects-placeholder-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}

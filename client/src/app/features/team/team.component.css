@@ -11,20 +11,46 @@
 .team-input {
   width: 100%;
   border: 1px solid rgb(237 233 254);
-  border-radius: 0.75rem;
-  background: rgb(255 255 255 / 0.9);
-  padding: 0.7rem 0.9rem;
+  border-radius: 0.875rem;
+  background: rgb(255 255 255 / 0.96);
+  padding: 0.75rem 0.95rem;
   font-size: 0.875rem;
   color: rgb(17 24 39);
   transition:
     border-color 0.15s ease,
-    box-shadow 0.15s ease;
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.team-input--with-icon {
+  padding-left: 2.75rem;
 }
 
 .team-input:focus {
   outline: none;
   border-color: rgb(34 211 238 / 0.55);
   box-shadow: 0 0 0 3px rgb(34 211 238 / 0.15);
+}
+
+.team-input-shell {
+  position: relative;
+}
+
+.team-input-shell__icon {
+  position: absolute;
+  top: 50%;
+  left: 0.9rem;
+  display: inline-flex;
+  height: 1.125rem;
+  width: 1.125rem;
+  color: rgb(124 58 237 / 0.65);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.team-input-shell__icon svg {
+  height: 100%;
+  width: 100%;
 }
 
 .team-field-error-slot {
@@ -150,18 +176,48 @@
   color: rgb(76 29 149);
 }
 
+.team-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.team-view-btn,
 .team-remove-btn {
   display: inline-flex;
-  border: 1px solid rgb(239 68 68 / 0.25);
+  align-items: center;
+  justify-content: center;
   border-radius: 0.75rem;
-  background: rgb(254 242 242);
-  padding: 0.55rem 0.9rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: rgb(185 28 28);
+  padding: 0.5rem;
   transition:
     background-color 0.15s ease,
+    color 0.15s ease,
     opacity 0.15s ease;
+}
+
+.team-view-btn svg,
+.team-remove-btn svg {
+  height: 1.125rem;
+  width: 1.125rem;
+}
+
+.team-view-btn {
+  border: 1px solid rgb(124 58 237 / 0.25);
+  background: rgb(245 243 255);
+  color: var(--color-flow-600);
+}
+
+.team-view-btn:hover {
+  background: rgb(237 233 254);
+  color: var(--color-flow-800);
+}
+
+.team-remove-btn {
+  border: 1px solid rgb(239 68 68 / 0.25);
+  background: rgb(254 242 242);
+  color: rgb(185 28 28);
 }
 
 .team-remove-btn:hover:not(:disabled) {
@@ -173,13 +229,216 @@
   opacity: 0.7;
 }
 
-.team-modal-field + .team-modal-field {
-  margin-top: 1rem;
-}
-
 .team-modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
   margin-top: 1.5rem;
+}
+
+.team-modal-actions--footer {
+  padding-top: 1.25rem;
+  border-top: 1px solid rgb(237 233 254 / 0.9);
+}
+
+.team-danger-btn {
+  display: inline-flex;
+  min-width: 8.5rem;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0.75rem;
+  background: rgb(220 38 38);
+  padding: 0.7rem 1.1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  transition: opacity 0.15s ease;
+}
+
+.team-danger-btn:hover:not(:disabled) {
+  background: rgb(185 28 28);
+}
+
+.team-danger-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.team-member-modal {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.team-member-modal__hero {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-radius: 1rem;
+  background: linear-gradient(
+    135deg,
+    rgb(237 233 254 / 0.55) 0%,
+    rgb(236 254 255 / 0.65) 100%
+  );
+  padding: 1rem 1.1rem;
+}
+
+.team-member-modal__avatar {
+  display: flex;
+  height: 3.75rem;
+  width: 3.75rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  background: linear-gradient(
+    135deg,
+    var(--color-flow-400) 0%,
+    var(--color-accent) 100%
+  );
+  box-shadow: 0 10px 24px rgb(124 58 237 / 0.18);
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+}
+
+.team-member-modal__intro {
+  min-width: 0;
+}
+
+.team-member-modal__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: rgb(15 11 46);
+}
+
+.team-member-modal__email {
+  margin: 0.2rem 0 0;
+  font-size: 0.875rem;
+  color: rgb(75 85 99);
+  word-break: break-word;
+}
+
+.team-member-modal__role-badge {
+  display: inline-flex;
+  margin-top: 0.55rem;
+  align-items: center;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.82);
+  padding: 0.28rem 0.7rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(76 29 149);
+}
+
+.team-member-modal__grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.team-member-modal__field {
+  border-radius: 0.875rem;
+  background: rgb(250 245 255 / 0.72);
+  padding: 0.85rem 0.95rem;
+}
+
+.team-member-modal__field--wide {
+  grid-column: 1 / -1;
+}
+
+.team-member-modal__field dt {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(124 58 237 / 0.72);
+}
+
+.team-member-modal__field dd {
+  margin: 0.35rem 0 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: rgb(15 11 46);
+}
+
+.team-add-modal {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.team-add-modal__callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border: 1px solid rgb(34 211 238 / 0.18);
+  border-radius: 1rem;
+  background: linear-gradient(
+    135deg,
+    rgb(236 254 255 / 0.85) 0%,
+    rgb(237 233 254 / 0.55) 100%
+  );
+  padding: 0.9rem 1rem;
+}
+
+.team-add-modal__callout-icon {
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: rgb(255 255 255 / 0.88);
+  color: var(--color-flow-600);
+}
+
+.team-add-modal__callout-icon svg {
+  height: 1.125rem;
+  width: 1.125rem;
+}
+
+.team-add-modal__callout p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: rgb(55 65 81);
+}
+
+.team-add-modal__fields {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.team-add-modal__field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.team-add-modal__field .team-label {
+  margin-bottom: 0;
+}
+
+.team-add-modal__field .team-field-error-slot {
+  min-height: 0;
+  margin-top: 0.125rem;
+}
+
+.team-add-modal .team-modal-actions--footer {
+  margin-top: 0.75rem;
+  padding-top: 0.875rem;
+}
+
+.team-add-modal__error {
+  margin: 0;
+  border-radius: 0.875rem;
+  background: rgb(254 242 242);
+  padding: 0.75rem 0.95rem;
+  font-size: 0.8125rem;
+  color: rgb(185 28 28);
 }

@@ -1,0 +1,58 @@
+<app-page-hero eyebrow="Delivery" title="Projects">
+  <p pageHeroDescription class="mt-2 max-w-2xl text-base text-flow-200/90">
+    @if (activeOrganization(); as organization) {
+      Track delivery work across <strong class="text-white">{{ organization.name }}</strong>.
+    } @else {
+      Select an organization to view its projects.
+    }
+  </p>
+
+  @if (activeOrganization()) {
+    <p pageHeroBadge class="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm text-white/90">
+      <span class="h-2 w-2 rounded-full bg-accent"></span>
+      {{ projects().length }} project{{ projects().length === 1 ? '' : 's' }}
+    </p>
+  }
+</app-page-hero>
+
+@if (!activeOrganization()) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">No organization selected</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      Use the organization switcher in the sidebar to choose a workspace.
+    </p>
+  </section>
+} @else if (projectsError(); as error) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">Could not load projects</h2>
+    <p class="mt-2 text-sm text-red-700" role="alert">{{ error }}</p>
+  </section>
+} @else if (isInitialLoad()) {
+  <section class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-busy="true">
+    @for (card of [1, 2, 3]; track card) {
+      <article class="projects-placeholder glass-panel rounded-2xl p-5">
+        <div class="projects-placeholder__line projects-placeholder__line--title"></div>
+        <div class="projects-placeholder__line projects-placeholder__line--badge"></div>
+        <div class="projects-placeholder__line projects-placeholder__line--body"></div>
+      </article>
+    }
+  </section>
+  <p class="sr-only">Loading projects…</p>
+} @else if (showEmptyState()) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <app-empty-state
+      title="No projects yet"
+      description="Create your first project to start tracking delivery work for this organization."
+      testId="projects-empty"
+    />
+  </section>
+} @else {
+  <section
+    class="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+    data-testid="projects-grid"
+  >
+    @for (project of projects(); track project.id) {
+      <app-project-card [project]="project" />
+    }
+  </section>
+}
