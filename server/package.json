@@ -24,6 +24,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "db:seed": "npx tsx prisma/seed.ts",
+    "verify:socket": "node scripts/verify-socket-connection.mjs",
+    "verify:realtime": "node scripts/verify-realtime-integration.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {

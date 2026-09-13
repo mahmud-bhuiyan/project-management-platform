@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone, inject } from '@angular/core';
 import { io, type Socket } from 'socket.io-client';
 import { Observable, Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { normalizeSocketUrl } from '../utils/socket-url.util';
 import {
   RealtimeEvent,
   type CommentCreatedEvent,
@@ -18,6 +19,7 @@ type ProjectRoomRef = {
 
 @Injectable({ providedIn: 'root' })
 export class RealtimeService {
+  private readonly ngZone = inject(NgZone);
   private socket: Socket | null = null;
   private connectedToken: string | null = null;
   private readonly joinedProjects = new Set<ProjectRoomKey>();
@@ -35,7 +37,7 @@ export class RealtimeService {
     this.disconnect();
     this.connectedToken = accessToken;
 
-    this.socket = io(environment.wsUrl, {
+    this.socket = io(normalizeSocketUrl(environment.wsUrl), {
       auth: { token: accessToken },
       transports: ['websocket'],
     });
@@ -47,17 +49,23 @@ export class RealtimeService {
     });
 
     this.socket.on(RealtimeEvent.TaskReordered, (payload: TaskReorderedEvent) => {
-      this.taskReorderedSubject.next(payload);
+      this.ngZone.run(() => {
+        this.taskReorderedSubject.next(payload);
+      });
     });
 
     this.socket.on(RealtimeEvent.CommentCreated, (payload: CommentCreatedEvent) => {
-      this.commentCreatedSubject.next(payload);
+      this.ngZone.run(() => {
+        this.commentCreatedSubject.next(payload);
+      });
     });
 
     this.socket.on(
       RealtimeEvent.NotificationCreated,
       (payload: NotificationCreatedEvent) => {
-        this.notificationCreatedSubject.next(payload);
+        this.ngZone.run(() => {
+          this.notificationCreatedSubject.next(payload);
+        });
       },
     );
   }

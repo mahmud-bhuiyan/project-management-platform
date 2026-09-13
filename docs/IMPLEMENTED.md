@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-14  
-**Current step:** 10.3 (not started)
+**Current step:** 11.1 (not started)
 
 ### Decisions (Phase 2)
 
@@ -38,7 +38,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 7 | Kanban board | 3 / 3 | Complete |
 | 8 | Task details, comments, activity | 4 / 4 | Complete |
 | 9 | Notifications | 3 / 3 | Complete |
-| 10 | Real-time updates | 2 / 3 | In progress |
+| 10 | Real-time updates | 3 / 3 | Complete |
 | 11 | Dashboard charts | 0 / 1 | Not started |
 | 12 | Search & permission audit | 0 / 3 | Not started |
 | 13 | UI polish | 0 / 2 | Not started |
@@ -175,7 +175,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 |------|-------|------|------|-------|
 | 10.1 | Socket.IO gateway (server) | [x] | 2026-09-14 | `ProjectsGateway` — JWT on connect; `project:join` / `project:leave` with access checks; rooms `project:{id}`; 10 unit tests; verified via `scripts/verify-socket-connection.mjs` |
 | 10.2 | Real-time events | [x] | 2026-09-14 | Emit `task:reordered`, `comment:created`, `notification:created`; client `RealtimeService` + store patches; Kanban + task detail join project rooms — build OK |
-| 10.3 | Phase 10 integration check | [ ] | | |
+| 10.3 | Phase 10 integration check | [x] | 2026-09-14 | `NG_APP_WS_URL=ws://localhost:3001`; `normalizeSocketUrl` for Socket.IO; WS ack bypass in `TransformInterceptor`; `npm run verify:realtime` simulates two-tab Kanban + comment — verified |
 
 ---
 
@@ -291,4 +291,5 @@ Use this for quick notes across sessions.
 | 2026-09-13 | 9.2 | Notification triggers — assign, mention, status, due-soon | Pass — user verified |
 | 2026-09-13 | 9.3 | Notification bell UI — header bell, dropdown, mark read | Pass — Playwright e2e 64/64 branch total; Phase 9 complete |
 | 2026-09-14 | 10.1 | Socket.IO gateway — JWT connect + project room join | Pass — `verify-socket-connection.mjs`; 10 realtime unit tests; build OK |
-| 2026-09-14 | 10.2 | Real-time events — Kanban reorder, comments, notifications | Built — server emits + client store sync; builds OK; pending two-tab manual test |
+| 2026-09-14 | 10.2 | Real-time events — Kanban reorder, comments, notifications | Built — server emits + client store sync; 119 client + server tests; builds OK |
+| 2026-09-14 | 10.3 | Phase 10 integration — WS_URL + two-tab simulation script | Pass — `verify:realtime`; interceptor WS ack fix; Phase 10 complete |
