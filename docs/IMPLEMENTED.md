@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-13  
-**Current step:** 2.10
+**Current step:** 3.1
 
 ### Decisions (Phase 2)
 
@@ -28,7 +28,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | Phase | Name | Steps done | Status |
 |-------|------|------------|--------|
 | 1 | Project setup | 12 / 12 | Complete |
-| 2 | Authentication | 9 / 12 | In progress |
+| 2 | Authentication | 12 / 12 | Complete |
 | 3 | Organization & team | 0 / 8 | Not started |
 | 4 | Dashboard shell | 0 / 3 | Not started |
 | 5 | Project management | 0 / 7 | Not started |
@@ -80,9 +80,9 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 2.7 | Angular auth service | [x] | 2026-09-12 | Signals, login/logout/refresh/loadMe, in-memory token — unit tests pass |
 | 2.8 | Login page | [x] | 2026-09-13 | Reactive form, validation, API errors, redirect to dashboard; demo persona picker + `GET /auth/demo-personas` + `POST /auth/demo-login` — UI verified |
 | 2.9 | Superadmin: create company admin (UI) | [x] | 2026-09-13 | `/admin/company-admins`, superadminGuard, form + success/errors — UI verified |
-| 2.10 | Auth interceptor + guard | [ ] | | |
-| 2.11 | Basic profile page | [ ] | | |
-| 2.12 | Phase 2 integration check | [ ] | | |
+| 2.10 | Auth interceptor + guard | [x] | 2026-09-13 | Bearer interceptor, 401 refresh retry, authGuard + guestGuard + session restore — UI verified |
+| 2.11 | Basic profile page | [x] | 2026-09-13 | `/profile` — name, email, sign out; sidebar nav + user card link — UI verified |
+| 2.12 | Phase 2 integration check | [x] | 2026-09-13 | Superadmin + demo flows; 54 server + 30 client tests; builds OK; Postman/Swagger aligned; no secrets in git — user verified |
 
 ---
 
@@ -262,3 +262,6 @@ Use this for quick notes across sessions.
 | 2026-09-13 | 2.8 | UI login with demo persona picker → dashboard redirect | Pass — user verified in browser |
 | 2026-09-13 | Postman | Cloud sync: Get demo personas + Demo login added to Flowdesk API | Done |
 | 2026-09-13 | 2.9 | Superadmin create company admin UI — form, guard, duplicate errors | Pass — user verified in browser |
+| 2026-09-13 | 2.10 | Auth interceptor, guards, session restore on refresh | Pass — user verified in browser |
+| 2026-09-13 | 2.11 | Profile page display + sign out → login | Pass — user verified in browser |
+| 2026-09-13 | 2.12 | Phase 2 integration — Provision company + demo flows, automated checks | Pass — Phase 2 complete |

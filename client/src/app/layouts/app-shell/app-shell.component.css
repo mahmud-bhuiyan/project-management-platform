@@ -187,6 +187,13 @@
   border-radius: 0.75rem;
   background: rgb(245 243 255 / 0.8);
   padding: 0.5rem 0.625rem;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.app-shell__user-card:hover {
+  background: rgb(237 233 254 / 0.95);
 }
 
 .app-shell__avatar {
