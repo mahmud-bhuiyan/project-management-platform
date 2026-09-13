@@ -144,7 +144,13 @@
           >
             <div class="project-detail-task-item__main">
               <div class="project-detail-task-item__header">
-                <h3 class="project-detail-task-title">{{ task.title }}</h3>
+                <a
+                  [routerLink]="['/projects', currentProject.id, 'tasks', task.id]"
+                  class="project-detail-task-title-link"
+                  [attr.data-testid]="'project-detail-task-link-' + task.id"
+                >
+                  <h3 class="project-detail-task-title">{{ task.title }}</h3>
+                </a>
                 <div class="project-detail-task-item__badges">
                   <app-task-status-badge [status]="task.status" />
                   <app-task-priority-badge [priority]="task.priority" />

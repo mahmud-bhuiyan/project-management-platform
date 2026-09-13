@@ -1,0 +1,292 @@
+@if (task(); as currentTask) {
+  <app-page-hero [title]="currentTask.title">
+    <p pageHeroBadge class="inline-flex flex-wrap items-center gap-2">
+      <app-task-status-badge [status]="currentTask.status" />
+      <app-task-priority-badge [priority]="currentTask.priority" />
+    </p>
+    <p pageHeroDescription>
+      Task in {{ project()?.name ?? 'project' }} · {{ subtaskProgressLabel() }}
+    </p>
+  </app-page-hero>
+} @else {
+  <app-page-hero title="Task details" />
+}
+
+@if (!activeOrganization()) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">No organization selected</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      Use the organization switcher in the sidebar to choose a workspace.
+    </p>
+  </section>
+} @else if (!project()) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">Project not found</h2>
+    <a routerLink="/projects" class="task-detail-back-link">Back to projects</a>
+  </section>
+} @else if (loadTaskError(); as error) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">Task not found</h2>
+    <p class="mt-2 text-sm text-red-700" role="alert">{{ error }}</p>
+    <a [routerLink]="['/projects', projectId()]" class="task-detail-back-link">
+      Back to project
+    </a>
+  </section>
+} @else if (task(); as currentTask) {
+  <section class="mt-8">
+    <a
+      [routerLink]="['/projects', projectId()]"
+      class="task-detail-back-link"
+      data-testid="task-detail-back"
+    >
+      ← Back to project
+    </a>
+  </section>
+
+  <div class="task-detail-grid">
+    <section class="glass-panel rounded-2xl p-6 sm:p-8" data-testid="task-detail-overview">
+      <div class="task-detail-section-header">
+        <h2 class="task-detail-section-title">Overview</h2>
+        @if (canManageTask()) {
+          <a
+            [routerLink]="['/projects', projectId(), 'tasks', taskId(), 'edit']"
+            class="task-detail-edit-link"
+            data-testid="task-detail-edit"
+          >
+            Edit task
+          </a>
+        }
+      </div>
+
+      @if (currentTask.description) {
+        <p class="task-detail-description">{{ currentTask.description }}</p>
+      } @else {
+        <p class="task-detail-description task-detail-description--empty">No description.</p>
+      }
+
+      <dl class="task-detail-meta">
+        <div class="task-detail-meta__item">
+          <dt>Assignee</dt>
+          <dd>{{ currentTask.assignee?.name ?? 'Unassigned' }}</dd>
+        </div>
+        <div class="task-detail-meta__item">
+          <dt>Reporter</dt>
+          <dd>{{ currentTask.reporter.name }}</dd>
+        </div>
+        <div class="task-detail-meta__item">
+          <dt>Due date</dt>
+          <dd>{{ taskDueDateLabel(currentTask.dueDate) }}</dd>
+        </div>
+        <div class="task-detail-meta__item">
+          <dt>Updated</dt>
+          <dd>{{ formatTimestamp(currentTask.updatedAt) }}</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="glass-panel rounded-2xl p-6 sm:p-8" data-testid="task-detail-subtasks">
+      <div class="task-detail-section-header">
+        <div>
+          <h2 class="task-detail-section-title">Subtasks</h2>
+          <p class="task-detail-section-description">{{ subtaskProgressLabel() }}</p>
+        </div>
+      </div>
+
+      @if (subtasks().length > 0) {
+        <div
+          class="task-detail-progress"
+          role="progressbar"
+          [attr.aria-valuenow]="subtaskProgressPercent()"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          <div
+            class="task-detail-progress__bar"
+            [style.width.%]="subtaskProgressPercent()"
+          ></div>
+        </div>
+      }
+
+      @if (subtaskActionError(); as error) {
+        <p class="task-detail-inline-error" role="alert">{{ error }}</p>
+      }
+
+      @if (isLoadingDetail() && subtasks().length === 0) {
+        <p class="task-detail-empty" aria-busy="true">Loading subtasks…</p>
+      } @else if (subtasks().length === 0) {
+        <p class="task-detail-empty">No subtasks yet.</p>
+      } @else {
+        <ul class="task-detail-subtask-list">
+          @for (subtask of subtasks(); track subtask.id) {
+            <li class="task-detail-subtask-item">
+              <label class="task-detail-subtask-check">
+                <input
+                  type="checkbox"
+                  [checked]="subtask.completed"
+                  [disabled]="!canManageTask() || togglingSubtaskId() === subtask.id"
+                  (change)="toggleSubtask(subtask.id, $any($event.target).checked)"
+                />
+                <span [class.task-detail-subtask-check__label--done]="subtask.completed">
+                  {{ subtask.title }}
+                </span>
+              </label>
+            </li>
+          }
+        </ul>
+      }
+
+      @if (canManageTask()) {
+        <form class="task-detail-subtask-form" (submit)="$event.preventDefault(); addSubtask()">
+          <input
+            type="text"
+            class="task-detail-input"
+            placeholder="Add a subtask…"
+            data-testid="task-detail-subtask-input"
+            [disabled]="isAddingSubtask()"
+            [ngModel]="newSubtaskTitle()"
+            (ngModelChange)="newSubtaskTitle.set($event)"
+            name="subtaskTitle"
+          />
+          <button
+            type="submit"
+            class="task-detail-primary-btn"
+            data-testid="task-detail-subtask-add"
+            [disabled]="isAddingSubtask() || !newSubtaskTitle().trim()"
+          >
+            {{ isAddingSubtask() ? 'Adding…' : 'Add' }}
+          </button>
+        </form>
+      }
+    </section>
+
+    <section class="glass-panel rounded-2xl p-6 sm:p-8" data-testid="task-detail-comments">
+      <h2 class="task-detail-section-title">Comments</h2>
+      <p class="task-detail-section-description">
+        Use @name to mention a teammate. Mentions are stored in the comment body for notifications.
+      </p>
+
+      @if (commentActionError(); as error) {
+        <p class="task-detail-inline-error" role="alert">{{ error }}</p>
+      }
+
+      @if (isLoadingDetail() && comments().length === 0) {
+        <p class="task-detail-empty" aria-busy="true">Loading comments…</p>
+      } @else if (comments().length === 0) {
+        <p class="task-detail-empty">No comments yet.</p>
+      } @else {
+        <ul class="task-detail-comment-list">
+          @for (comment of comments(); track comment.id) {
+            <li class="task-detail-comment-item">
+              <div class="task-detail-comment-item__header">
+                <strong>{{ comment.author.name }}</strong>
+                <time>{{ formatTimestamp(comment.createdAt) }}</time>
+              </div>
+
+              @if (editingCommentId() === comment.id) {
+                <textarea
+                  class="task-detail-textarea"
+                  rows="3"
+                  [ngModel]="editingCommentBody()"
+                  (ngModelChange)="editingCommentBody.set($event)"
+                  name="editCommentBody"
+                ></textarea>
+                <div class="task-detail-comment-actions">
+                  <button
+                    type="button"
+                    class="task-detail-secondary-btn"
+                    [disabled]="isSavingComment()"
+                    (click)="cancelEditingComment()"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    class="task-detail-primary-btn"
+                    [disabled]="isSavingComment() || !editingCommentBody().trim()"
+                    (click)="saveCommentEdit(comment.id)"
+                  >
+                    {{ isSavingComment() ? 'Saving…' : 'Save' }}
+                  </button>
+                </div>
+              } @else {
+                <p class="task-detail-comment-body">{{ comment.body }}</p>
+                @if (canEditComment(comment)) {
+                  <div class="task-detail-comment-actions">
+                    <button
+                      type="button"
+                      class="task-detail-link-btn"
+                      [disabled]="isSavingComment()"
+                      (click)="startEditingComment(comment)"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      class="task-detail-link-btn task-detail-link-btn--danger"
+                      [disabled]="isSavingComment()"
+                      (click)="deleteComment(comment.id)"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                }
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      @if (canManageTask()) {
+        <form class="task-detail-comment-form" (submit)="$event.preventDefault(); submitComment()">
+          <textarea
+            class="task-detail-textarea"
+            rows="4"
+            placeholder="Write a comment… Use @name to mention someone."
+            data-testid="task-detail-comment-input"
+            [disabled]="isSubmittingComment()"
+            [ngModel]="newCommentBody()"
+            (ngModelChange)="newCommentBody.set($event)"
+            name="commentBody"
+          ></textarea>
+          <button
+            type="submit"
+            class="task-detail-primary-btn"
+            data-testid="task-detail-comment-submit"
+            [disabled]="isSubmittingComment() || !newCommentBody().trim()"
+          >
+            {{ isSubmittingComment() ? 'Posting…' : 'Post comment' }}
+          </button>
+        </form>
+      }
+    </section>
+
+    <section class="glass-panel rounded-2xl p-6 sm:p-8" data-testid="task-detail-activity">
+      <h2 class="task-detail-section-title">Activity</h2>
+      <p class="task-detail-section-description">Timeline of changes on this task.</p>
+
+      @if (detailError(); as error) {
+        <p class="task-detail-inline-error" role="alert">{{ error }}</p>
+      } @else if (isLoadingDetail() && activity().length === 0) {
+        <p class="task-detail-empty" aria-busy="true">Loading activity…</p>
+      } @else if (activity().length === 0) {
+        <p class="task-detail-empty">No activity yet.</p>
+      } @else {
+        <ol class="task-detail-activity-list">
+          @for (entry of activity(); track entry.id) {
+            <li class="task-detail-activity-item">
+              <span class="task-detail-activity-item__dot" aria-hidden="true"></span>
+              <div>
+                <p class="task-detail-activity-item__message">
+                  {{ activityMessage(entry) }}
+                </p>
+                <time class="task-detail-activity-item__time">
+                  {{ formatTimestamp(entry.createdAt) }}
+                </time>
+              </div>
+            </li>
+          }
+        </ol>
+      }
+    </section>
+  </div>
+}
