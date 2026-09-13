@@ -85,6 +85,24 @@ export function toDateInputValue(value: string | null): string {
   return date.toISOString().slice(0, 10);
 }
 
+export function flattenColumnTasks(
+  columns: Record<TaskStatus, TaskSummary[]>,
+): TaskSummary[] {
+  const tasks: TaskSummary[] = [];
+
+  for (const status of TASK_STATUSES) {
+    columns[status].forEach((task, index) => {
+      tasks.push({
+        ...task,
+        status,
+        position: index,
+      });
+    });
+  }
+
+  return tasks;
+}
+
 export function groupTasksByStatus(
   tasks: TaskSummary[],
 ): Record<TaskStatus, TaskSummary[]> {

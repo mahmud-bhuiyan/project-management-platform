@@ -1,7 +1,15 @@
 import { inject } from '@angular/core';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Observable, map, of, switchMap, tap } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  map,
+  of,
+  switchMap,
+  tap,
+  throwError,
+} from 'rxjs';
 import type { PaginationMeta } from '../models/api-response.model';
 import type {
   CreateTaskInput,
@@ -324,10 +332,25 @@ export const TasksStore = signalStore(
       organizationId: string;
       projectId: string;
       items: ReorderTaskItemInput[];
+      optimisticTasks?: TaskSummary[];
     }): Observable<TaskSummary[]> {
-      const { organizationId, projectId, items } = params;
+      const { organizationId, projectId, items, optimisticTasks } = params;
       const cache = getCache(store.byProjectId(), projectId);
       const query = cache.query;
+      const previousTasks = cache.tasks;
+
+      if (optimisticTasks) {
+        patchState(store, {
+          byProjectId: {
+            ...store.byProjectId(),
+            [projectId]: {
+              ...cache,
+              tasks: optimisticTasks,
+              error: null,
+            },
+          },
+        });
+      }
 
       return tasksService.reorderTasks(organizationId, projectId, items).pipe(
         switchMap(() =>
@@ -339,6 +362,21 @@ export const TasksStore = signalStore(
             force: true,
           }),
         ),
+        catchError((error) => {
+          const currentCache = getCache(store.byProjectId(), projectId);
+
+          patchState(store, {
+            byProjectId: {
+              ...store.byProjectId(),
+              [projectId]: {
+                ...currentCache,
+                tasks: previousTasks,
+              },
+            },
+          });
+
+          return throwError(() => error);
+        }),
       );
     },
 

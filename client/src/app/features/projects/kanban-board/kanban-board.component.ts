@@ -26,6 +26,7 @@ import { ProjectsStore } from '../../../core/state/projects.store';
 import { TasksStore } from '../../../core/state/tasks.store';
 import {
   TASK_STATUSES,
+  flattenColumnTasks,
   groupTasksByStatus,
   taskStatusLabel,
 } from '../../../core/utils/task.util';
@@ -135,9 +136,7 @@ export class KanbanBoardComponent {
       const tasks = this.tasksStore.projectTasks(projectId);
 
       untracked(() => {
-        if (!this.isReordering()) {
-          this.columnTasks.set(groupTasksByStatus(tasks));
-        }
+        this.columnTasks.set(groupTasksByStatus(tasks));
       });
     });
   }
@@ -186,6 +185,7 @@ export class KanbanBoardComponent {
       .reorderTasks({
         organizationId: organization.id,
         projectId,
+        optimisticTasks: flattenColumnTasks(nextColumns),
         items: [
           {
             taskId: movedTask.id,
@@ -196,15 +196,7 @@ export class KanbanBoardComponent {
       })
       .pipe(finalize(() => this.isReordering.set(false)))
       .subscribe({
-        next: () => {
-          this.columnTasks.set(
-            groupTasksByStatus(this.tasksStore.projectTasks(projectId)),
-          );
-        },
         error: (error: HttpErrorResponse) => {
-          this.columnTasks.set(
-            groupTasksByStatus(this.tasksStore.projectTasks(projectId)),
-          );
           this.reorderError.set(this.extractErrorMessage(error));
         },
       });
