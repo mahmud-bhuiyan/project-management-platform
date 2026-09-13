@@ -1592,6 +1592,140 @@
       ]
     },
     {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "List notifications",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Notifications listed', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.notifications).to.be.an('array');",
+                  "  if (json.data.notifications.length > 0) {",
+                  "    pm.environment.set('notificationId', json.data.notifications[0].id);",
+                  "    pm.expect(json.data.notifications[0].type).to.be.a('string');",
+                  "    pm.expect(json.data.notifications[0].title).to.be.a('string');",
+                  "  }",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notifications?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["notifications"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get unread count",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Unread count retrieved', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.unreadCount).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/notifications/unread-count"
+          }
+        },
+        {
+          "name": "Mark notification read",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Notification marked read', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.notification.readAt).to.not.eql(null);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/notifications/{{notificationId}}/read"
+          }
+        },
+        {
+          "name": "Mark all notifications read",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('All notifications marked read', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.updatedCount).to.be.a('number');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/notifications/read-all"
+          }
+        }
+      ]
+    },
+    {
       "name": "Dashboard",
       "item": [
         {

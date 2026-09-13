@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-13  
-**Current step:** 9.1 (not started)
+**Current step:** 9.1 (built — pending manual test)
 
 ### Decisions (Phase 2)
 
@@ -37,7 +37,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 6 | Task management | 3 / 3 | Complete |
 | 7 | Kanban board | 3 / 3 | Complete |
 | 8 | Task details, comments, activity | 4 / 4 | Complete |
-| 9 | Notifications | 0 / 3 | Not started |
+| 9 | Notifications | 0 / 3 | In progress |
 | 10 | Real-time updates | 0 / 3 | Not started |
 | 11 | Dashboard charts | 0 / 1 | Not started |
 | 12 | Search & permission audit | 0 / 3 | Not started |
@@ -163,7 +163,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 9.1 | Notifications API | [ ] | | |
+| 9.1 | Notifications API | [ ] | | Built — list, unread count, mark read, mark all read; 151 server tests; demo seed notifications; Postman repo + cloud synced — pending manual test |
 | 9.2 | Notification triggers | [ ] | | |
 | 9.3 | Notification bell UI | [ ] | | |
 
@@ -287,3 +287,4 @@ Use this for quick notes across sessions.
 | 2026-09-13 | 8.2 | Comments API — add/edit own/delete own under `/tasks/:taskId/comments` | Pass — user verified in Postman |
 | 2026-09-13 | 8.3 | Activity log — auto-record + GET `/tasks/:taskId/activity` | Pass — user verified in Postman |
 | 2026-09-13 | 8.4 | Task detail page — fields, subtasks, comments, activity UI | Pass — Playwright e2e 20/20 + user verified; Phase 8 complete |
+| 2026-09-13 | 9.1 | Notifications API — list, unread count, mark read/all | Built — 151 server tests; Postman repo + cloud synced; pending manual test |
