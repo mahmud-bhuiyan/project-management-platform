@@ -5,6 +5,8 @@ import { environment } from '../../../environments/environment';
 import type { ApiSuccessResponse } from '../models/api-response.model';
 import type {
   CreateProjectInput,
+  ProjectMember,
+  ProjectMembersResponseData,
   ProjectResponseData,
   ProjectSummary,
   ProjectsResponseData,
@@ -53,5 +55,13 @@ export class ProjectsService {
         input,
       )
       .pipe(map((response) => response.data.project));
+  }
+
+  listProjectMembers(organizationId: string, projectId: string) {
+    return this.http
+      .get<ApiSuccessResponse<ProjectMembersResponseData>>(
+        `${this.apiUrl}/organizations/${organizationId}/projects/${projectId}/members`,
+      )
+      .pipe(map((response) => response.data.members));
   }
 }

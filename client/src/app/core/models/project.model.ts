@@ -1,3 +1,5 @@
+import type { OrganizationRole } from './organization.model';
+
 export type ProjectStatus =
   | 'PLANNING'
   | 'ACTIVE'
@@ -47,6 +49,28 @@ export type CreateProjectInput = {
   priority?: ProjectPriority;
   startDate?: string;
   dueDate?: string;
+};
+
+export type ProjectMember = {
+  id: string;
+  projectId: string;
+  userId: string;
+  role: OrganizationRole;
+  createdAt: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    platformRole: 'USER' | 'SUPERADMIN';
+    avatarUrl: string | null;
+    themePreference: 'LIGHT' | 'DARK' | 'SYSTEM';
+    createdAt: string;
+    updatedAt: string;
+  };
+};
+
+export type ProjectMembersResponseData = {
+  members: ProjectMember[];
 };
 
 export type UpdateProjectInput = {

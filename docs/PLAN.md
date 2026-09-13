@@ -386,7 +386,7 @@ Before adding new UI markup, check `client/src/app/shared/components/` and **reu
 | Component | Selector | Use for |
 |-----------|----------|---------|
 | Page hero | `app-page-hero` | App-shell page headers (eyebrow, title, description, badge slots) |
-| Modal | `app-modal` | Dialogs and confirmation flows |
+| Modal | `app-modal` | Confirmations and **short forms (≤2 fields)** only |
 | Data table | `app-data-table` | Searchable, paginated list tables with projected row templates |
 | Password input | `app-password-input` | Password fields with show/hide toggle |
 
@@ -396,6 +396,7 @@ Before adding new UI markup, check `client/src/app/shared/components/` and **reu
 2. **Extract at two uses** — when the same UI pattern appears on two or more pages, move it to `shared/components/` in the same phase (do not defer to Phase 13).
 3. **Page heroes** — authenticated routes inside `AppShellComponent` use `app-page-hero` with inputs and projection slots (`pageHeroDescription`, `pageHeroBadge`, `pageHeroLeading`); login and other auth-only layouts may keep bespoke split heroes until a shared auth variant exists.
 4. **Document new shared components** — add each new shared component to this table when introduced.
+5. **Form layout rule** — use **`app-modal` only when the form has two fields or fewer** (e.g. add team member: email + role). Forms with **three or more fields** use a **dedicated app-shell page** with `app-page-hero` + glass panel (e.g. create/edit project, organization settings, company admin provisioning).
 
 **`app-data-table` defaults** (override per page via `[config]` and column defs):
 

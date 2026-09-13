@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-13  
-**Current step:** 5.7 (ready for manual test)
+**Current step:** 5.8 (ready for manual test)
 
 ### Decisions (Phase 2)
 
@@ -19,6 +19,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 - **Postman** — repo `docs/postman/` **and** cloud **My Workspace** (`Flowdesk API` + `Flowdesk — Local`). After every API change, agent must update **both** in the same session (never repo-only). Sync via Postman MCP **browser auth only** — no Postman API key. See `.cursor/rules/postman-cloud-sync.mdc` and PLAN § Postman cloud sync.
 - **UI design** — modern, eye-catching product UI from Phase 2 onward (mesh hero, glass panels, icon inputs, app shell). No plain form-only pages. See PLAN §2 UI design standards.
 - **Shared UI** — reuse `app-page-hero`, `app-modal`, `app-data-table`, and `app-password-input` before adding new markup; extract at two uses. See PLAN §2 Reusable components.
+- **Form layout** — `app-modal` for forms with **≤2 fields** only; **3+ fields** use a dedicated app-shell page (hero + glass panel). See PLAN §2 Reusable components.
 - **Responsiveness** — fully usable on phone, tablet, desktop; mobile nav drawer in app shell; test at 375px / 768px / 1280px before marking UI steps done. See PLAN §2 Responsiveness.
 - **Client state** — **NgRx Signal Store** (`@ngrx/signals`) for all server-backed UI state; thin HTTP services called by stores only; app shell bootstraps once; no fetch on route enter; instant navigation between pages; button-only form loading; inline empty/error (no full-page spinners). See PLAN §2 Client state management. Migration in step **5.3**.
 
@@ -32,7 +33,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 2 | Authentication | 12 / 12 | Complete |
 | 3 | Organization & team | 8 / 8 | Complete |
 | 4 | Dashboard shell | 3 / 3 | Complete |
-| 5 | Project management | 6 / 8 | In progress |
+| 5 | Project management | 7 / 8 | In progress |
 | 6 | Task management | 0 / 3 | Not started |
 | 7 | Kanban board | 0 / 3 | Not started |
 | 8 | Task details, comments, activity | 0 / 4 | Not started |
@@ -122,8 +123,8 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 5.4 | Project backend tests | [x] | 2026-09-13 | Projects + project-members service/controller specs; 102 server tests pass |
 | 5.5 | Shared UI components | [x] | 2026-09-13 | `app-project-card`, `app-project-status-badge`, `app-project-priority-badge`, `app-empty-state`; project model + utils — user verified |
 | 5.6 | Projects list page | [x] | 2026-09-13 | `/projects` reads from `ProjectsStore`; shell bootstrap loads projects; nav link enabled; empty/error states — user verified |
-| 5.7 | Create + edit project | [~] | 2026-09-13 | Create/edit modals; `ProjectsStore.createProject` + `updateProject` patch list without refetch; OWNER/ADMIN only — pending manual UI test |
-| 5.8 | Project detail page | [ ] | | |
+| 5.7 | Create + edit project | [x] | 2026-09-13 | `/projects/new` + `/projects/:id/edit` pages; shared `app-project-form`; store patches without refetch; form spacing tightened — user verified |
+| 5.8 | Project detail page | [~] | 2026-09-13 | `/projects/:id` reads from store; members section; instant list navigation — pending manual UI test |
 
 ---
 

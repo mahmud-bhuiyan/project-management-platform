@@ -17,14 +17,13 @@
 
 @if (activeOrganization() && canManage() && !projectsError() && !isInitialLoad()) {
   <section class="mt-8 flex justify-end">
-    <button
-      type="button"
+    <a
+      routerLink="/projects/new"
       class="projects-primary-btn"
       data-testid="projects-open-create"
-      (click)="openCreateProjectModal()"
     >
       Create project
-    </button>
+    </a>
   </section>
 }
 
@@ -59,14 +58,13 @@
       testId="projects-empty"
     >
       @if (canManage()) {
-        <button
-          type="button"
+        <a
+          routerLink="/projects/new"
           class="projects-primary-btn projects-empty-action"
           data-testid="projects-empty-create"
-          (click)="openCreateProjectModal()"
         >
           Create project
-        </button>
+        </a>
       }
     </app-empty-state>
   </section>
@@ -78,125 +76,10 @@
     @for (project of projects(); track project.id) {
       <app-project-card
         [project]="project"
+        [link]="['/projects', project.id]"
         [editable]="canEditProject(project)"
-        (edit)="openEditProjectModal(project)"
+        [editLink]="['/projects', project.id, 'edit']"
       />
     }
   </section>
 }
-
-<app-modal
-  [isOpen]="isProjectModalOpen()"
-  [title]="projectModalTitle()"
-  [description]="projectModalDescription()"
-  [closeOnBackdrop]="!isSubmittingProject()"
-  (closed)="closeProjectModal()"
->
-  <form class="projects-form" [formGroup]="projectForm" (ngSubmit)="submitProjectForm()">
-    <div class="projects-form__fields">
-      <div class="projects-form__field">
-        <label class="projects-label" for="project-name">Project name</label>
-        <input
-          id="project-name"
-          type="text"
-          class="projects-input"
-          placeholder="Website Redesign"
-          formControlName="name"
-          [attr.aria-invalid]="hasProjectFormError('name', 'required') || hasProjectFormError('name', 'maxlength')"
-        />
-        <div class="projects-field-error-slot" aria-live="polite">
-          @if (hasProjectFormError('name', 'required')) {
-            <p class="projects-field-error">Project name is required.</p>
-          } @else if (hasProjectFormError('name', 'maxlength')) {
-            <p class="projects-field-error">Project name must be 120 characters or fewer.</p>
-          }
-        </div>
-      </div>
-
-      <div class="projects-form__field">
-        <label class="projects-label" for="project-description">Description</label>
-        <textarea
-          id="project-description"
-          rows="4"
-          class="projects-input projects-input--textarea"
-          placeholder="What is this project delivering?"
-          formControlName="description"
-          [attr.aria-invalid]="hasProjectFormError('description', 'maxlength')"
-        ></textarea>
-        <div class="projects-field-error-slot" aria-live="polite">
-          @if (hasProjectFormError('description', 'maxlength')) {
-            <p class="projects-field-error">Description must be 5000 characters or fewer.</p>
-          }
-        </div>
-      </div>
-
-      <div class="projects-form__row">
-        <div class="projects-form__field">
-          <label class="projects-label" for="project-status">Status</label>
-          <select id="project-status" class="projects-input" formControlName="status">
-            @for (status of statusOptions; track status) {
-              <option [value]="status">{{ statusLabel(status) }}</option>
-            }
-          </select>
-        </div>
-
-        <div class="projects-form__field">
-          <label class="projects-label" for="project-priority">Priority</label>
-          <select id="project-priority" class="projects-input" formControlName="priority">
-            @for (priority of priorityOptions; track priority) {
-              <option [value]="priority">{{ priorityLabel(priority) }}</option>
-            }
-          </select>
-        </div>
-      </div>
-
-      <div class="projects-form__row">
-        <div class="projects-form__field">
-          <label class="projects-label" for="project-start-date">Start date</label>
-          <input
-            id="project-start-date"
-            type="date"
-            class="projects-input"
-            formControlName="startDate"
-          />
-        </div>
-
-        <div class="projects-form__field">
-          <label class="projects-label" for="project-due-date">Due date</label>
-          <input
-            id="project-due-date"
-            type="date"
-            class="projects-input"
-            formControlName="dueDate"
-          />
-        </div>
-      </div>
-    </div>
-
-    @if (projectFormError(); as error) {
-      <p class="projects-inline-error" role="alert">{{ error }}</p>
-    }
-
-    <div class="projects-modal-actions">
-      <button
-        type="button"
-        class="projects-secondary-btn"
-        data-testid="projects-form-cancel"
-        [disabled]="isSubmittingProject()"
-        (click)="closeProjectModal()"
-      >
-        Cancel
-      </button>
-      <button
-        type="submit"
-        class="projects-primary-btn"
-        data-testid="projects-form-submit"
-        [disabled]="isSubmittingProject()"
-      >
-        {{ isSubmittingProject()
-          ? (projectModalMode() === 'edit' ? 'Saving…' : 'Creating…')
-          : (projectModalMode() === 'edit' ? 'Save changes' : 'Create project') }}
-      </button>
-    </div>
-  </form>
-</app-modal>

@@ -1,9 +1,10 @@
 import { inject } from '@angular/core';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
 import type {
   CreateProjectInput,
+  ProjectMember,
   ProjectSummary,
   UpdateProjectInput,
 } from '../models/project.model';
@@ -15,6 +16,10 @@ type ProjectsState = {
   projectsError: string | null;
   isLoading: boolean;
   hasLoaded: boolean;
+  membersByProjectId: Record<string, ProjectMember[]>;
+  membersLoadedProjectIds: string[];
+  membersLoadingProjectId: string | null;
+  membersErrorByProjectId: Record<string, string | null>;
 };
 
 function extractErrorMessage(error: unknown): string {
@@ -37,6 +42,10 @@ export const ProjectsStore = signalStore(
     projectsError: null,
     isLoading: false,
     hasLoaded: false,
+    membersByProjectId: {},
+    membersLoadedProjectIds: [],
+    membersLoadingProjectId: null,
+    membersErrorByProjectId: {},
   }),
   withMethods((store, projectsService = inject(ProjectsService)) => ({
     resetForOrganizationSwitch(): void {
@@ -45,6 +54,10 @@ export const ProjectsStore = signalStore(
         projectsOrganizationId: null,
         projectsError: null,
         hasLoaded: false,
+        membersByProjectId: {},
+        membersLoadedProjectIds: [],
+        membersLoadingProjectId: null,
+        membersErrorByProjectId: {},
       });
     },
 
@@ -122,6 +135,61 @@ export const ProjectsStore = signalStore(
             }
           }),
         );
+    },
+
+    projectMembers(projectId: string): ProjectMember[] {
+      return store.membersByProjectId()[projectId] ?? [];
+    },
+
+    isProjectMembersLoaded(projectId: string): boolean {
+      return store.membersLoadedProjectIds().includes(projectId);
+    },
+
+    loadProjectMembers(params: {
+      organizationId: string;
+      projectId: string;
+      silent?: boolean;
+    }): Observable<ProjectMember[]> {
+      const { organizationId, projectId, silent = false } = params;
+
+      if (store.membersLoadedProjectIds().includes(projectId)) {
+        return of(store.membersByProjectId()[projectId] ?? []);
+      }
+
+      if (!silent) {
+        patchState(store, { membersLoadingProjectId: projectId });
+      }
+
+      return projectsService.listProjectMembers(organizationId, projectId).pipe(
+        tap({
+          next: (members) => {
+            patchState(store, {
+              membersByProjectId: {
+                ...store.membersByProjectId(),
+                [projectId]: members,
+              },
+              membersLoadedProjectIds: [
+                ...store.membersLoadedProjectIds(),
+                projectId,
+              ],
+              membersLoadingProjectId: null,
+              membersErrorByProjectId: {
+                ...store.membersErrorByProjectId(),
+                [projectId]: null,
+              },
+            });
+          },
+          error: (error) => {
+            patchState(store, {
+              membersLoadingProjectId: null,
+              membersErrorByProjectId: {
+                ...store.membersErrorByProjectId(),
+                [projectId]: extractErrorMessage(error),
+              },
+            });
+          },
+        }),
+      );
     },
   })),
 );

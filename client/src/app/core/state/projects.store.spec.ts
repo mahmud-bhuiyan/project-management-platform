@@ -176,4 +176,56 @@ describe('ProjectsStore', () => {
     expect(projectsStore.projects()[0].name).toBe('Website Redesign v2');
     expect(projectsStore.projects()[0].status).toBe('ACTIVE');
   });
+
+  it('loadProjectMembers caches members by project id', async () => {
+    const member = {
+      id: 'pm-1',
+      projectId: 'project-1',
+      userId: 'user-1',
+      role: 'OWNER' as const,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      user: {
+        id: 'user-1',
+        name: 'Acme Admin',
+        email: 'admin@acme.dev',
+        platformRole: 'USER' as const,
+        avatarUrl: null,
+        themePreference: 'LIGHT' as const,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    };
+
+    const loadPromise = firstValueFrom(
+      projectsStore.loadProjectMembers({
+        organizationId: 'org-1',
+        projectId: 'project-1',
+      }),
+    );
+
+    const request = httpMock.expectOne(
+      'http://localhost:3001/api/v1/organizations/org-1/projects/project-1/members',
+    );
+    request.flush({
+      success: true,
+      data: { members: [member] },
+    });
+
+    await loadPromise;
+
+    expect(projectsStore.projectMembers('project-1')).toEqual([member]);
+    expect(projectsStore.isProjectMembersLoaded('project-1')).toBe(true);
+
+    const cachedPromise = firstValueFrom(
+      projectsStore.loadProjectMembers({
+        organizationId: 'org-1',
+        projectId: 'project-1',
+      }),
+    );
+
+    await expect(cachedPromise).resolves.toEqual([member]);
+    httpMock.expectNone(
+      'http://localhost:3001/api/v1/organizations/org-1/projects/project-1/members',
+    );
+  });
 });

@@ -121,4 +121,38 @@ describe('ProjectsService', () => {
       status: 'ACTIVE',
     });
   });
+
+  it('lists project members', async () => {
+    const member = {
+      id: 'pm-1',
+      projectId: 'project-1',
+      userId: 'user-1',
+      role: 'OWNER' as const,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      user: {
+        id: 'user-1',
+        name: 'Acme Admin',
+        email: 'admin@acme.dev',
+        platformRole: 'USER' as const,
+        avatarUrl: null,
+        themePreference: 'LIGHT' as const,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    };
+
+    const loadPromise = firstValueFrom(
+      projectsService.listProjectMembers('org-1', 'project-1'),
+    );
+
+    const request = httpMock.expectOne(
+      'http://localhost:3001/api/v1/organizations/org-1/projects/project-1/members',
+    );
+    request.flush({
+      success: true,
+      data: { members: [member] },
+    });
+
+    await expect(loadPromise).resolves.toEqual([member]);
+  });
 });

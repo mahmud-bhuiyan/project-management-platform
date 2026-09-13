@@ -50,24 +50,27 @@ describe('ProjectCardComponent', () => {
     expect(compiled.textContent).toContain('…');
   });
 
-  it('renders an edit button when editable', () => {
+  it('renders an edit link when editable', () => {
     const fixture = TestBed.createComponent(ProjectCardComponent);
     fixture.componentRef.setInput('project', sampleProject);
     fixture.componentRef.setInput('editable', true);
+    fixture.componentRef.setInput('editLink', ['/projects', 'project-1', 'edit']);
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('[data-testid="project-edit-project-1"]')).toBeTruthy();
+    const editLink = compiled.querySelector('[data-testid="project-edit-project-1"]');
+    expect(editLink).toBeTruthy();
+    expect(editLink?.getAttribute('href')).toContain('/projects/project-1/edit');
   });
 
-  it('renders as a router link when link input is provided', () => {
+  it('links the project title when link input is provided', () => {
     const fixture = TestBed.createComponent(ProjectCardComponent);
     fixture.componentRef.setInput('project', sampleProject);
     fixture.componentRef.setInput('link', ['/projects', 'project-1']);
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    const link = compiled.querySelector('a.project-card--interactive');
+    const link = compiled.querySelector('a.project-card__title-link');
     expect(link).toBeTruthy();
     expect(link?.getAttribute('href')).toContain('/projects/project-1');
   });

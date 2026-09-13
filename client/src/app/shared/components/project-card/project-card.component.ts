@@ -1,11 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-  output,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { ProjectSummary } from '../../../core/models/project.model';
 import { formatProjectDueDate } from '../../../core/utils/project.util';
@@ -14,12 +7,7 @@ import { ProjectStatusBadgeComponent } from '../project-status-badge/project-sta
 
 @Component({
   selector: 'app-project-card',
-  imports: [
-    NgTemplateOutlet,
-    RouterLink,
-    ProjectStatusBadgeComponent,
-    ProjectPriorityBadgeComponent,
-  ],
+  imports: [RouterLink, ProjectStatusBadgeComponent, ProjectPriorityBadgeComponent],
   templateUrl: './project-card.component.html',
   styleUrl: './project-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,8 +16,7 @@ export class ProjectCardComponent {
   readonly project = input.required<ProjectSummary>();
   readonly link = input<string | readonly string[] | null>(null);
   readonly editable = input(false);
-
-  readonly edit = output<void>();
+  readonly editLink = input<string | readonly string[] | null>(null);
 
   protected readonly descriptionPreview = computed(() => {
     const description = this.project().description?.trim();

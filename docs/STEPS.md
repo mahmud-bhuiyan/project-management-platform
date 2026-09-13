@@ -672,6 +672,11 @@
 ### Step 5.7 — Create + edit project
 **Layer:** UI
 
+**Build:**
+- Dedicated pages `/projects/new` and `/projects/:projectId/edit` (not modals — project form has 6 fields; PLAN §2 form layout rule).
+- Shared `app-project-form` fields component; `ProjectsStore.createProject` / `updateProject` patch list without refetch.
+- OWNER/ADMIN only (`projectManagerGuard`).
+
 **Manual test:**
 - [ ] Create project → `ProjectsStore` patched → appears in list without refetch.
 - [ ] Edit fields persist and update store.

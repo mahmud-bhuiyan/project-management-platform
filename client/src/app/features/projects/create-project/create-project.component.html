@@ -1,0 +1,36 @@
+<app-page-hero eyebrow="Delivery" title="Create project">
+  <p pageHeroDescription class="mt-2 max-w-2xl text-base text-flow-200/90">
+    @if (activeOrganization(); as organization) {
+      Add a new delivery project to <strong class="text-white">{{ organization.name }}</strong>.
+    } @else {
+      Select an organization before creating a project.
+    }
+  </p>
+</app-page-hero>
+
+@if (!activeOrganization()) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">No organization selected</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      Use the organization switcher in the sidebar to choose a workspace.
+    </p>
+  </section>
+} @else {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">Project details</h2>
+    <p class="mt-1 text-sm text-gray-600">
+      Set the basics now — you can refine scope and membership later.
+    </p>
+
+    <div class="mt-4 max-w-3xl">
+      <app-project-form
+        [form]="projectForm"
+        [isSubmitting]="isSubmitting()"
+        [formError]="formError()"
+        submitLabel="Create project"
+        submittingLabel="Creating…"
+        (submitted)="submit()"
+      />
+    </div>
+  </section>
+}

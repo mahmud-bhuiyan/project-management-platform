@@ -1,0 +1,117 @@
+<form class="project-form" [formGroup]="form()" (ngSubmit)="onSubmit()">
+  <div class="project-form__fields">
+    <div class="project-form__field">
+      <label class="project-form__label" for="project-name">Project name</label>
+      <input
+        id="project-name"
+        type="text"
+        class="project-form__input"
+        placeholder="Website Redesign"
+        formControlName="name"
+        data-testid="project-form-name"
+        [attr.aria-invalid]="hasError('name', 'required') || hasError('name', 'maxlength')"
+      />
+      @if (hasError('name', 'required')) {
+        <p class="project-form__field-error" aria-live="polite">Project name is required.</p>
+      } @else if (hasError('name', 'maxlength')) {
+        <p class="project-form__field-error" aria-live="polite">
+          Project name must be 120 characters or fewer.
+        </p>
+      }
+    </div>
+
+    <div class="project-form__field">
+      <label class="project-form__label" for="project-description">Description</label>
+      <textarea
+        id="project-description"
+        rows="3"
+        class="project-form__input project-form__input--textarea"
+        placeholder="What is this project delivering?"
+        formControlName="description"
+        data-testid="project-form-description"
+        [attr.aria-invalid]="hasError('description', 'maxlength')"
+      ></textarea>
+      @if (hasError('description', 'maxlength')) {
+        <p class="project-form__field-error" aria-live="polite">
+          Description must be 5000 characters or fewer.
+        </p>
+      }
+    </div>
+
+    <div class="project-form__row">
+      <div class="project-form__field">
+        <label class="project-form__label" for="project-status">Status</label>
+        <select
+          id="project-status"
+          class="project-form__input"
+          formControlName="status"
+          data-testid="project-form-status"
+        >
+          @for (status of statusOptions; track status) {
+            <option [value]="status">{{ statusLabel(status) }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="project-form__field">
+        <label class="project-form__label" for="project-priority">Priority</label>
+        <select
+          id="project-priority"
+          class="project-form__input"
+          formControlName="priority"
+          data-testid="project-form-priority"
+        >
+          @for (priority of priorityOptions; track priority) {
+            <option [value]="priority">{{ priorityLabel(priority) }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="project-form__row">
+      <div class="project-form__field">
+        <label class="project-form__label" for="project-start-date">Start date</label>
+        <input
+          id="project-start-date"
+          type="date"
+          class="project-form__input"
+          formControlName="startDate"
+          data-testid="project-form-start-date"
+        />
+      </div>
+
+      <div class="project-form__field">
+        <label class="project-form__label" for="project-due-date">Due date</label>
+        <input
+          id="project-due-date"
+          type="date"
+          class="project-form__input"
+          formControlName="dueDate"
+          data-testid="project-form-due-date"
+        />
+      </div>
+    </div>
+  </div>
+
+  @if (formError(); as error) {
+    <p class="project-form__inline-error" role="alert">{{ error }}</p>
+  }
+
+  <div class="project-form__actions">
+    <a
+      class="project-form__secondary-btn"
+      data-testid="project-form-cancel"
+      [routerLink]="cancelLink()"
+    >
+      Cancel
+    </a>
+    <button
+      type="submit"
+      class="project-form__primary-btn"
+      data-testid="project-form-submit"
+      [disabled]="isSubmitting()"
+    >
+      {{ isSubmitting() ? submittingLabel() : submitLabel() }}
+    </button>
+  </div>
+</form>

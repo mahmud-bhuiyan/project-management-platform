@@ -96,6 +96,18 @@ export class AppShellComponent {
       return 'Team';
     }
 
+    if (url.includes('/projects/new')) {
+      return 'Create project';
+    }
+
+    if (url.includes('/projects/') && url.includes('/edit')) {
+      return 'Edit project';
+    }
+
+    if (url.includes('/projects/')) {
+      return 'Project';
+    }
+
     if (url.includes('/projects')) {
       return 'Projects';
     }
