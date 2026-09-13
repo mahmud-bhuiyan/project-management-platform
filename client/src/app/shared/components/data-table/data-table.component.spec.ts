@@ -167,6 +167,8 @@ describe('DataTableComponent', () => {
     const pageSizeSelect = compiled.querySelector(
       '.data-table-page-size__select',
     ) as HTMLSelectElement;
+    expect(pageSizeSelect.value).toBe('20');
+
     pageSizeSelect.value = '50';
     pageSizeSelect.dispatchEvent(new Event('change'));
     fixture.detectChanges();

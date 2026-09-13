@@ -1,17 +1,13 @@
-<app-page-hero
-  layout="split"
-  eyebrow="Your profile"
-  [title]="user()?.name ?? 'User'"
->
+<app-page-hero layout="split" [title]="user()?.name ?? 'User'">
   <div
     pageHeroLeading
-    class="profile-avatar flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl text-2xl font-bold text-white"
+    class="profile-avatar flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-lg font-bold text-white"
     aria-hidden="true"
   >
     {{ userInitials() }}
   </div>
 
-  <p pageHeroDescription class="mt-2 text-base text-flow-200/90">
+  <p pageHeroDescription class="text-sm text-flow-200/90">
     {{ user()?.email }}
   </p>
 </app-page-hero>

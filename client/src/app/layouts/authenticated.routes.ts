@@ -4,7 +4,9 @@ import { DashboardComponent } from '../features/dashboard/dashboard.component';
 import { ProfileComponent } from '../features/profile/profile.component';
 import { OrganizationSettingsComponent } from '../features/organization-settings/organization-settings.component';
 import { CreateProjectComponent } from '../features/projects/create-project/create-project.component';
+import { CreateTaskComponent } from '../features/projects/create-task/create-task.component';
 import { EditProjectComponent } from '../features/projects/edit-project/edit-project.component';
+import { EditTaskComponent } from '../features/projects/edit-task/edit-task.component';
 import { ProjectDetailComponent } from '../features/projects/project-detail/project-detail.component';
 import { ProjectsComponent } from '../features/projects/projects.component';
 import { TeamComponent } from '../features/team/team.component';
@@ -43,6 +45,14 @@ export const AUTHENTICATED_ROUTES: Routes = [
         path: 'projects/:projectId/edit',
         canActivate: [projectManagerGuard],
         component: EditProjectComponent,
+      },
+      {
+        path: 'projects/:projectId/tasks/new',
+        component: CreateTaskComponent,
+      },
+      {
+        path: 'projects/:projectId/tasks/:taskId/edit',
+        component: EditTaskComponent,
       },
       {
         path: 'projects/:projectId',

@@ -1,12 +1,4 @@
-<app-page-hero eyebrow="Delivery" title="Create project">
-  <p pageHeroDescription class="mt-2 max-w-2xl text-base text-flow-200/90">
-    @if (activeOrganization(); as organization) {
-      Add a new delivery project to <strong class="text-white">{{ organization.name }}</strong>.
-    } @else {
-      Select an organization before creating a project.
-    }
-  </p>
-</app-page-hero>
+<app-page-hero title="Create project" />
 
 @if (!activeOrganization()) {
   <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">

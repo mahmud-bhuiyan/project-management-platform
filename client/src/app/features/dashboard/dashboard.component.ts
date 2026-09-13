@@ -37,10 +37,6 @@ export class DashboardComponent {
     () => this.dashboardStore.isLoading() && this.stats() === null,
   );
 
-  protected readonly heroEyebrow = computed(
-    () => this.activeOrganization()?.name ?? 'Your workspace',
-  );
-
   protected readonly heroTitle = computed(() =>
     this.user()?.name
       ? `Good to see you, ${this.user()!.name}.`

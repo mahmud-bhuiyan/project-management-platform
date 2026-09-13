@@ -1,6 +1,11 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, provideRouter, Router } from '@angular/router';
+import {
+  ActivatedRoute,
+  convertToParamMap,
+  provideRouter,
+  Router,
+} from '@angular/router';
 import { of } from 'rxjs';
 import type { Organization } from '../../../core/models/organization.model';
 import type { ProjectSummary } from '../../../core/models/project.model';
@@ -70,10 +75,9 @@ describe('EditProjectComponent', () => {
           provide: ActivatedRoute,
           useValue: {
             snapshot: {
-              paramMap: {
-                get: (key: string) => (key === 'projectId' ? 'project-1' : null),
-              },
+              paramMap: convertToParamMap({ projectId: 'project-1' }),
             },
+            paramMap: of(convertToParamMap({ projectId: 'project-1' })),
           },
         },
         { provide: OrganizationStore, useValue: organizationStore },

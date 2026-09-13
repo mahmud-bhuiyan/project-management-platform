@@ -11,4 +11,5 @@ export class PageHeroComponent {
   readonly title = input.required<string>();
   readonly description = input<string | null>(null);
   readonly layout = input<'default' | 'split'>('default');
+  readonly variant = input<'compact' | 'featured'>('compact');
 }

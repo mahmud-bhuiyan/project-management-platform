@@ -1,14 +1,6 @@
-<app-page-hero eyebrow="Delivery" title="Projects">
-  <p pageHeroDescription class="mt-2 max-w-2xl text-base text-flow-200/90">
-    @if (activeOrganization(); as organization) {
-      Track delivery work across <strong class="text-white">{{ organization.name }}</strong>.
-    } @else {
-      Select an organization to view its projects.
-    }
-  </p>
-
+<app-page-hero title="Projects">
   @if (activeOrganization()) {
-    <p pageHeroBadge class="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm text-white/90">
+    <p pageHeroBadge class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm text-white/90">
       <span class="h-2 w-2 rounded-full bg-accent"></span>
       {{ projects().length }} project{{ projects().length === 1 ? '' : 's' }}
     </p>

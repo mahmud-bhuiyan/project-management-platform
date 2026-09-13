@@ -1,0 +1,233 @@
+import { HttpStatus } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import {
+  OrganizationRole,
+  TaskPriority,
+  TaskStatus,
+} from '@prisma/client';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ApiException } from '../common/exceptions/api.exception.js';
+import { OrganizationsService } from '../organizations/organizations.service.js';
+import { PrismaService } from '../prisma/prisma.service.js';
+import { ProjectsService } from '../projects/projects.service.js';
+import { UsersService } from '../users/users.service.js';
+import { TasksService } from './tasks.service.js';
+
+const reporter = {
+  id: 'user-1',
+  email: 'admin@acme.dev',
+  name: 'Acme Admin',
+  passwordHash: 'hash',
+  platformRole: 'USER' as const,
+  avatarUrl: null,
+  themePreference: 'LIGHT' as const,
+  createdAt: new Date('2026-01-01T00:00:00.000Z'),
+  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+};
+
+const taskRecord = {
+  id: 'task-1',
+  projectId: 'project-1',
+  title: 'Design landing page hero',
+  description: 'Include responsive breakpoints.',
+  status: TaskStatus.BACKLOG,
+  priority: TaskPriority.MEDIUM,
+  assigneeId: null,
+  reporterId: reporter.id,
+  dueDate: null,
+  position: 0,
+  createdAt: new Date('2026-01-01T00:00:00.000Z'),
+  updatedAt: new Date('2026-01-01T00:00:00.000Z'),
+  assignee: null,
+  reporter,
+};
+
+describe('TasksService', () => {
+  let tasksService: TasksService;
+
+  const organizationsService = {
+    getMembershipForUser: vi.fn(),
+  };
+
+  const projectsService = {
+    assertCanAccessProject: vi.fn(),
+    getProjectForOrganization: vi.fn(),
+  };
+
+  const usersService = {
+    toSafeUser: vi.fn((user: typeof reporter) => {
+      const { passwordHash: _passwordHash, ...safeUser } = user;
+      return safeUser;
+    }),
+  };
+
+  const prisma = {
+    organizationMember: {
+      findUnique: vi.fn(),
+    },
+    task: {
+      aggregate: vi.fn(),
+      create: vi.fn(),
+      findMany: vi.fn(),
+      count: vi.fn(),
+      findFirst: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    },
+  };
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+
+    organizationsService.getMembershipForUser.mockResolvedValue({
+      organizationId: 'org-1',
+      role: OrganizationRole.OWNER,
+    });
+    projectsService.getProjectForOrganization.mockResolvedValue({
+      id: 'project-1',
+      organizationId: 'org-1',
+      archivedAt: null,
+    });
+    projectsService.assertCanAccessProject.mockResolvedValue(undefined);
+    prisma.task.aggregate.mockResolvedValue({ _max: { position: 0 } });
+    prisma.task.create.mockResolvedValue(taskRecord);
+    prisma.task.findMany.mockResolvedValue([taskRecord]);
+    prisma.task.count.mockResolvedValue(1);
+    prisma.task.findFirst.mockResolvedValue(taskRecord);
+    prisma.task.update.mockResolvedValue({
+      ...taskRecord,
+      status: TaskStatus.IN_PROGRESS,
+    });
+    prisma.task.delete.mockResolvedValue(taskRecord);
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        TasksService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: OrganizationsService, useValue: organizationsService },
+        { provide: ProjectsService, useValue: projectsService },
+        { provide: UsersService, useValue: usersService },
+      ],
+    }).compile();
+
+    tasksService = module.get(TasksService);
+  });
+
+  it('creates a task for project managers', async () => {
+    const task = await tasksService.create('user-1', 'org-1', 'project-1', {
+      title: 'Design landing page hero',
+      description: 'Include responsive breakpoints.',
+    });
+
+    expect(task.title).toBe('Design landing page hero');
+    expect(prisma.task.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          projectId: 'project-1',
+          reporterId: 'user-1',
+          position: 1,
+        }),
+      }),
+    );
+  });
+
+  it('lists tasks with pagination metadata', async () => {
+    const result = await tasksService.findAllForProject(
+      'user-1',
+      'org-1',
+      'project-1',
+      { page: 1, limit: 20, status: TaskStatus.BACKLOG },
+    );
+
+    expect(result.tasks).toHaveLength(1);
+    expect(result.total).toBe(1);
+    expect(prisma.task.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          projectId: 'project-1',
+          status: TaskStatus.BACKLOG,
+        },
+        skip: 0,
+        take: 20,
+      }),
+    );
+  });
+
+  it('filters tasks by search term across title, description, and assignee', async () => {
+    await tasksService.findAllForProject('user-1', 'org-1', 'project-1', {
+      page: 1,
+      limit: 20,
+      search: 'hero',
+    });
+
+    expect(prisma.task.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          projectId: 'project-1',
+          OR: [
+            { title: { contains: 'hero', mode: 'insensitive' } },
+            { description: { contains: 'hero', mode: 'insensitive' } },
+            {
+              assignee: {
+                name: { contains: 'hero', mode: 'insensitive' },
+              },
+            },
+            {
+              assignee: {
+                email: { contains: 'hero', mode: 'insensitive' },
+              },
+            },
+          ],
+        },
+      }),
+    );
+  });
+
+  it('rejects task creation for organization viewers', async () => {
+    organizationsService.getMembershipForUser.mockResolvedValue({
+      organizationId: 'org-1',
+      role: OrganizationRole.VIEWER,
+    });
+
+    try {
+      await tasksService.create('user-1', 'org-1', 'project-1', {
+        title: 'Blocked task',
+      });
+      expect.unreachable('Expected viewer task creation to be forbidden');
+    } catch (error) {
+      expect(error).toBeInstanceOf(ApiException);
+      expect((error as ApiException).getStatus()).toBe(HttpStatus.FORBIDDEN);
+    }
+  });
+
+  it('rejects assignee outside the organization', async () => {
+    prisma.organizationMember.findUnique.mockResolvedValue(null);
+
+    await expect(
+      tasksService.create('user-1', 'org-1', 'project-1', {
+        title: 'Assigned task',
+        assigneeId: 'user-2',
+      }),
+    ).rejects.toBeInstanceOf(ApiException);
+  });
+
+  it('updates task status and repositions within the new column', async () => {
+    const task = await tasksService.update(
+      'user-1',
+      'org-1',
+      'project-1',
+      'task-1',
+      { status: TaskStatus.IN_PROGRESS },
+    );
+
+    expect(task.status).toBe(TaskStatus.IN_PROGRESS);
+    expect(prisma.task.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          status: TaskStatus.IN_PROGRESS,
+          position: 1,
+        }),
+      }),
+    );
+  });
+});

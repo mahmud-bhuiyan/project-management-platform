@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-13  
-**Current step:** 5.8 (ready for manual test)
+**Current step:** 7.1 (next)
 
 ### Decisions (Phase 2)
 
@@ -33,8 +33,8 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 2 | Authentication | 12 / 12 | Complete |
 | 3 | Organization & team | 8 / 8 | Complete |
 | 4 | Dashboard shell | 3 / 3 | Complete |
-| 5 | Project management | 7 / 8 | In progress |
-| 6 | Task management | 0 / 3 | Not started |
+| 5 | Project management | 8 / 8 | Complete |
+| 6 | Task management | 3 / 3 | Complete |
 | 7 | Kanban board | 0 / 3 | Not started |
 | 8 | Task details, comments, activity | 0 / 4 | Not started |
 | 9 | Notifications | 0 / 3 | Not started |
@@ -124,7 +124,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 5.5 | Shared UI components | [x] | 2026-09-13 | `app-project-card`, `app-project-status-badge`, `app-project-priority-badge`, `app-empty-state`; project model + utils — user verified |
 | 5.6 | Projects list page | [x] | 2026-09-13 | `/projects` reads from `ProjectsStore`; shell bootstrap loads projects; nav link enabled; empty/error states — user verified |
 | 5.7 | Create + edit project | [x] | 2026-09-13 | `/projects/new` + `/projects/:id/edit` pages; shared `app-project-form`; store patches without refetch; form spacing tightened — user verified |
-| 5.8 | Project detail page | [~] | 2026-09-13 | `/projects/:id` reads from store; members section; instant list navigation — pending manual UI test |
+| 5.8 | Project detail page | [x] | 2026-09-13 | `/projects/:id` reads from store; overview + members; compact hero; instant list navigation — user verified |
 
 ---
 
@@ -132,9 +132,9 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 6.1 | Tasks API (CRUD + pagination + filters) | [ ] | | |
-| 6.2 | Task backend tests | [ ] | | |
-| 6.3 | Task list UI | [ ] | | |
+| 6.1 | Tasks API (CRUD + pagination + filters) | [x] | 2026-09-13 | CRUD under `/organizations/:id/projects/:id/tasks`; pagination + status/priority/assignee filters; org VIEWER blocked from mutations; Postman repo + cloud synced — user verified |
+| 6.2 | Task backend tests | [x] | 2026-09-13 | create, filter, assign, viewer denied — 109 server tests pass |
+| 6.3 | Task list UI | [x] | 2026-09-13 | `TasksStore`; project detail opens on task list (no overview); card list shows title, description, status/priority badges, assignee, reporter, due; status/priority/search filters; server search query; edit/delete icon actions + delete confirm modal; loads all tasks (limit 100, no pagination); create/edit task pages; Postman `search` on List tasks synced; 103 client + 109 server tests — user verified |
 
 ---
 
@@ -279,3 +279,7 @@ Use this for quick notes across sessions.
 | 2026-09-13 | 5.2 | Project members API — add/remove/list + access control | Pass — user verified |
 | 2026-09-13 | Postman | Cloud sync: project member requests + `projectMemberId` env var | Done |
 | 2026-09-13 | 5.3 | NgRx Signal Store migration — bootstrap, org switch, store patches | Built — 61 client tests; pending manual UI test |
+| 2026-09-13 | 5.8 | Project detail page — overview, members, compact hero | Pass — user verified; Phase 5 complete |
+| 2026-09-13 | 6.1 | Tasks API — CRUD, pagination, filters | Pass — user verified; Postman repo + cloud synced |
+| 2026-09-13 | 6.3 | Task list UI — TasksStore, project detail table, create/edit pages | Pass — Playwright e2e + 103 client tests; fixed tasks effect/store loading loop |
+| 2026-09-13 | 6.3 | Task list UI polish — list view, search, no pagination, delete icons | Pass — user verified; Phase 6 complete |

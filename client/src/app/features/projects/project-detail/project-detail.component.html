@@ -1,21 +1,12 @@
 @if (project(); as currentProject) {
-  <app-page-hero eyebrow="Delivery" [title]="currentProject.name">
-    <p pageHeroDescription class="mt-2 max-w-2xl text-base text-flow-200/90">
-      Project overview for
-      <strong class="text-white">{{ activeOrganization()?.name ?? 'your workspace' }}</strong>.
-    </p>
-
-    <p pageHeroBadge class="mt-4 inline-flex flex-wrap items-center gap-2">
+  <app-page-hero [title]="currentProject.name">
+    <p pageHeroBadge class="inline-flex flex-wrap items-center gap-2">
       <app-project-status-badge [status]="currentProject.status" />
       <app-project-priority-badge [priority]="currentProject.priority" />
     </p>
   </app-page-hero>
 } @else {
-  <app-page-hero eyebrow="Delivery" title="Project">
-    <p pageHeroDescription class="mt-2 max-w-2xl text-base text-flow-200/90">
-      Project details for your active organization.
-    </p>
-  </app-page-hero>
+  <app-page-hero title="Project" />
 }
 
 @if (!activeOrganization()) {
@@ -34,66 +25,206 @@
     <a routerLink="/projects" class="project-detail-back-link">Back to projects</a>
   </section>
 } @else if (project(); as currentProject) {
-  <section class="mt-8 flex flex-wrap items-center justify-between gap-3">
+  <section class="mt-8">
     <a routerLink="/projects" class="project-detail-back-link" data-testid="project-detail-back">
       ← Back to projects
     </a>
-
-    @if (canEdit()) {
-      <a
-        routerLink="/projects/{{ currentProject.id }}/edit"
-        class="project-detail-edit-link"
-        data-testid="project-detail-edit"
-      >
-        Edit project
-      </a>
-    }
   </section>
 
-  <section class="mt-4 glass-panel rounded-2xl p-6 sm:p-8" data-testid="project-detail-overview">
-    <h2 class="font-display text-lg font-bold text-flow-900">Overview</h2>
+  <section class="mt-4 glass-panel rounded-2xl p-6 sm:p-8" data-testid="project-detail-tasks">
+    <div class="project-detail-tasks-header">
+      <div>
+        <h2 class="project-detail-tasks-title">Tasks</h2>
+        <p class="project-detail-tasks-description">
+          Delivery work tracked for this project.
+        </p>
+      </div>
 
-    @if (currentProject.description) {
-      <p class="mt-3 text-sm leading-relaxed text-gray-700">{{ currentProject.description }}</p>
+      @if (canManageTasks()) {
+        <a
+          [routerLink]="['/projects', currentProject.id, 'tasks', 'new']"
+          class="project-detail-primary-btn"
+          data-testid="project-detail-create-task"
+        >
+          Create task
+        </a>
+      }
+    </div>
+
+    <div class="project-detail-task-filters">
+      <label class="project-detail-task-filter">
+        <span>Status</span>
+        <select
+          class="project-detail-task-filter__select"
+          data-testid="project-detail-task-status-filter"
+          [value]="statusFilter()"
+          (change)="onStatusFilterChange($any($event.target).value)"
+        >
+          <option value="">All statuses</option>
+          <option value="BACKLOG">Backlog</option>
+          <option value="TODO">Todo</option>
+          <option value="IN_PROGRESS">In progress</option>
+          <option value="REVIEW">Review</option>
+          <option value="DONE">Done</option>
+        </select>
+      </label>
+
+      <label class="project-detail-task-filter">
+        <span>Priority</span>
+        <select
+          class="project-detail-task-filter__select"
+          data-testid="project-detail-task-priority-filter"
+          [value]="priorityFilter()"
+          (change)="onPriorityFilterChange($any($event.target).value)"
+        >
+          <option value="">All priorities</option>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+          <option value="CRITICAL">Critical</option>
+        </select>
+      </label>
+
+      <label class="project-detail-task-filter project-detail-task-filter--search">
+        <span>Search</span>
+        <input
+          id="project-detail-task-search"
+          type="search"
+          class="project-detail-task-filter__search"
+          placeholder="Search by title, description, or assignee…"
+          data-testid="project-detail-task-search"
+          [value]="searchQuery()"
+          (input)="onTaskSearchChange($any($event.target).value)"
+        />
+      </label>
+    </div>
+
+    @if (isLoadingTasks()) {
+      <div class="project-detail-task-skeleton-list" aria-hidden="true">
+        @for (row of [1, 2, 3]; track row) {
+          <div class="project-detail-task-skeleton-row"></div>
+        }
+      </div>
+      <p class="sr-only">Loading tasks…</p>
+    } @else if (tasksError(); as error) {
+      <p class="project-detail-inline-error mt-4" role="alert">{{ error }}</p>
+    } @else if (tasksMeta().total === 0) {
+      <p class="project-detail-task-empty">No tasks yet.</p>
+    } @else if (tasks().length === 0) {
+      <p class="project-detail-task-empty">No tasks match your search or filters.</p>
     } @else {
-      <p class="mt-3 text-sm italic text-gray-400">No description yet.</p>
+      <ul class="project-detail-task-list" data-testid="project-detail-task-list">
+        @for (task of tasks(); track task.id) {
+          <li
+            class="project-detail-task-item"
+            data-testid="project-detail-task-row-row"
+            [attr.data-task-id]="task.id"
+          >
+            <div class="project-detail-task-item__main">
+              <div class="project-detail-task-item__header">
+                <h3 class="project-detail-task-title">{{ task.title }}</h3>
+                <div class="project-detail-task-item__badges">
+                  <app-task-status-badge [status]="task.status" />
+                  <app-task-priority-badge [priority]="task.priority" />
+                </div>
+              </div>
+
+              @if (task.description) {
+                <p class="project-detail-task-item__description">{{ task.description }}</p>
+              }
+
+              <dl class="project-detail-task-item__meta">
+                <div class="project-detail-task-item__field">
+                  <dt>Assignee</dt>
+                  <dd>{{ task.assignee?.name ?? 'Unassigned' }}</dd>
+                </div>
+                <div class="project-detail-task-item__field">
+                  <dt>Reporter</dt>
+                  <dd>{{ task.reporter.name }}</dd>
+                </div>
+                <div class="project-detail-task-item__field">
+                  <dt>Due</dt>
+                  <dd>{{ taskDueDateLabel(task.dueDate) }}</dd>
+                </div>
+              </dl>
+            </div>
+
+            @if (canManageTasks()) {
+              <div class="project-detail-task-row-actions">
+                <a
+                  [routerLink]="['/projects', currentProject.id, 'tasks', task.id, 'edit']"
+                  class="project-detail-task-edit-btn"
+                  aria-label="Edit task"
+                  [attr.data-testid]="'project-detail-task-edit-' + task.id"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </a>
+                <button
+                  type="button"
+                  class="project-detail-task-delete-btn"
+                  aria-label="Delete task"
+                  [attr.data-testid]="'project-detail-task-delete-' + task.id"
+                  [disabled]="isDeletingTask()"
+                  (click)="openDeleteTaskModal(task)"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <app-modal
+    [isOpen]="isDeleteTaskModalOpen()"
+    title="Delete task?"
+    [description]="deleteTaskModalDescription()"
+    [closeOnBackdrop]="!isDeletingTask()"
+    (closed)="closeDeleteTaskModal()"
+  >
+    @if (deleteTaskError(); as error) {
+      <p class="project-detail-inline-error" role="alert">{{ error }}</p>
     }
 
-    <dl class="project-detail-grid mt-6">
-      <div class="project-detail-meta">
-        <dt>Status</dt>
-        <dd>{{ statusLabel() }}</dd>
-      </div>
-      <div class="project-detail-meta">
-        <dt>Priority</dt>
-        <dd>{{ priorityLabel() }}</dd>
-      </div>
-      <div class="project-detail-meta">
-        <dt>Owner</dt>
-        <dd>{{ currentProject.owner.name }}</dd>
-      </div>
-      <div class="project-detail-meta">
-        <dt>Owner email</dt>
-        <dd>{{ currentProject.owner.email }}</dd>
-      </div>
-      <div class="project-detail-meta">
-        <dt>Start date</dt>
-        <dd>{{ formatDate(currentProject.startDate) }}</dd>
-      </div>
-      <div class="project-detail-meta">
-        <dt>Due date</dt>
-        <dd>{{ formatDate(currentProject.dueDate) }}</dd>
-      </div>
-      <div class="project-detail-meta">
-        <dt>Created</dt>
-        <dd>{{ currentProject.createdAt | date: 'mediumDate' }}</dd>
-      </div>
-      <div class="project-detail-meta">
-        <dt>Last updated</dt>
-        <dd>{{ currentProject.updatedAt | date: 'mediumDate' }}</dd>
-      </div>
-    </dl>
-  </section>
+    <div class="project-detail-modal-actions">
+      <button
+        type="button"
+        class="project-detail-secondary-btn"
+        data-testid="project-detail-task-delete-cancel"
+        [disabled]="isDeletingTask()"
+        (click)="closeDeleteTaskModal()"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="project-detail-danger-btn"
+        data-testid="project-detail-task-delete-confirm"
+        [disabled]="isDeletingTask()"
+        (click)="confirmDeleteTask()"
+      >
+        {{ isDeletingTask() ? 'Deleting…' : 'Yes, delete task' }}
+      </button>
+    </div>
+  </app-modal>
 
   <section class="mt-6 glass-panel rounded-2xl p-6 sm:p-8" data-testid="project-detail-members">
     <h2 class="font-display text-lg font-bold text-flow-900">Project members</h2>

@@ -1,14 +1,6 @@
-<app-page-hero eyebrow="Workspace" title="Team members">
-  <p pageHeroDescription class="mt-2 max-w-2xl text-base text-flow-200/90">
-    @if (activeOrganization(); as organization) {
-      Manage who has access to <strong class="text-white">{{ organization.name }}</strong>.
-    } @else {
-      Select an organization to view its team.
-    }
-  </p>
-
+<app-page-hero title="Team members">
   @if (activeOrganization()) {
-    <p pageHeroBadge class="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm text-white/90">
+    <p pageHeroBadge class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm text-white/90">
       <span class="h-2 w-2 rounded-full bg-accent"></span>
       {{ members().length }} member{{ members().length === 1 ? '' : 's' }}
       @if (!canManage()) {
