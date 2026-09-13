@@ -7,6 +7,7 @@ import { OrganizationStore } from './organization.store';
 import { ProjectsStore } from './projects.store';
 import { TaskDetailStore } from './task-detail.store';
 import { TasksStore } from './tasks.store';
+import { RealtimeStore } from './realtime.store';
 import { TeamStore } from './team.store';
 
 type WorkspaceState = {
@@ -32,6 +33,7 @@ export const WorkspaceStore = signalStore(
       tasksStore = inject(TasksStore),
       taskDetailStore = inject(TaskDetailStore),
       notificationsStore = inject(NotificationsStore),
+      realtimeStore = inject(RealtimeStore),
     ) => ({
       bootstrap() {
         if (store.hasBootstrapped()) {
@@ -104,6 +106,7 @@ export const WorkspaceStore = signalStore(
         tasksStore.resetForOrganizationSwitch();
         taskDetailStore.resetForOrganizationSwitch();
         notificationsStore.resetForSessionClear();
+        realtimeStore.disconnect();
         patchState(store, {
           isBootstrapping: false,
           bootstrapError: null,

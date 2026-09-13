@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { AuthStore } from '../../core/state/auth.store';
+import { RealtimeStore } from '../../core/state/realtime.store';
 import { WorkspaceStore } from '../../core/state/workspace.store';
 import { DashboardComponent } from '../../features/dashboard/dashboard.component';
 import { AppShellComponent } from './app-shell.component';
@@ -28,8 +29,14 @@ describe('AppShellComponent', () => {
 
   const workspaceStore = {
     isBootstrapping: signal(false),
+    hasBootstrapped: signal(false),
     bootstrap: vi.fn(() => of(undefined)),
     clearSession: vi.fn(),
+  };
+
+  const realtimeStore = {
+    connect: vi.fn(),
+    disconnect: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -49,6 +56,7 @@ describe('AppShellComponent', () => {
         ]),
         { provide: AuthStore, useValue: authStore },
         { provide: WorkspaceStore, useValue: workspaceStore },
+        { provide: RealtimeStore, useValue: realtimeStore },
       ],
     }).compileComponents();
   });

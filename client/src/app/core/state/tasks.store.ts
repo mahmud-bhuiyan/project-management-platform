@@ -380,6 +380,25 @@ export const TasksStore = signalStore(
       );
     },
 
+    applyRemoteTaskReorder(params: {
+      organizationId: string;
+      projectId: string;
+    }): void {
+      const cache = getCache(store.byProjectId(), params.projectId);
+
+      if (!cache.hasLoaded) {
+        return;
+      }
+
+      this.loadTasks({
+        organizationId: params.organizationId,
+        projectId: params.projectId,
+        query: cache.query,
+        silent: true,
+        force: true,
+      }).subscribe();
+    },
+
     deleteTask(params: {
       organizationId: string;
       projectId: string;

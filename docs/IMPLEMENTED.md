@@ -6,8 +6,8 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
-**Last updated:** 2026-09-13  
-**Current step:** 10.1 (not started)
+**Last updated:** 2026-09-14  
+**Current step:** 10.3 (not started)
 
 ### Decisions (Phase 2)
 
@@ -38,7 +38,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 7 | Kanban board | 3 / 3 | Complete |
 | 8 | Task details, comments, activity | 4 / 4 | Complete |
 | 9 | Notifications | 3 / 3 | Complete |
-| 10 | Real-time updates | 0 / 3 | Not started |
+| 10 | Real-time updates | 2 / 3 | In progress |
 | 11 | Dashboard charts | 0 / 1 | Not started |
 | 12 | Search & permission audit | 0 / 3 | Not started |
 | 13 | UI polish | 0 / 2 | Not started |
@@ -173,8 +173,8 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 10.1 | Socket.IO gateway (server) | [ ] | | |
-| 10.2 | Real-time events | [ ] | | |
+| 10.1 | Socket.IO gateway (server) | [x] | 2026-09-14 | `ProjectsGateway` — JWT on connect; `project:join` / `project:leave` with access checks; rooms `project:{id}`; 10 unit tests; verified via `scripts/verify-socket-connection.mjs` |
+| 10.2 | Real-time events | [x] | 2026-09-14 | Emit `task:reordered`, `comment:created`, `notification:created`; client `RealtimeService` + store patches; Kanban + task detail join project rooms — build OK |
 | 10.3 | Phase 10 integration check | [ ] | | |
 
 ---
@@ -290,3 +290,5 @@ Use this for quick notes across sessions.
 | 2026-09-13 | 9.1 | Notifications API — list, unread count, mark read/all | Pass — user verified in Postman |
 | 2026-09-13 | 9.2 | Notification triggers — assign, mention, status, due-soon | Pass — user verified |
 | 2026-09-13 | 9.3 | Notification bell UI — header bell, dropdown, mark read | Pass — Playwright e2e 64/64 branch total; Phase 9 complete |
+| 2026-09-14 | 10.1 | Socket.IO gateway — JWT connect + project room join | Pass — `verify-socket-connection.mjs`; 10 realtime unit tests; build OK |
+| 2026-09-14 | 10.2 | Real-time events — Kanban reorder, comments, notifications | Built — server emits + client store sync; builds OK; pending two-tab manual test |

@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiException } from '../common/exceptions/api.exception.js';
 import { PrismaService } from '../prisma/prisma.service.js';
+import { RealtimeEmitterService } from '../realtime/realtime-emitter.service.js';
 import { NotificationType } from './notification.types.js';
 import { NotificationsService } from './notifications.service.js';
 
@@ -48,10 +49,17 @@ describe('NotificationsService', () => {
     prisma.notification.updateMany.mockResolvedValue({ count: 2 });
     prisma.task.findMany.mockResolvedValue([]);
 
+    const realtimeEmitter = {
+      emitTaskReordered: vi.fn(),
+      emitCommentCreated: vi.fn(),
+      emitNotificationCreated: vi.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationsService,
         { provide: PrismaService, useValue: prisma },
+        { provide: RealtimeEmitterService, useValue: realtimeEmitter },
       ],
     }).compile();
 

@@ -124,6 +124,20 @@ export const NotificationsStore = signalStore(
       );
     },
 
+    applyRemoteNotification(notification: NotificationSummary): void {
+      if (store.notifications().some((entry) => entry.id === notification.id)) {
+        return;
+      }
+
+      patchState(store, {
+        notifications: [notification, ...store.notifications()].slice(0, 20),
+        unreadCount: notification.readAt
+          ? store.unreadCount()
+          : store.unreadCount() + 1,
+        hasLoadedUnreadCount: true,
+      });
+    },
+
     markAllAsRead(): Observable<number> {
       return notificationsService.markAllAsRead().pipe(
         tap(() => {
