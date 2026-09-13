@@ -1,10 +1,19 @@
 import { inject } from '@angular/core';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Observable, map, of, tap } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  map,
+  of,
+  switchMap,
+  tap,
+  throwError,
+} from 'rxjs';
 import type { PaginationMeta } from '../models/api-response.model';
 import type {
   CreateTaskInput,
+  ReorderTaskItemInput,
   TaskSummary,
   TasksQuery,
   UpdateTaskInput,
@@ -139,12 +148,14 @@ export const TasksStore = signalStore(
       projectId: string;
       query?: TasksQuery;
       silent?: boolean;
+      force?: boolean;
     }): Observable<TaskSummary[]> {
-      const { organizationId, projectId, silent = false } = params;
+      const { organizationId, projectId, silent = false, force = false } = params;
       const query = params.query ?? getCache(store.byProjectId(), projectId).query;
       const existing = getCache(store.byProjectId(), projectId);
 
       if (
+        !force &&
         store.organizationId() === organizationId &&
         existing.hasLoaded &&
         queriesMatch(existing.query, query)
@@ -315,6 +326,58 @@ export const TasksStore = signalStore(
             });
           }),
         );
+    },
+
+    reorderTasks(params: {
+      organizationId: string;
+      projectId: string;
+      items: ReorderTaskItemInput[];
+      optimisticTasks?: TaskSummary[];
+    }): Observable<TaskSummary[]> {
+      const { organizationId, projectId, items, optimisticTasks } = params;
+      const cache = getCache(store.byProjectId(), projectId);
+      const query = cache.query;
+      const previousTasks = cache.tasks;
+
+      if (optimisticTasks) {
+        patchState(store, {
+          byProjectId: {
+            ...store.byProjectId(),
+            [projectId]: {
+              ...cache,
+              tasks: optimisticTasks,
+              error: null,
+            },
+          },
+        });
+      }
+
+      return tasksService.reorderTasks(organizationId, projectId, items).pipe(
+        switchMap(() =>
+          this.loadTasks({
+            organizationId,
+            projectId,
+            query,
+            silent: true,
+            force: true,
+          }),
+        ),
+        catchError((error) => {
+          const currentCache = getCache(store.byProjectId(), projectId);
+
+          patchState(store, {
+            byProjectId: {
+              ...store.byProjectId(),
+              [projectId]: {
+                ...currentCache,
+                tasks: previousTasks,
+              },
+            },
+          });
+
+          return throwError(() => error);
+        }),
+      );
     },
 
     deleteTask(params: {

@@ -1,3 +1,42 @@
+.project-detail-view-tabs {
+  display: inline-flex;
+  margin-top: 1rem;
+  padding: 0.25rem;
+  border-radius: 9999px;
+  background: rgb(255 255 255 / 0.72);
+  border: 1px solid rgb(237 233 254);
+  box-shadow: 0 10px 30px rgb(15 11 46 / 0.04);
+}
+
+.project-detail-view-tabs__link {
+  display: inline-flex;
+  min-width: 5.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.55rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgb(75 85 99);
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.project-detail-view-tabs__link:hover {
+  color: rgb(17 24 39);
+}
+
+.project-detail-view-tabs__link--active {
+  background: linear-gradient(
+    135deg,
+    var(--color-flow-500) 0%,
+    var(--color-accent) 100%
+  );
+  color: white;
+}
+
 .project-detail-tasks-header {
   display: flex;
   flex-wrap: wrap;

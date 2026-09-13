@@ -1,4 +1,4 @@
-import type { TaskPriority, TaskStatus } from '../models/task.model';
+import type { TaskPriority, TaskStatus, TaskSummary } from '../models/task.model';
 import type { ProjectBadgeTone } from './project.util';
 import { projectPriorityLabel, projectPriorityBadgeTone } from './project.util';
 
@@ -83,6 +83,48 @@ export function toDateInputValue(value: string | null): string {
   }
 
   return date.toISOString().slice(0, 10);
+}
+
+export function flattenColumnTasks(
+  columns: Record<TaskStatus, TaskSummary[]>,
+): TaskSummary[] {
+  const tasks: TaskSummary[] = [];
+
+  for (const status of TASK_STATUSES) {
+    columns[status].forEach((task, index) => {
+      tasks.push({
+        ...task,
+        status,
+        position: index,
+      });
+    });
+  }
+
+  return tasks;
+}
+
+export function groupTasksByStatus(
+  tasks: TaskSummary[],
+): Record<TaskStatus, TaskSummary[]> {
+  const grouped = Object.fromEntries(
+    TASK_STATUSES.map((status) => [status, [] as TaskSummary[]]),
+  ) as Record<TaskStatus, TaskSummary[]>;
+
+  for (const task of tasks) {
+    grouped[task.status].push(task);
+  }
+
+  for (const status of TASK_STATUSES) {
+    grouped[status].sort((left, right) => {
+      if (left.position !== right.position) {
+        return left.position - right.position;
+      }
+
+      return left.createdAt.localeCompare(right.createdAt);
+    });
+  }
+
+  return grouped;
 }
 
 export function taskMatchesQuery(

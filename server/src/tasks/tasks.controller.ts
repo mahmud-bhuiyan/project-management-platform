@@ -30,6 +30,7 @@ import type { AuthenticatedRequest } from '../common/types/authenticated-request
 import { respond } from '../common/utils/api-response.util.js';
 import { CreateTaskDto } from './dto/create-task.dto.js';
 import { ListTasksQueryDto } from './dto/list-tasks-query.dto.js';
+import { ReorderTasksDto } from './dto/reorder-tasks.dto.js';
 import { UpdateTaskDto } from './dto/update-task.dto.js';
 import { TasksService } from './tasks.service.js';
 
@@ -112,6 +113,38 @@ export class TasksController {
         totalPages: result.totalPages,
       },
     };
+  }
+
+  @Patch('reorder')
+  @ApiOperation({
+    summary: 'Reorder tasks on the Kanban board',
+    description:
+      'Update task status and position. Send one item to move a single task with automatic column shifting; send multiple items to set final positions in batch.',
+  })
+  @ApiOkResponse({ description: 'Tasks reordered successfully' })
+  @ApiConflictResponse({ description: 'Project is archived' })
+  @ApiForbiddenResponse({ description: 'Insufficient project permissions' })
+  @ApiNotFoundResponse({ description: 'Task, project, or organization not found' })
+  @ApiUnauthorizedResponse({ description: 'Missing or invalid access token' })
+  @ApiUnprocessableEntityResponse({ description: 'Validation failed' })
+  async reorder(
+    @Req() req: AuthenticatedRequest,
+    @Param('organizationId', ParseUUIDPipe) organizationId: string,
+    @Param('projectId', ParseUUIDPipe) projectId: string,
+    @Body() dto: ReorderTasksDto,
+  ) {
+    const result = await this.tasksService.reorder(
+      req.user!.id,
+      organizationId,
+      projectId,
+      dto.items.map((item) => ({
+        taskId: item.taskId,
+        status: item.status,
+        position: item.position,
+      })),
+    );
+
+    return respond.updated({ tasks: result.tasks }, 'Tasks reordered successfully');
   }
 
   @Get(':taskId')
