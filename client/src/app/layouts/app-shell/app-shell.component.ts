@@ -104,6 +104,10 @@ export class AppShellComponent {
       return 'Edit project';
     }
 
+    if (url.includes('/projects/') && url.includes('/board')) {
+      return 'Kanban board';
+    }
+
     if (url.includes('/projects/')) {
       return 'Project';
     }

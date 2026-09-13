@@ -45,3 +45,13 @@ export type PaginatedTasksResult = {
   total: number;
   totalPages: number;
 };
+
+export type ReorderTaskItemInput = {
+  taskId: string;
+  status: TaskStatus;
+  position: number;
+};
+
+export type ReorderTasksResult = {
+  tasks: TaskResponse[];
+};

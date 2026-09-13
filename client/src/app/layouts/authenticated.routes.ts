@@ -7,6 +7,7 @@ import { CreateProjectComponent } from '../features/projects/create-project/crea
 import { CreateTaskComponent } from '../features/projects/create-task/create-task.component';
 import { EditProjectComponent } from '../features/projects/edit-project/edit-project.component';
 import { EditTaskComponent } from '../features/projects/edit-task/edit-task.component';
+import { KanbanBoardComponent } from '../features/projects/kanban-board/kanban-board.component';
 import { ProjectDetailComponent } from '../features/projects/project-detail/project-detail.component';
 import { ProjectsComponent } from '../features/projects/projects.component';
 import { TeamComponent } from '../features/team/team.component';
@@ -53,6 +54,10 @@ export const AUTHENTICATED_ROUTES: Routes = [
       {
         path: 'projects/:projectId/tasks/:taskId/edit',
         component: EditTaskComponent,
+      },
+      {
+        path: 'projects/:projectId/board',
+        component: KanbanBoardComponent,
       },
       {
         path: 'projects/:projectId',

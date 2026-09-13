@@ -8,6 +8,8 @@ import type {
 } from '../models/api-response.model';
 import type {
   CreateTaskInput,
+  ReorderTaskItemInput,
+  ReorderTasksResponseData,
   TaskResponseData,
   TaskSummary,
   TasksQuery,
@@ -108,5 +110,18 @@ export class TasksService {
     return this.http.delete<ApiSuccessResponse<null>>(
       `${this.apiUrl}/organizations/${organizationId}/projects/${projectId}/tasks/${taskId}`,
     );
+  }
+
+  reorderTasks(
+    organizationId: string,
+    projectId: string,
+    items: ReorderTaskItemInput[],
+  ) {
+    return this.http
+      .patch<ApiSuccessResponse<ReorderTasksResponseData>>(
+        `${this.apiUrl}/organizations/${organizationId}/projects/${projectId}/tasks/reorder`,
+        { items },
+      )
+      .pipe(map((response) => response.data.tasks));
   }
 }

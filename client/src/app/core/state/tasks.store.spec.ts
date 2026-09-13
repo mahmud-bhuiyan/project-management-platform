@@ -118,6 +118,61 @@ describe('TasksStore', () => {
     );
   });
 
+  it('reorderTasks refreshes cached tasks after a successful move', async () => {
+    const query = { page: 1, limit: 100 };
+    const movedTask = { ...task, status: 'IN_PROGRESS' as const, position: 0 };
+
+    const loadPromise = firstValueFrom(
+      tasksStore.loadTasks({
+        organizationId: 'org-1',
+        projectId: 'project-1',
+        query,
+      }),
+    );
+
+    httpMock
+      .expectOne(
+        'http://localhost:3001/api/v1/organizations/org-1/projects/project-1/tasks?page=1&limit=100',
+      )
+      .flush({
+        success: true,
+        data: { tasks: [task] },
+        meta: { page: 1, perPage: 100, total: 1, totalPages: 1 },
+      });
+
+    await loadPromise;
+
+    const reorderPromise = firstValueFrom(
+      tasksStore.reorderTasks({
+        organizationId: 'org-1',
+        projectId: 'project-1',
+        items: [{ taskId: task.id, status: 'IN_PROGRESS', position: 0 }],
+      }),
+    );
+
+    const reorderRequest = httpMock.expectOne(
+      'http://localhost:3001/api/v1/organizations/org-1/projects/project-1/tasks/reorder',
+    );
+    expect(reorderRequest.request.method).toBe('PATCH');
+    reorderRequest.flush({
+      success: true,
+      data: { tasks: [movedTask] },
+    });
+
+    const refreshRequest = httpMock.expectOne(
+      'http://localhost:3001/api/v1/organizations/org-1/projects/project-1/tasks?page=1&limit=100',
+    );
+    refreshRequest.flush({
+      success: true,
+      data: { tasks: [movedTask] },
+      meta: { page: 1, perPage: 100, total: 1, totalPages: 1 },
+    });
+
+    await reorderPromise;
+
+    expect(tasksStore.projectTasks('project-1')).toEqual([movedTask]);
+  });
+
   it('resetForOrganizationSwitch clears cached tasks', async () => {
     const loadPromise = firstValueFrom(
       tasksStore.loadTasks({

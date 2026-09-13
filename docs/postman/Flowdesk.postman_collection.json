@@ -1150,6 +1150,45 @@
           }
         },
         {
+          "name": "Reorder tasks (Kanban)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Tasks reordered', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.tasks).to.be.an('array');",
+                  "  pm.expect(json.data.tasks[0].status).to.eql('IN_PROGRESS');",
+                  "  pm.expect(json.data.tasks[0].position).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"taskId\": \"{{taskId}}\",\n      \"status\": \"IN_PROGRESS\",\n      \"position\": 0\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/organizations/{{organizationId}}/projects/{{projectId}}/tasks/reorder"
+          }
+        },
+        {
           "name": "Delete task",
           "event": [
             {

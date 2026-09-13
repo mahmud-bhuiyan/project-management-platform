@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-13  
-**Current step:** 7.1 (next)
+**Current step:** 7.2 (next)
 
 ### Decisions (Phase 2)
 
@@ -35,7 +35,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 4 | Dashboard shell | 3 / 3 | Complete |
 | 5 | Project management | 8 / 8 | Complete |
 | 6 | Task management | 3 / 3 | Complete |
-| 7 | Kanban board | 0 / 3 | Not started |
+| 7 | Kanban board | 1 / 3 | In progress |
 | 8 | Task details, comments, activity | 0 / 4 | Not started |
 | 9 | Notifications | 0 / 3 | Not started |
 | 10 | Real-time updates | 0 / 3 | Not started |
@@ -142,7 +142,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 7.1 | Kanban order API | [ ] | | |
+| 7.1 | Kanban order API | [x] | 2026-09-13 | `PATCH .../tasks/reorder`; single + batch; position shifting; 114 server tests; Postman repo + cloud synced — user verified |
 | 7.2 | Kanban board UI (CDK drag-drop) | [ ] | | |
 | 7.3 | Optimistic UI + rollback | [ ] | | |
 

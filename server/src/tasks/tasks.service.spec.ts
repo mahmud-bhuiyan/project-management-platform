@@ -61,10 +61,18 @@ describe('TasksService', () => {
     }),
   };
 
+  const tx = {
+    task: {
+      updateMany: vi.fn(),
+      update: vi.fn(),
+    },
+  };
+
   const prisma = {
     organizationMember: {
       findUnique: vi.fn(),
     },
+    $transaction: vi.fn(),
     task: {
       aggregate: vi.fn(),
       create: vi.fn(),
@@ -72,6 +80,7 @@ describe('TasksService', () => {
       count: vi.fn(),
       findFirst: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
       delete: vi.fn(),
     },
   };
@@ -99,6 +108,9 @@ describe('TasksService', () => {
       status: TaskStatus.IN_PROGRESS,
     });
     prisma.task.delete.mockResolvedValue(taskRecord);
+    prisma.$transaction.mockImplementation(async (callback) => callback(tx));
+    tx.task.updateMany.mockResolvedValue({ count: 1 });
+    tx.task.update.mockResolvedValue(taskRecord);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -229,5 +241,87 @@ describe('TasksService', () => {
         }),
       }),
     );
+  });
+
+  it('reorders a single task across columns with position shifting', async () => {
+    prisma.task.findMany
+      .mockResolvedValueOnce([taskRecord])
+      .mockResolvedValueOnce([
+        {
+          ...taskRecord,
+          status: TaskStatus.IN_PROGRESS,
+          position: 0,
+        },
+      ]);
+
+    const result = await tasksService.reorder('user-1', 'org-1', 'project-1', [
+      {
+        taskId: 'task-1',
+        status: TaskStatus.IN_PROGRESS,
+        position: 0,
+      },
+    ]);
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(tx.task.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          projectId: 'project-1',
+          status: TaskStatus.BACKLOG,
+          position: { gt: 0 },
+        }),
+        data: { position: { decrement: 1 } },
+      }),
+    );
+    expect(tx.task.update).toHaveBeenCalledWith({
+      where: { id: 'task-1' },
+      data: {
+        status: TaskStatus.IN_PROGRESS,
+        position: 0,
+      },
+    });
+    expect(result.tasks[0].status).toBe(TaskStatus.IN_PROGRESS);
+  });
+
+  it('reorders multiple tasks in batch by setting final positions', async () => {
+    const secondTask = {
+      ...taskRecord,
+      id: 'task-2',
+      title: 'Build auth flow',
+      position: 1,
+    };
+
+    prisma.task.findMany
+      .mockResolvedValueOnce([taskRecord, secondTask])
+      .mockResolvedValueOnce([
+        { ...secondTask, position: 0 },
+        { ...taskRecord, position: 1 },
+      ]);
+
+    const result = await tasksService.reorder('user-1', 'org-1', 'project-1', [
+      { taskId: 'task-2', status: TaskStatus.BACKLOG, position: 0 },
+      { taskId: 'task-1', status: TaskStatus.BACKLOG, position: 1 },
+    ]);
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1);
+    expect(tx.task.update).toHaveBeenCalledTimes(2);
+    expect(result.tasks).toHaveLength(2);
+  });
+
+  it('rejects duplicate positions in the same column during batch reorder', async () => {
+    const secondTask = {
+      ...taskRecord,
+      id: 'task-2',
+      title: 'Build auth flow',
+      position: 1,
+    };
+    prisma.task.findMany.mockResolvedValueOnce([taskRecord, secondTask]);
+
+    await expect(
+      tasksService.reorder('user-1', 'org-1', 'project-1', [
+        { taskId: 'task-1', status: TaskStatus.BACKLOG, position: 0 },
+        { taskId: 'task-2', status: TaskStatus.BACKLOG, position: 0 },
+      ]),
+    ).rejects.toBeInstanceOf(ApiException);
   });
 });

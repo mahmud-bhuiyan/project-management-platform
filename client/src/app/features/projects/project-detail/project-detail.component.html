@@ -31,6 +31,28 @@
     </a>
   </section>
 
+  <nav
+    class="project-detail-view-tabs"
+    aria-label="Project task views"
+    data-testid="project-detail-view-tabs"
+  >
+    <a
+      [routerLink]="['/projects', currentProject.id]"
+      class="project-detail-view-tabs__link project-detail-view-tabs__link--active"
+      aria-current="page"
+      data-testid="project-detail-view-list"
+    >
+      List
+    </a>
+    <a
+      [routerLink]="['/projects', currentProject.id, 'board']"
+      class="project-detail-view-tabs__link"
+      data-testid="project-detail-view-board"
+    >
+      Board
+    </a>
+  </nav>
+
   <section class="mt-4 glass-panel rounded-2xl p-6 sm:p-8" data-testid="project-detail-tasks">
     <div class="project-detail-tasks-header">
       <div>

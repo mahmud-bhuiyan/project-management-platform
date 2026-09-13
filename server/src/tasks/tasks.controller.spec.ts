@@ -36,6 +36,7 @@ describe('TasksController', () => {
     create: vi.fn(),
     findAllForProject: vi.fn(),
     findOneForProject: vi.fn(),
+    reorder: vi.fn(),
     update: vi.fn(),
     remove: vi.fn(),
   };
@@ -63,6 +64,9 @@ describe('TasksController', () => {
     tasksService.update.mockResolvedValue({
       ...task,
       status: TaskStatus.IN_PROGRESS,
+    });
+    tasksService.reorder.mockResolvedValue({
+      tasks: [{ ...task, status: TaskStatus.IN_PROGRESS, position: 0 }],
     });
     tasksService.remove.mockResolvedValue(undefined);
 
@@ -111,5 +115,38 @@ describe('TasksController', () => {
       total: 1,
       totalPages: 1,
     });
+  });
+
+  it('reorders tasks on the Kanban board', async () => {
+    const response = await tasksController.reorder(
+      createAuthenticatedRequest(),
+      'org-1',
+      'project-1',
+      {
+        items: [
+          {
+            taskId: 'task-1',
+            status: TaskStatus.IN_PROGRESS,
+            position: 0,
+          },
+        ],
+      },
+    );
+
+    expect(response.data).toEqual({
+      tasks: [{ ...task, status: TaskStatus.IN_PROGRESS, position: 0 }],
+    });
+    expect(tasksService.reorder).toHaveBeenCalledWith(
+      'user-1',
+      'org-1',
+      'project-1',
+      [
+        {
+          taskId: 'task-1',
+          status: TaskStatus.IN_PROGRESS,
+          position: 0,
+        },
+      ],
+    );
   });
 });

@@ -1,0 +1,142 @@
+@if (project(); as currentProject) {
+  <app-page-hero [title]="currentProject.name">
+    <p pageHeroBadge class="inline-flex flex-wrap items-center gap-2">
+      <app-project-status-badge [status]="currentProject.status" />
+      <app-project-priority-badge [priority]="currentProject.priority" />
+    </p>
+    <p pageHeroDescription>Kanban board for delivery work in this project.</p>
+  </app-page-hero>
+} @else {
+  <app-page-hero title="Kanban board" />
+}
+
+@if (!activeOrganization()) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">No organization selected</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      Use the organization switcher in the sidebar to choose a workspace.
+    </p>
+  </section>
+} @else if (isProjectMissing()) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">Project not found</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      This project is not in your current workspace cache.
+    </p>
+    <a routerLink="/projects" class="kanban-back-link">Back to projects</a>
+  </section>
+} @else if (project(); as currentProject) {
+  <section class="mt-8">
+    <a routerLink="/projects" class="kanban-back-link" data-testid="kanban-back-projects">
+      ← Back to projects
+    </a>
+  </section>
+
+  <nav
+    class="kanban-view-tabs"
+    aria-label="Project task views"
+    data-testid="kanban-view-tabs"
+  >
+    <a
+      [routerLink]="['/projects', currentProject.id]"
+      class="kanban-view-tabs__link"
+      data-testid="kanban-view-list"
+    >
+      List
+    </a>
+    <a
+      [routerLink]="['/projects', currentProject.id, 'board']"
+      class="kanban-view-tabs__link kanban-view-tabs__link--active"
+      aria-current="page"
+      data-testid="kanban-view-board"
+    >
+      Board
+    </a>
+  </nav>
+
+  <section class="mt-4 glass-panel rounded-2xl p-4 sm:p-6" data-testid="kanban-board">
+    <div class="kanban-board-header">
+      <div>
+        <h2 class="kanban-board-title">Kanban board</h2>
+        <p class="kanban-board-description">
+          Drag tasks between columns or reorder within a column.
+        </p>
+      </div>
+
+      @if (canManageTasks()) {
+        <a
+          [routerLink]="['/projects', currentProject.id, 'tasks', 'new']"
+          class="kanban-primary-btn"
+          data-testid="kanban-create-task"
+        >
+          Create task
+        </a>
+      }
+    </div>
+
+    @if (reorderError(); as error) {
+      <p class="kanban-inline-error" role="alert">{{ error }}</p>
+    }
+
+    @if (isLoadingTasks()) {
+      <div class="kanban-skeleton-board" aria-hidden="true">
+        @for (column of columns; track column) {
+          <div class="kanban-skeleton-column"></div>
+        }
+      </div>
+      <p class="sr-only">Loading board…</p>
+    } @else if (tasksError(); as error) {
+      <p class="kanban-inline-error" role="alert">{{ error }}</p>
+    } @else {
+      <div
+        class="kanban-board-scroll"
+        cdkDropListGroup
+        [class.kanban-board-scroll--readonly]="!canManageTasks()"
+      >
+        @for (status of columns; track status) {
+          <section class="kanban-column" [attr.data-testid]="'kanban-column-' + status">
+            <header class="kanban-column__header">
+              <h3 class="kanban-column__title">{{ taskStatusLabel(status) }}</h3>
+              <span class="kanban-column__count">{{ columnCount(status) }}</span>
+            </header>
+
+            <div
+              class="kanban-column__list"
+              cdkDropList
+              [id]="status"
+              [cdkDropListData]="columnTasks()[status]"
+              [cdkDropListDisabled]="!canManageTasks() || isReordering()"
+              (cdkDropListDropped)="onTaskDrop($event)"
+            >
+              @for (task of columnTasks()[status]; track task.id) {
+                <article
+                  class="kanban-card"
+                  cdkDrag
+                  [cdkDragDisabled]="!canManageTasks() || isReordering()"
+                  [attr.data-testid]="'kanban-card-' + task.id"
+                >
+                  <div class="kanban-card__placeholder" *cdkDragPlaceholder></div>
+
+                  <div class="kanban-card__header">
+                    <h4 class="kanban-card__title">{{ task.title }}</h4>
+                    <app-task-priority-badge [priority]="task.priority" />
+                  </div>
+
+                  @if (task.description) {
+                    <p class="kanban-card__description">{{ task.description }}</p>
+                  }
+
+                  <p class="kanban-card__meta">
+                    {{ task.assignee?.name ?? 'Unassigned' }}
+                  </p>
+                </article>
+              } @empty {
+                <p class="kanban-column__empty">No tasks</p>
+              }
+            </div>
+          </section>
+        }
+      </div>
+    }
+  </section>
+}

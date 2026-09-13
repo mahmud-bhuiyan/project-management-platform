@@ -67,3 +67,13 @@ export type TasksQuery = {
   assigneeId?: string;
   search?: string;
 };
+
+export type ReorderTaskItemInput = {
+  taskId: string;
+  status: TaskStatus;
+  position: number;
+};
+
+export type ReorderTasksResponseData = {
+  tasks: TaskSummary[];
+};

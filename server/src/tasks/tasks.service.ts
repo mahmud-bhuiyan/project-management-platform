@@ -15,6 +15,8 @@ import type {
   CreateTaskInput,
   ListTasksQuery,
   PaginatedTasksResult,
+  ReorderTaskItemInput,
+  ReorderTasksResult,
   TaskResponse,
   TaskUserSummary,
   UpdateTaskInput,
@@ -199,6 +201,87 @@ export class TasksService {
     return this.toTaskResponse(task);
   }
 
+  async reorder(
+    userId: string,
+    organizationId: string,
+    projectId: string,
+    items: ReorderTaskItemInput[],
+  ): Promise<ReorderTasksResult> {
+    await this.assertCanMutateTasks(userId, organizationId, projectId);
+    await this.assertProjectIsActive(organizationId, projectId);
+
+    const uniqueTaskIds = new Set(items.map((item) => item.taskId));
+    if (uniqueTaskIds.size !== items.length) {
+      throw new ApiException(
+        'Duplicate task ids in reorder request',
+        'INVALID_REORDER',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    const existingTasks = await this.prisma.task.findMany({
+      where: {
+        projectId,
+        id: { in: [...uniqueTaskIds] },
+      },
+      include: taskInclude,
+    });
+
+    if (existingTasks.length !== items.length) {
+      throw new ApiException(
+        'One or more tasks were not found in this project',
+        'TASK_NOT_FOUND',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    const existingById = new Map(
+      existingTasks.map((task) => [task.id, task] as const),
+    );
+
+    if (items.length === 1) {
+      const [item] = items;
+      const existingTask = existingById.get(item.taskId)!;
+
+      await this.prisma.$transaction(async (tx) => {
+        await this.applySingleTaskReorder(
+          tx,
+          projectId,
+          existingTask,
+          item.status,
+          item.position,
+        );
+      });
+    } else {
+      this.assertBatchReorderPositions(items);
+
+      await this.prisma.$transaction(async (tx) => {
+        for (const item of items) {
+          await tx.task.update({
+            where: { id: item.taskId },
+            data: {
+              status: item.status,
+              position: item.position,
+            },
+          });
+        }
+      });
+    }
+
+    const updatedTasks = await this.prisma.task.findMany({
+      where: {
+        projectId,
+        id: { in: [...uniqueTaskIds] },
+      },
+      include: taskInclude,
+      orderBy: [{ status: 'asc' }, { position: 'asc' }, { createdAt: 'asc' }],
+    });
+
+    return {
+      tasks: updatedTasks.map((task) => this.toTaskResponse(task)),
+    };
+  }
+
   async remove(
     userId: string,
     organizationId: string,
@@ -304,6 +387,88 @@ export class TasksService {
     }
 
     return task;
+  }
+
+  private assertBatchReorderPositions(items: ReorderTaskItemInput[]): void {
+    const positionsByStatus = new Map<TaskStatus, Set<number>>();
+
+    for (const item of items) {
+      const positions = positionsByStatus.get(item.status) ?? new Set<number>();
+      if (positions.has(item.position)) {
+        throw new ApiException(
+          'Duplicate positions within the same column',
+          'INVALID_REORDER',
+          HttpStatus.UNPROCESSABLE_ENTITY,
+        );
+      }
+      positions.add(item.position);
+      positionsByStatus.set(item.status, positions);
+    }
+  }
+
+  private async applySingleTaskReorder(
+    tx: Pick<PrismaService, 'task'>,
+    projectId: string,
+    existingTask: Task,
+    newStatus: TaskStatus,
+    newPosition: number,
+  ): Promise<void> {
+    const oldStatus = existingTask.status;
+    const oldPosition = existingTask.position;
+
+    if (oldStatus === newStatus && oldPosition === newPosition) {
+      return;
+    }
+
+    if (oldStatus === newStatus) {
+      if (oldPosition < newPosition) {
+        await tx.task.updateMany({
+          where: {
+            projectId,
+            status: newStatus,
+            id: { not: existingTask.id },
+            position: { gt: oldPosition, lte: newPosition },
+          },
+          data: { position: { decrement: 1 } },
+        });
+      } else {
+        await tx.task.updateMany({
+          where: {
+            projectId,
+            status: newStatus,
+            id: { not: existingTask.id },
+            position: { gte: newPosition, lt: oldPosition },
+          },
+          data: { position: { increment: 1 } },
+        });
+      }
+    } else {
+      await tx.task.updateMany({
+        where: {
+          projectId,
+          status: oldStatus,
+          position: { gt: oldPosition },
+        },
+        data: { position: { decrement: 1 } },
+      });
+
+      await tx.task.updateMany({
+        where: {
+          projectId,
+          status: newStatus,
+          position: { gte: newPosition },
+        },
+        data: { position: { increment: 1 } },
+      });
+    }
+
+    await tx.task.update({
+      where: { id: existingTask.id },
+      data: {
+        status: newStatus,
+        position: newPosition,
+      },
+    });
   }
 
   private async getNextPosition(

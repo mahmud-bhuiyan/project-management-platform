@@ -1,10 +1,11 @@
 import { inject } from '@angular/core';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Observable, map, of, tap } from 'rxjs';
+import { Observable, map, of, switchMap, tap } from 'rxjs';
 import type { PaginationMeta } from '../models/api-response.model';
 import type {
   CreateTaskInput,
+  ReorderTaskItemInput,
   TaskSummary,
   TasksQuery,
   UpdateTaskInput,
@@ -139,12 +140,14 @@ export const TasksStore = signalStore(
       projectId: string;
       query?: TasksQuery;
       silent?: boolean;
+      force?: boolean;
     }): Observable<TaskSummary[]> {
-      const { organizationId, projectId, silent = false } = params;
+      const { organizationId, projectId, silent = false, force = false } = params;
       const query = params.query ?? getCache(store.byProjectId(), projectId).query;
       const existing = getCache(store.byProjectId(), projectId);
 
       if (
+        !force &&
         store.organizationId() === organizationId &&
         existing.hasLoaded &&
         queriesMatch(existing.query, query)
@@ -315,6 +318,28 @@ export const TasksStore = signalStore(
             });
           }),
         );
+    },
+
+    reorderTasks(params: {
+      organizationId: string;
+      projectId: string;
+      items: ReorderTaskItemInput[];
+    }): Observable<TaskSummary[]> {
+      const { organizationId, projectId, items } = params;
+      const cache = getCache(store.byProjectId(), projectId);
+      const query = cache.query;
+
+      return tasksService.reorderTasks(organizationId, projectId, items).pipe(
+        switchMap(() =>
+          this.loadTasks({
+            organizationId,
+            projectId,
+            query,
+            silent: true,
+            force: true,
+          }),
+        ),
+      );
     },
 
     deleteTask(params: {
