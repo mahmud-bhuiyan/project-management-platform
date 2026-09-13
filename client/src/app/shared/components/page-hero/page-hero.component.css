@@ -4,15 +4,135 @@
   border-radius: 1.5rem;
 }
 
-.page-hero__inner--split {
+.page-hero__inner {
   display: flex;
-  max-width: none;
+  min-width: 0;
+}
+
+.page-hero__main {
+  min-width: 0;
+}
+
+.page-hero__meta:empty {
+  display: none;
+}
+
+/* Compact bar */
+.page-hero--compact {
+  padding: 1.25rem 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .page-hero--compact {
+    padding-inline: 2rem;
+  }
+}
+
+.page-hero--compact .page-hero__inner {
+  align-items: center;
+  gap: 1rem;
+}
+
+.page-hero--compact .page-hero__main {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.page-hero--compact .page-hero__title {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+@media (min-width: 640px) {
+  .page-hero--compact .page-hero__title {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+.page-hero--compact .page-hero__description {
+  margin-top: 0.125rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.page-hero--compact .page-hero__meta {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-hero--compact .page-hero__glow {
+  height: 8rem;
+  width: 8rem;
+}
+
+.page-hero--compact .page-hero__inner--split {
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Featured hero */
+.page-hero--featured {
+  padding: 2.5rem 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .page-hero--featured {
+    padding: 3rem 2.5rem;
+  }
+}
+
+.page-hero--featured .page-hero__inner {
+  max-width: 42rem;
   flex-direction: column;
   gap: 1.5rem;
 }
 
+.page-hero--featured .page-hero__main {
+  display: block;
+}
+
+.page-hero--featured .page-hero__title {
+  margin-top: 0.5rem;
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+}
+
 @media (min-width: 640px) {
-  .page-hero__inner--split {
+  .page-hero--featured .page-hero__title {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+  }
+}
+
+.page-hero--featured .page-hero__eyebrow + .page-hero__title {
+  margin-top: 0.5rem;
+}
+
+.page-hero--featured .page-hero__description {
+  margin-top: 0.5rem;
+  max-width: 42rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.page-hero--featured .page-hero__meta {
+  margin-top: 1rem;
+}
+
+.page-hero--featured .page-hero__glow {
+  height: 12rem;
+  width: 12rem;
+}
+
+@media (min-width: 640px) {
+  .page-hero--featured .page-hero__inner--split {
+    max-width: none;
     flex-direction: row;
     align-items: center;
     gap: 2rem;

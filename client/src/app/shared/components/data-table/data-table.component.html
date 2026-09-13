@@ -84,12 +84,13 @@
         <span class="data-table-page-size__label">Rows per page</span>
         <select
           class="data-table-page-size__select"
-          [value]="effectivePageSize()"
           [attr.data-testid]="pageSizeTestId()"
           (change)="onPageSizeSelect($event)"
         >
           @for (size of pageSizeOptions(); track size) {
-            <option [value]="size">{{ size }}</option>
+            <option [value]="size" [selected]="size === effectivePageSize()">
+              {{ size }}
+            </option>
           }
         </select>
       </label>

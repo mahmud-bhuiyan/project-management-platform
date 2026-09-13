@@ -42,7 +42,12 @@ describe('OrganizationSettingsComponent', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Acme Technologies');
+    const nameInput = compiled.querySelector(
+      '[data-testid="org-settings-name"]',
+    ) as HTMLInputElement;
+
+    expect(nameInput.value).toBe('Acme Technologies');
+    expect(compiled.textContent).toContain('acme');
     expect(compiled.querySelector('[data-testid="org-settings-save"]')).toBeTruthy();
   });
 

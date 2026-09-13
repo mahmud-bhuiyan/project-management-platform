@@ -998,6 +998,187 @@
       ]
     },
     {
+      "name": "Tasks",
+      "item": [
+        {
+          "name": "Create task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.data?.task?.id) {",
+                  "  pm.environment.set('taskId', json.data.task.id);",
+                  "}",
+                  "pm.test('Task created', () => {",
+                  "  pm.response.to.have.status(201);",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.task.title).to.eql('Design landing page hero');",
+                  "  pm.expect(json.data.task.status).to.eql('BACKLOG');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Design landing page hero\",\n  \"description\": \"Include responsive breakpoints and copy.\",\n  \"status\": \"BACKLOG\",\n  \"priority\": \"MEDIUM\"\n}"
+            },
+            "url": "{{baseUrl}}/organizations/{{organizationId}}/projects/{{projectId}}/tasks"
+          }
+        },
+        {
+          "name": "List tasks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Tasks listed with pagination', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.tasks).to.be.an('array');",
+                  "  pm.expect(json.meta.page).to.eql(1);",
+                  "  pm.expect(json.meta.perPage).to.eql(20);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/organizations/{{organizationId}}/projects/{{projectId}}/tasks?page=1&limit=20&status=BACKLOG&search=hero",
+              "host": ["{{baseUrl}}"],
+              "path": ["organizations", "{{organizationId}}", "projects", "{{projectId}}", "tasks"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" },
+                { "key": "status", "value": "BACKLOG" },
+                { "key": "search", "value": "hero", "description": "Filter by title, description, or assignee name/email" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Task retrieved', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.task.id).to.eql(pm.environment.get('taskId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/organizations/{{organizationId}}/projects/{{projectId}}/tasks/{{taskId}}"
+          }
+        },
+        {
+          "name": "Update task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Task updated', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(json.success).to.eql(true);",
+                  "  pm.expect(json.data.task.status).to.eql('IN_PROGRESS');",
+                  "  pm.expect(json.data.task.priority).to.eql('HIGH');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"priority\": \"HIGH\"\n}"
+            },
+            "url": "{{baseUrl}}/organizations/{{organizationId}}/projects/{{projectId}}/tasks/{{taskId}}"
+          }
+        },
+        {
+          "name": "Delete task",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Task deleted', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().success).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/organizations/{{organizationId}}/projects/{{projectId}}/tasks/{{taskId}}"
+          }
+        }
+      ]
+    },
+    {
       "name": "Dashboard",
       "item": [
         {

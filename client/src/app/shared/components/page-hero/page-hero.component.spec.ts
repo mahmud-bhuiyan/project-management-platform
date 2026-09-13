@@ -9,9 +9,8 @@ describe('PageHeroComponent', () => {
     }).compileComponents();
   });
 
-  it('renders eyebrow, title, and description', () => {
+  it('renders title and description in a compact bar', () => {
     const fixture = TestBed.createComponent(PageHeroComponent);
-    fixture.componentRef.setInput('eyebrow', 'Workspace');
     fixture.componentRef.setInput('title', 'Team members');
     fixture.componentRef.setInput(
       'description',
@@ -20,13 +19,13 @@ describe('PageHeroComponent', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Workspace');
     expect(compiled.textContent).toContain('Team members');
     expect(compiled.textContent).toContain(
       'Manage who has access to this organization.',
     );
     expect(compiled.querySelector('.page-hero')).toBeTruthy();
     expect(compiled.querySelector('.page-hero__glow')).toBeTruthy();
+    expect(compiled.querySelector('.page-hero__meta')).toBeTruthy();
   });
 
   it('supports projected description and badge content', () => {

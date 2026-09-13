@@ -1,0 +1,48 @@
+<app-page-hero title="Create task" />
+
+@if (!activeOrganization()) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">No organization selected</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      Use the organization switcher in the sidebar to choose a workspace.
+    </p>
+  </section>
+} @else if (!project()) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">Project not found</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      This project is not in your current workspace cache.
+    </p>
+    <a routerLink="/projects" class="project-page-back-link">Back to projects</a>
+  </section>
+} @else {
+  <section class="mt-8">
+    <a
+      [routerLink]="['/projects', projectId()]"
+      class="project-page-back-link"
+      data-testid="task-create-back"
+    >
+      ← Back to project
+    </a>
+  </section>
+
+  <section class="mt-4 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">Task details</h2>
+    <p class="mt-1 text-sm text-gray-600">
+      Add work to <strong>{{ project()!.name }}</strong>.
+    </p>
+
+    <div class="mt-4 max-w-3xl">
+      <app-task-form
+        [form]="taskForm"
+        [assigneeOptions]="assigneeOptions()"
+        [isSubmitting]="isSubmitting()"
+        [formError]="formError()"
+        [cancelLink]="['/projects', projectId()]"
+        submitLabel="Create task"
+        submittingLabel="Creating…"
+        (submitted)="submit()"
+      />
+    </div>
+  </section>
+}

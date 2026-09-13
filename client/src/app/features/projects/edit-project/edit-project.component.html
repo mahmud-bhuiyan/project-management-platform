@@ -1,14 +1,4 @@
-<app-page-hero eyebrow="Delivery" title="Edit project">
-  <p pageHeroDescription class="mt-2 max-w-2xl text-base text-flow-200/90">
-    @if (project(); as currentProject) {
-      Update details for <strong class="text-white">{{ currentProject.name }}</strong>.
-    } @else if (activeOrganization(); as organization) {
-      Update a project in <strong class="text-white">{{ organization.name }}</strong>.
-    } @else {
-      Select an organization to edit a project.
-    }
-  </p>
-</app-page-hero>
+<app-page-hero title="Edit project" />
 
 @if (!activeOrganization()) {
   <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">

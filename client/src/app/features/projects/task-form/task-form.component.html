@@ -1,0 +1,121 @@
+<form class="project-form" [formGroup]="form()" (ngSubmit)="onSubmit()">
+  <div class="project-form__fields">
+    <div class="project-form__field">
+      <label class="project-form__label" for="task-title">Title</label>
+      <input
+        id="task-title"
+        type="text"
+        class="project-form__input"
+        placeholder="Design landing page hero"
+        formControlName="title"
+        data-testid="task-form-title"
+        [attr.aria-invalid]="hasError('title', 'required') || hasError('title', 'maxlength')"
+      />
+      @if (hasError('title', 'required')) {
+        <p class="project-form__field-error" aria-live="polite">Title is required.</p>
+      } @else if (hasError('title', 'maxlength')) {
+        <p class="project-form__field-error" aria-live="polite">
+          Title must be 200 characters or fewer.
+        </p>
+      }
+    </div>
+
+    <div class="project-form__field">
+      <label class="project-form__label" for="task-description">Description</label>
+      <textarea
+        id="task-description"
+        rows="3"
+        class="project-form__input project-form__input--textarea"
+        placeholder="What needs to be done?"
+        formControlName="description"
+        data-testid="task-form-description"
+        [attr.aria-invalid]="hasError('description', 'maxlength')"
+      ></textarea>
+      @if (hasError('description', 'maxlength')) {
+        <p class="project-form__field-error" aria-live="polite">
+          Description must be 10000 characters or fewer.
+        </p>
+      }
+    </div>
+
+    <div class="project-form__row">
+      <div class="project-form__field">
+        <label class="project-form__label" for="task-status">Status</label>
+        <select
+          id="task-status"
+          class="project-form__input"
+          formControlName="status"
+          data-testid="task-form-status"
+        >
+          @for (status of statusOptions; track status) {
+            <option [value]="status">{{ statusLabel(status) }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="project-form__field">
+        <label class="project-form__label" for="task-priority">Priority</label>
+        <select
+          id="task-priority"
+          class="project-form__input"
+          formControlName="priority"
+          data-testid="task-form-priority"
+        >
+          @for (priority of priorityOptions; track priority) {
+            <option [value]="priority">{{ priorityLabel(priority) }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="project-form__row">
+      <div class="project-form__field">
+        <label class="project-form__label" for="task-assignee">Assignee</label>
+        <select
+          id="task-assignee"
+          class="project-form__input"
+          formControlName="assigneeId"
+          data-testid="task-form-assignee"
+        >
+          <option value="">Unassigned</option>
+          @for (member of assigneeOptions(); track member.id) {
+            <option [value]="member.userId">{{ member.user.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="project-form__field">
+        <label class="project-form__label" for="task-due-date">Due date</label>
+        <input
+          id="task-due-date"
+          type="date"
+          class="project-form__input"
+          formControlName="dueDate"
+          data-testid="task-form-due-date"
+        />
+      </div>
+    </div>
+  </div>
+
+  @if (formError(); as error) {
+    <p class="project-form__inline-error" role="alert">{{ error }}</p>
+  }
+
+  <div class="project-form__actions">
+    <a
+      class="project-form__secondary-btn"
+      data-testid="task-form-cancel"
+      [routerLink]="cancelLink()"
+    >
+      Cancel
+    </a>
+    <button
+      type="submit"
+      class="project-form__primary-btn"
+      data-testid="task-form-submit"
+      [disabled]="isSubmitting()"
+    >
+      {{ isSubmitting() ? submittingLabel() : submitLabel() }}
+    </button>
+  </div>
+</form>

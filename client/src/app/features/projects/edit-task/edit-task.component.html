@@ -1,0 +1,60 @@
+<app-page-hero title="Edit task" />
+
+@if (!activeOrganization()) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">No organization selected</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      Use the organization switcher in the sidebar to choose a workspace.
+    </p>
+  </section>
+} @else if (!project()) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">Project not found</h2>
+    <p class="mt-2 text-sm text-gray-600">
+      This project is not in your current workspace cache.
+    </p>
+    <a routerLink="/projects" class="project-page-back-link">Back to projects</a>
+  </section>
+} @else if (loadTaskError(); as error) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">Task not found</h2>
+    <p class="mt-2 text-sm text-red-700" role="alert">{{ error }}</p>
+    <a [routerLink]="['/projects', projectId()]" class="project-page-back-link">
+      Back to project
+    </a>
+  </section>
+} @else if (isLoadingTask()) {
+  <section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8">
+    <p class="text-sm text-gray-500" aria-busy="true">Loading task…</p>
+  </section>
+} @else {
+  <section class="mt-8">
+    <a
+      [routerLink]="['/projects', projectId()]"
+      class="project-page-back-link"
+      data-testid="task-edit-back"
+    >
+      ← Back to project
+    </a>
+  </section>
+
+  <section class="mt-4 glass-panel rounded-2xl p-6 sm:p-8">
+    <h2 class="font-display text-lg font-bold text-flow-900">Task details</h2>
+    <p class="mt-1 text-sm text-gray-600">
+      Update work on <strong>{{ project()!.name }}</strong>.
+    </p>
+
+    <div class="mt-4 max-w-3xl">
+      <app-task-form
+        [form]="taskForm"
+        [assigneeOptions]="assigneeOptions()"
+        [isSubmitting]="isSubmitting()"
+        [formError]="formError()"
+        [cancelLink]="['/projects', projectId()]"
+        submitLabel="Save changes"
+        submittingLabel="Saving…"
+        (submitted)="submit()"
+      />
+    </div>
+  </section>
+}

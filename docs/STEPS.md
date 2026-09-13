@@ -734,9 +734,9 @@
 - Pagination/filter changes update store query slice; Kanban (Phase 7) shares the same store.
 
 **Manual test:**
-- [ ] Task list per project with filters and pagination.
-- [ ] Navigate away and back — tasks appear instantly from store.
-- [ ] Create/edit task forms patch store on success.
+- [x] Task list per project with filters and pagination.
+- [x] Navigate away and back — tasks appear instantly from store.
+- [x] Create/edit task forms patch store on success.
 
 **Done when:** Phase 6 complete.
 
