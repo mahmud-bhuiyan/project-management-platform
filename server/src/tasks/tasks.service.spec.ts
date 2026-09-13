@@ -11,6 +11,7 @@ import { OrganizationsService } from '../organizations/organizations.service.js'
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ProjectsService } from '../projects/projects.service.js';
 import { UsersService } from '../users/users.service.js';
+import { ActivityLogService } from './activity-log.service.js';
 import { TasksService } from './tasks.service.js';
 
 const reporter = {
@@ -59,6 +60,10 @@ describe('TasksService', () => {
       const { passwordHash: _passwordHash, ...safeUser } = user;
       return safeUser;
     }),
+  };
+
+  const activityLogService = {
+    record: vi.fn(),
   };
 
   const tx = {
@@ -119,6 +124,7 @@ describe('TasksService', () => {
         { provide: OrganizationsService, useValue: organizationsService },
         { provide: ProjectsService, useValue: projectsService },
         { provide: UsersService, useValue: usersService },
+        { provide: ActivityLogService, useValue: activityLogService },
       ],
     }).compile();
 

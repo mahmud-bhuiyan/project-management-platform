@@ -45,6 +45,10 @@ Set these in the environment before running requests:
 | `companyAdminEmail` | `admin@acme-corp.com` | Any company admin you created |
 | `companyAdminPassword` | `password123` | Password used at creation |
 | `accessToken` | auto-set | Filled by **Login** / **Demo login** / **Refresh** test scripts |
+| `subtaskId` | auto-set | Filled by **Subtasks → Create subtask** test script |
+| `commentId` | auto-set | Filled by **Comments → Create comment** test script |
+
+Run **Tasks**, **Subtasks**, or **Comments** requests first, then **Activity → List activity** to verify timeline rows were recorded.
 
 ## Typical flow
 

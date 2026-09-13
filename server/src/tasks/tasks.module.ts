@@ -5,6 +5,12 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { OrganizationsModule } from '../organizations/organizations.module.js';
 import { ProjectsModule } from '../projects/projects.module.js';
 import { UsersModule } from '../users/users.module.js';
+import { ActivityLogController } from './activity-log.controller.js';
+import { ActivityLogService } from './activity-log.service.js';
+import { CommentsController } from './comments.controller.js';
+import { CommentsService } from './comments.service.js';
+import { SubtasksController } from './subtasks.controller.js';
+import { SubtasksService } from './subtasks.service.js';
 import { TasksController } from './tasks.controller.js';
 import { TasksService } from './tasks.service.js';
 
@@ -22,8 +28,24 @@ import { TasksService } from './tasks.service.js';
       }),
     }),
   ],
-  controllers: [TasksController],
-  providers: [TasksService, JwtAuthGuard],
-  exports: [TasksService],
+  controllers: [
+    TasksController,
+    SubtasksController,
+    CommentsController,
+    ActivityLogController,
+  ],
+  providers: [
+    TasksService,
+    SubtasksService,
+    CommentsService,
+    ActivityLogService,
+    JwtAuthGuard,
+  ],
+  exports: [
+    TasksService,
+    SubtasksService,
+    CommentsService,
+    ActivityLogService,
+  ],
 })
 export class TasksModule {}
