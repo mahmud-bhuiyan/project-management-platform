@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-13  
-**Current step:** 9.2 (built — pending manual test)
+**Current step:** 9.3 (built — pending manual test)
 
 ### Decisions (Phase 2)
 
@@ -37,7 +37,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 6 | Task management | 3 / 3 | Complete |
 | 7 | Kanban board | 3 / 3 | Complete |
 | 8 | Task details, comments, activity | 4 / 4 | Complete |
-| 9 | Notifications | 0 / 3 | In progress |
+| 9 | Notifications | 2 / 3 | In progress |
 | 10 | Real-time updates | 0 / 3 | Not started |
 | 11 | Dashboard charts | 0 / 1 | Not started |
 | 12 | Search & permission audit | 0 / 3 | Not started |
@@ -164,8 +164,8 @@ Track what you have **built and manually tested**. Compare against the master pl
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
 | 9.1 | Notifications API | [x] | 2026-09-13 | List, unread count, mark read/all; Postman repo + cloud synced — user verified |
-| 9.2 | Notification triggers | [ ] | | Built — task assigned, @mention, status change (assignee), due-soon on read; 158 server tests — pending manual test |
-| 9.3 | Notification bell UI | [ ] | | |
+| 9.2 | Notification triggers | [x] | 2026-09-13 | Task assigned, @mention, status change, due-soon on read — user verified |
+| 9.3 | Notification bell UI | [ ] | | Built — bell badge, dropdown list, mark read/all, task navigation — pending manual test |
 
 ---
 
@@ -288,4 +288,5 @@ Use this for quick notes across sessions.
 | 2026-09-13 | 8.3 | Activity log — auto-record + GET `/tasks/:taskId/activity` | Pass — user verified in Postman |
 | 2026-09-13 | 8.4 | Task detail page — fields, subtasks, comments, activity UI | Pass — Playwright e2e 20/20 + user verified; Phase 8 complete |
 | 2026-09-13 | 9.1 | Notifications API — list, unread count, mark read/all | Pass — user verified in Postman |
-| 2026-09-13 | 9.2 | Notification triggers — assign, mention, status, due-soon | Built — 158 server tests; pending manual test |
+| 2026-09-13 | 9.2 | Notification triggers — assign, mention, status, due-soon | Pass — user verified |
+| 2026-09-13 | 9.3 | Notification bell UI — header bell, dropdown, mark read | Built — pending manual UI test |
