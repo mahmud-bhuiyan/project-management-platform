@@ -166,10 +166,11 @@ async function main() {
     await openProjectBoard(pageB, projectId);
     log('open board in two tabs', true, `/projects/${projectId}/board`);
 
-    const cardVisibleOnB = await pageB
-      .locator(`[data-testid="kanban-card-${task.id}"]`)
-      .isVisible();
-    log('observer tab sees new task card', cardVisibleOnB, taskTitle);
+    const observerBacklogCard = pageB.locator(
+      `[data-testid="kanban-column-BACKLOG"] [data-testid="kanban-card-${task.id}"]`,
+    );
+    await observerBacklogCard.waitFor({ state: 'visible', timeout: 30000 });
+    log('observer tab sees new task card in BACKLOG', true, taskTitle);
 
     await reorderTaskViaApi(pageA, organizationId, projectId, task.id, token, 'TODO');
     log('reorder task to TODO (actor tab API)', true, task.id);

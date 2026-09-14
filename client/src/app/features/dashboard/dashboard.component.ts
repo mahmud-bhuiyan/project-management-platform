@@ -5,9 +5,16 @@ import {
   inject,
 } from '@angular/core';
 import type { DashboardStats } from '../../core/models/dashboard.model';
+import {
+  buildProjectProgressChartConfig,
+  buildTasksByPriorityChartConfig,
+  buildTasksByStatusChartConfig,
+  dashboardChartsHaveData,
+} from '../../core/utils/dashboard-chart.util';
 import { AuthStore } from '../../core/state/auth.store';
 import { DashboardStore } from '../../core/state/dashboard.store';
 import { OrganizationStore } from '../../core/state/organization.store';
+import { DashboardChartComponent } from '../../shared/components/dashboard-chart/dashboard-chart.component';
 import { PageHeroComponent } from '../../shared/components/page-hero/page-hero.component';
 
 interface StatCard {
@@ -19,7 +26,7 @@ interface StatCard {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [PageHeroComponent],
+  imports: [PageHeroComponent, DashboardChartComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,6 +58,30 @@ export class DashboardComponent {
 
     return this.buildStatCards(stats);
   });
+
+  protected readonly chartsHaveData = computed(() => {
+    const stats = this.stats();
+    return stats ? dashboardChartsHaveData(stats.charts) : false;
+  });
+
+  protected readonly tasksByStatusChart = computed(() => {
+    const stats = this.stats();
+    return stats ? buildTasksByStatusChartConfig(stats.charts) : null;
+  });
+
+  protected readonly tasksByPriorityChart = computed(() => {
+    const stats = this.stats();
+    return stats ? buildTasksByPriorityChartConfig(stats.charts) : null;
+  });
+
+  protected readonly projectProgressChart = computed(() => {
+    const stats = this.stats();
+    return stats ? buildProjectProgressChartConfig(stats.charts) : null;
+  });
+
+  protected readonly hasProjectProgress = computed(
+    () => (this.stats()?.charts.projectProgress.length ?? 0) > 0,
+  );
 
   private buildStatCards(stats: DashboardStats): StatCard[] {
     return [

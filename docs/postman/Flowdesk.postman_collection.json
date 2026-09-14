@@ -1746,6 +1746,10 @@
                   "  pm.expect(json.data.stats.totalTasks).to.be.a('number');",
                   "  pm.expect(json.data.stats.completedTasks).to.be.a('number');",
                   "  pm.expect(json.data.stats.overdueTasks).to.be.a('number');",
+                  "  pm.expect(json.data.stats.charts).to.be.an('object');",
+                  "  pm.expect(json.data.stats.charts.tasksByStatus).to.be.an('array');",
+                  "  pm.expect(json.data.stats.charts.tasksByPriority).to.be.an('array');",
+                  "  pm.expect(json.data.stats.charts.projectProgress).to.be.an('array');",
                   "});"
                 ]
               }

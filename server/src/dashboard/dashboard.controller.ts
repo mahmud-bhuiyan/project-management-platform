@@ -37,6 +37,11 @@ export class DashboardController {
             totalTasks: 0,
             completedTasks: 0,
             overdueTasks: 0,
+            charts: {
+              tasksByStatus: [],
+              tasksByPriority: [],
+              projectProgress: [],
+            },
           },
         },
       },

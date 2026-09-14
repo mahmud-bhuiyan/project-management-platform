@@ -386,14 +386,10 @@ export const TasksStore = signalStore(
     }): void {
       const cache = getCache(store.byProjectId(), params.projectId);
 
-      if (!cache.hasLoaded) {
-        return;
-      }
-
       this.loadTasks({
         organizationId: params.organizationId,
         projectId: params.projectId,
-        query: cache.query,
+        query: cache.hasLoaded ? cache.query : { page: 1, limit: 100 },
         silent: true,
         force: true,
       }).subscribe();

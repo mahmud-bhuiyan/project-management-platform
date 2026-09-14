@@ -25,6 +25,7 @@ import { OrganizationStore } from '../../../core/state/organization.store';
 import { ProjectsStore } from '../../../core/state/projects.store';
 import { RealtimeStore } from '../../../core/state/realtime.store';
 import { TasksStore } from '../../../core/state/tasks.store';
+import { WorkspaceStore } from '../../../core/state/workspace.store';
 import {
   TASK_STATUSES,
   flattenColumnTasks,
@@ -68,6 +69,7 @@ export class KanbanBoardComponent {
   private readonly projectsStore = inject(ProjectsStore);
   private readonly tasksStore = inject(TasksStore);
   private readonly realtimeStore = inject(RealtimeStore);
+  private readonly workspaceStore = inject(WorkspaceStore);
   private readonly route = inject(ActivatedRoute);
 
   protected readonly columns = TASK_STATUSES;
@@ -113,19 +115,28 @@ export class KanbanBoardComponent {
 
   constructor() {
     effect((onCleanup) => {
-      const organization = this.activeOrganization();
-      const project = this.project();
+      const organizationId = this.activeOrganization()?.id;
       const projectId = this.projectId();
 
-      if (!organization || !project || !projectId) {
+      if (
+        !organizationId ||
+        !projectId ||
+        this.workspaceStore.isBootstrapping() ||
+        !this.workspaceStore.hasBootstrapped()
+      ) {
         return;
       }
 
-      this.realtimeStore.joinProject(organization.id, projectId);
+      const project = untracked(() => this.project());
+      if (!project) {
+        return;
+      }
+
+      this.realtimeStore.joinProject(organizationId, projectId);
 
       const subscription = this.tasksStore
         .loadTasks({
-          organizationId: organization.id,
+          organizationId,
           projectId,
           query: { page: 1, limit: ALL_TASKS_LIMIT },
           silent: false,
@@ -134,7 +145,7 @@ export class KanbanBoardComponent {
 
       onCleanup(() => {
         subscription.unsubscribe();
-        this.realtimeStore.leaveProject(organization.id, projectId);
+        this.realtimeStore.leaveProject(organizationId, projectId);
       });
     });
 

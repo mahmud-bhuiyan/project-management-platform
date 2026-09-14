@@ -22,6 +22,21 @@ const stats: DashboardStats = {
   totalTasks: 8,
   completedTasks: 3,
   overdueTasks: 1,
+  charts: {
+    tasksByStatus: [
+      { status: 'TODO', count: 3 },
+      { status: 'DONE', count: 3 },
+    ],
+    tasksByPriority: [{ priority: 'MEDIUM', count: 6 }],
+    projectProgress: [
+      {
+        projectId: 'project-1',
+        projectName: 'Website',
+        totalTasks: 5,
+        completedTasks: 2,
+      },
+    ],
+  },
 };
 
 describe('DashboardComponent', () => {
@@ -73,7 +88,33 @@ describe('DashboardComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('[data-testid="dashboard-stats"]')).toBeTruthy();
     expect(compiled.querySelector('[data-testid="dashboard-stat-total-projects"]')?.textContent).toContain('2');
+    expect(compiled.querySelector('[data-testid="dashboard-charts"]')).toBeTruthy();
     expect(compiled.querySelector('[data-testid="dashboard-activity-empty"]')).toBeTruthy();
+  });
+
+  it('shows an empty chart state when there is no task data', async () => {
+    dashboardStore.stats = signal<DashboardStats | null>({
+      ...stats,
+      charts: {
+        tasksByStatus: stats.charts.tasksByStatus.map((item) => ({ ...item, count: 0 })),
+        tasksByPriority: stats.charts.tasksByPriority.map((item) => ({
+          ...item,
+          count: 0,
+        })),
+        projectProgress: [],
+      },
+    });
+
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector(
+        '[data-testid="dashboard-charts-empty"]',
+      ),
+    ).toBeTruthy();
   });
 
   it('shows a message when no organization is selected', async () => {

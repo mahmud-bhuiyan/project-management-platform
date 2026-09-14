@@ -50,6 +50,18 @@ describe('DashboardService', () => {
           totalTasks: 8,
           completedTasks: 3,
           overdueTasks: 1,
+          charts: {
+            tasksByStatus: [{ status: 'TODO', count: 3 }],
+            tasksByPriority: [{ priority: 'MEDIUM', count: 5 }],
+            projectProgress: [
+              {
+                projectId: 'project-1',
+                projectName: 'Website',
+                totalTasks: 5,
+                completedTasks: 2,
+              },
+            ],
+          },
         },
       },
     });
@@ -60,6 +72,18 @@ describe('DashboardService', () => {
       totalTasks: 8,
       completedTasks: 3,
       overdueTasks: 1,
+      charts: {
+        tasksByStatus: [{ status: 'TODO', count: 3 }],
+        tasksByPriority: [{ priority: 'MEDIUM', count: 5 }],
+        projectProgress: [
+          {
+            projectId: 'project-1',
+            projectName: 'Website',
+            totalTasks: 5,
+            completedTasks: 2,
+          },
+        ],
+      },
     });
   });
 });
