@@ -23,18 +23,22 @@ export class RealtimeService {
   private socket: Socket | null = null;
   private connectedToken: string | null = null;
   private readonly joinedProjects = new Set<ProjectRoomKey>();
-  private readonly pendingJoins = new Map<ProjectRoomKey, ProjectRoomRef>();
+  private readonly desiredJoins = new Map<ProjectRoomKey, ProjectRoomRef>();
   private readonly taskReorderedSubject = new Subject<TaskReorderedEvent>();
   private readonly commentCreatedSubject = new Subject<CommentCreatedEvent>();
   private readonly notificationCreatedSubject =
     new Subject<NotificationCreatedEvent>();
 
   connect(accessToken: string): void {
-    if (this.socket?.connected && this.connectedToken === accessToken) {
+    if (this.connectedToken === accessToken && this.socket) {
+      if (this.socket.connected) {
+        this.joinDesiredProjects();
+      }
+
       return;
     }
 
-    this.disconnect();
+    this.teardownSocket();
     this.connectedToken = accessToken;
 
     this.socket = io(normalizeSocketUrl(environment.wsUrl), {
@@ -43,9 +47,7 @@ export class RealtimeService {
     });
 
     this.socket.on('connect', () => {
-      for (const ref of this.pendingJoins.values()) {
-        this.emitJoin(ref.organizationId, ref.projectId);
-      }
+      this.joinDesiredProjects();
     });
 
     this.socket.on(RealtimeEvent.TaskReordered, (payload: TaskReorderedEvent) => {
@@ -71,22 +73,14 @@ export class RealtimeService {
   }
 
   disconnect(): void {
-    this.socket?.removeAllListeners();
-    this.socket?.disconnect();
-    this.socket = null;
-    this.connectedToken = null;
-    this.joinedProjects.clear();
-    this.pendingJoins.clear();
+    this.teardownSocket();
+    this.desiredJoins.clear();
   }
 
   joinProject(organizationId: string, projectId: string): void {
     const key = `${organizationId}:${projectId}` as ProjectRoomKey;
 
-    if (this.joinedProjects.has(key)) {
-      return;
-    }
-
-    this.pendingJoins.set(key, { organizationId, projectId });
+    this.desiredJoins.set(key, { organizationId, projectId });
 
     if (this.socket?.connected) {
       this.emitJoin(organizationId, projectId);
@@ -95,9 +89,10 @@ export class RealtimeService {
 
   leaveProject(organizationId: string, projectId: string): void {
     const key = `${organizationId}:${projectId}` as ProjectRoomKey;
-    this.pendingJoins.delete(key);
+    this.desiredJoins.delete(key);
 
     if (!this.socket?.connected || !this.joinedProjects.has(key)) {
+      this.joinedProjects.delete(key);
       return;
     }
 
@@ -110,6 +105,12 @@ export class RealtimeService {
         }
       },
     );
+  }
+
+  private joinDesiredProjects(): void {
+    for (const ref of this.desiredJoins.values()) {
+      this.emitJoin(ref.organizationId, ref.projectId);
+    }
   }
 
   private emitJoin(organizationId: string, projectId: string): void {
@@ -125,10 +126,17 @@ export class RealtimeService {
       (ack: { ok?: boolean }) => {
         if (ack?.ok) {
           this.joinedProjects.add(key);
-          this.pendingJoins.delete(key);
         }
       },
     );
+  }
+
+  private teardownSocket(): void {
+    this.socket?.removeAllListeners();
+    this.socket?.disconnect();
+    this.socket = null;
+    this.connectedToken = null;
+    this.joinedProjects.clear();
   }
 
   onTaskReordered(): Observable<TaskReorderedEvent> {
