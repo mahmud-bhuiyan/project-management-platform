@@ -72,7 +72,7 @@ Required in `server/.env` (values stay local — never commit):
 | `DEMO_PASSWORD` | Shared password for `@acme.dev` demo users |
 | `DEMO_LOGIN_ENABLED` | `true` to expose demo login API (default) |
 
-Client env (`client/.env` or Vercel): `NG_APP_API_URL` is the full API base URL including `/api/v1` (e.g. `http://localhost:3001/api/v1`). The path segment is defined on the backend (`server/src/common/config/api-prefix.ts`).
+Client env (`client/.env` or Vercel): `NG_APP_API_URL` is the server origin only (e.g. `http://localhost:3001`). The client appends `/api/v1` from `client/src/app/core/config/api-prefix.ts`, which must match the backend (`server/src/common/config/api-prefix.ts`).
 
 Optional client flag: `NG_APP_DEMO_LOGIN_ENABLED=true` in `client/.env` shows the persona picker on the login page.
 
