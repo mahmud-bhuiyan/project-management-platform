@@ -1,6 +1,7 @@
 import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ApiException } from '../common/exceptions/api.exception.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { ProjectsService } from '../projects/projects.service.js';
 import { UsersService } from '../users/users.service.js';
@@ -105,6 +106,29 @@ describe('ActivityLogService', () => {
     expect(projectsService.assertCanAccessProject).toHaveBeenCalled();
     expect(activity).toHaveLength(1);
     expect(activity[0].action).toBe(ActivityAction.TASK_CREATED);
+  });
+
+  it('rejects users without project access', async () => {
+    projectsService.assertCanAccessProject.mockRejectedValue(
+      new ApiException(
+        'Insufficient project permissions',
+        'FORBIDDEN',
+        HttpStatus.FORBIDDEN,
+      ),
+    );
+
+    await expect(
+      activityLogService.findAllForTask(
+        actor.id,
+        'org-1',
+        'project-1',
+        'task-1',
+      ),
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(ApiException);
+      expect((error as ApiException).getStatus()).toBe(HttpStatus.FORBIDDEN);
+      return true;
+    });
   });
 
   it('throws when task is not found in project', async () => {

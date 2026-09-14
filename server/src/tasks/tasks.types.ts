@@ -36,6 +36,8 @@ export type ListTasksQuery = {
   priority?: TaskPriority;
   assigneeId?: string;
   search?: string;
+  dueFrom?: string;
+  dueTo?: string;
 };
 
 export type PaginatedTasksResult = {

@@ -283,6 +283,40 @@ describe('OrganizationsService', () => {
     });
   });
 
+  it('updateMemberRole rejects viewers', async () => {
+    prisma.organizationMember.findUnique.mockResolvedValue({
+      role: 'VIEWER',
+      organizationId: 'org-1',
+      userId: 'user-4',
+    });
+
+    await expect(
+      organizationsService.updateMemberRole('user-4', 'org-1', 'member-2', {
+        role: 'MEMBER',
+      }),
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(ApiException);
+      expect((error as ApiException).getStatus()).toBe(HttpStatus.FORBIDDEN);
+      return true;
+    });
+  });
+
+  it('removeMember rejects viewers', async () => {
+    prisma.organizationMember.findUnique.mockResolvedValue({
+      role: 'VIEWER',
+      organizationId: 'org-1',
+      userId: 'user-4',
+    });
+
+    await expect(
+      organizationsService.removeMember('user-4', 'org-1', 'member-2'),
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(ApiException);
+      expect((error as ApiException).getStatus()).toBe(HttpStatus.FORBIDDEN);
+      return true;
+    });
+  });
+
   it('updateMemberRole updates member role for admins', async () => {
     const targetUser = {
       ...mockUser,

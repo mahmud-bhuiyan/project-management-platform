@@ -1,3 +1,4 @@
+import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -5,6 +6,7 @@ import {
   TaskPriority,
   TaskStatus,
 } from '@prisma/client';
+import { ApiException } from '../common/exceptions/api.exception.js';
 import { PrismaService } from '../prisma/prisma.service.js';
 import { OrganizationsService } from '../organizations/organizations.service.js';
 import { DashboardService } from './dashboard.service.js';
@@ -139,6 +141,24 @@ describe('DashboardService', () => {
           },
         ],
       },
+    });
+  });
+
+  it('rejects non-members of the organization', async () => {
+    organizationsService.findOneForUser.mockRejectedValue(
+      new ApiException(
+        'Organization not found',
+        'ORGANIZATION_NOT_FOUND',
+        HttpStatus.NOT_FOUND,
+      ),
+    );
+
+    await expect(
+      dashboardService.getStats('user-9', 'missing-org'),
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(ApiException);
+      expect((error as ApiException).getStatus()).toBe(HttpStatus.NOT_FOUND);
+      return true;
     });
   });
 });

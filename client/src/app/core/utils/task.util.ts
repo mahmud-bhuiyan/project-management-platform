@@ -134,6 +134,7 @@ export function taskMatchesQuery(
     status: TaskStatus;
     priority: TaskPriority;
     assigneeId: string | null;
+    dueDate?: string | null;
     assignee?: { name: string; email: string } | null;
   },
   query: {
@@ -141,6 +142,8 @@ export function taskMatchesQuery(
     priority?: TaskPriority;
     assigneeId?: string;
     search?: string;
+    dueFrom?: string;
+    dueTo?: string;
   },
 ): boolean {
   if (query.status && task.status !== query.status) {
@@ -153,6 +156,32 @@ export function taskMatchesQuery(
 
   if (query.assigneeId && task.assigneeId !== query.assigneeId) {
     return false;
+  }
+
+  if (query.dueFrom || query.dueTo) {
+    const taskDueDate = task.dueDate ?? null;
+    if (!taskDueDate) {
+      return false;
+    }
+
+    const dueTime = new Date(taskDueDate).getTime();
+    if (Number.isNaN(dueTime)) {
+      return false;
+    }
+
+    if (query.dueFrom) {
+      const fromTime = new Date(`${query.dueFrom}T00:00:00.000Z`).getTime();
+      if (dueTime < fromTime) {
+        return false;
+      }
+    }
+
+    if (query.dueTo) {
+      const toTime = new Date(`${query.dueTo}T23:59:59.999Z`).getTime();
+      if (dueTime > toTime) {
+        return false;
+      }
+    }
   }
 
   const search = query.search?.trim().toLowerCase();

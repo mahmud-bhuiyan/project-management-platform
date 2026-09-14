@@ -101,6 +101,8 @@ export class TasksController {
         priority: query.priority,
         assigneeId: query.assigneeId,
         search: query.search,
+        dueFrom: query.dueFrom,
+        dueTo: query.dueTo,
       },
     );
 

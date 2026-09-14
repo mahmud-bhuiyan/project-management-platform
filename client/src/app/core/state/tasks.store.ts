@@ -79,7 +79,9 @@ function queriesMatch(left: TasksQuery, right: TasksQuery): boolean {
     left.status === right.status &&
     left.priority === right.priority &&
     left.assigneeId === right.assigneeId &&
-    left.search === right.search
+    left.search === right.search &&
+    left.dueFrom === right.dueFrom &&
+    left.dueTo === right.dueTo
   );
 }
 

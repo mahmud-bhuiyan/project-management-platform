@@ -66,6 +66,8 @@ export type TasksQuery = {
   priority?: TaskPriority;
   assigneeId?: string;
   search?: string;
+  dueFrom?: string;
+  dueTo?: string;
 };
 
 export type ReorderTaskItemInput = {

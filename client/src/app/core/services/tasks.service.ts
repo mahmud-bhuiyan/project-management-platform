@@ -53,6 +53,14 @@ export class TasksService {
       params = params.set('search', query.search);
     }
 
+    if (query.dueFrom) {
+      params = params.set('dueFrom', query.dueFrom);
+    }
+
+    if (query.dueTo) {
+      params = params.set('dueTo', query.dueTo);
+    }
+
     return this.http
       .get<ApiSuccessResponse<TasksResponseData>>(
         `${this.apiUrl}/organizations/${organizationId}/projects/${projectId}/tasks`,

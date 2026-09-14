@@ -107,6 +107,43 @@
         </select>
       </label>
 
+      <label class="project-detail-task-filter">
+        <span>Assignee</span>
+        <select
+          class="project-detail-task-filter__select"
+          data-testid="project-detail-task-assignee-filter"
+          [value]="assigneeFilter()"
+          (change)="onAssigneeFilterChange($any($event.target).value)"
+        >
+          <option value="">All assignees</option>
+          @for (member of members(); track member.id) {
+            <option [value]="member.user.id">{{ member.user.name }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="project-detail-task-filter">
+        <span>Due from</span>
+        <input
+          type="date"
+          class="project-detail-task-filter__select"
+          data-testid="project-detail-task-due-from-filter"
+          [value]="dueFromFilter()"
+          (change)="onDueFromFilterChange($any($event.target).value)"
+        />
+      </label>
+
+      <label class="project-detail-task-filter">
+        <span>Due to</span>
+        <input
+          type="date"
+          class="project-detail-task-filter__select"
+          data-testid="project-detail-task-due-to-filter"
+          [value]="dueToFilter()"
+          (change)="onDueToFilterChange($any($event.target).value)"
+        />
+      </label>
+
       <label class="project-detail-task-filter project-detail-task-filter--search">
         <span>Search</span>
         <input

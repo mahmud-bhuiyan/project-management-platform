@@ -2,6 +2,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { TaskPriority, TaskStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  IsDateString,
   IsEnum,
   IsInt,
   IsOptional,
@@ -48,4 +49,20 @@ export class ListTasksQueryDto {
   @IsString()
   @MaxLength(255)
   search?: string;
+
+  @ApiPropertyOptional({
+    description: 'Include only tasks due on or after this date (YYYY-MM-DD)',
+    example: '2026-01-01',
+  })
+  @IsOptional()
+  @IsDateString()
+  dueFrom?: string;
+
+  @ApiPropertyOptional({
+    description: 'Include only tasks due on or before this date (YYYY-MM-DD)',
+    example: '2026-12-31',
+  })
+  @IsOptional()
+  @IsDateString()
+  dueTo?: string;
 }

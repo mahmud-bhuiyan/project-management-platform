@@ -193,6 +193,44 @@ describe('TasksService', () => {
     );
   });
 
+  it('filters tasks by due date range', async () => {
+    await tasksService.findAllForProject('user-1', 'org-1', 'project-1', {
+      page: 1,
+      limit: 20,
+      dueFrom: '2026-01-01',
+      dueTo: '2026-01-31',
+      assigneeId: 'user-2',
+      status: TaskStatus.TODO,
+      priority: TaskPriority.HIGH,
+    });
+
+    expect(prisma.task.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          projectId: 'project-1',
+          status: TaskStatus.TODO,
+          priority: TaskPriority.HIGH,
+          assigneeId: 'user-2',
+          dueDate: {
+            gte: new Date('2026-01-01T00:00:00.000Z'),
+            lte: new Date('2026-01-31T23:59:59.999Z'),
+          },
+        },
+      }),
+    );
+  });
+
+  it('rejects invalid due date ranges', async () => {
+    await expect(
+      tasksService.findAllForProject('user-1', 'org-1', 'project-1', {
+        page: 1,
+        limit: 20,
+        dueFrom: '2026-02-01',
+        dueTo: '2026-01-01',
+      }),
+    ).rejects.toBeInstanceOf(ApiException);
+  });
+
   it('filters tasks by search term across title, description, and assignee', async () => {
     await tasksService.findAllForProject('user-1', 'org-1', 'project-1', {
       page: 1,
@@ -238,6 +276,76 @@ describe('TasksService', () => {
       expect(error).toBeInstanceOf(ApiException);
       expect((error as ApiException).getStatus()).toBe(HttpStatus.FORBIDDEN);
     }
+  });
+
+  it('rejects viewers updating tasks', async () => {
+    organizationsService.getMembershipForUser.mockResolvedValue({
+      organizationId: 'org-1',
+      role: OrganizationRole.VIEWER,
+    });
+
+    await expect(
+      tasksService.update('user-4', 'org-1', 'project-1', 'task-1', {
+        title: 'Blocked update',
+      }),
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(ApiException);
+      expect((error as ApiException).getStatus()).toBe(HttpStatus.FORBIDDEN);
+      return true;
+    });
+  });
+
+  it('rejects viewers deleting tasks', async () => {
+    organizationsService.getMembershipForUser.mockResolvedValue({
+      organizationId: 'org-1',
+      role: OrganizationRole.VIEWER,
+    });
+
+    await expect(
+      tasksService.remove('user-4', 'org-1', 'project-1', 'task-1'),
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(ApiException);
+      expect((error as ApiException).getStatus()).toBe(HttpStatus.FORBIDDEN);
+      return true;
+    });
+  });
+
+  it('rejects viewers reordering tasks', async () => {
+    organizationsService.getMembershipForUser.mockResolvedValue({
+      organizationId: 'org-1',
+      role: OrganizationRole.VIEWER,
+    });
+
+    await expect(
+      tasksService.reorder('user-4', 'org-1', 'project-1', [
+        { taskId: 'task-1', status: TaskStatus.TODO, position: 0 },
+      ]),
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(ApiException);
+      expect((error as ApiException).getStatus()).toBe(HttpStatus.FORBIDDEN);
+      return true;
+    });
+  });
+
+  it('rejects org members without project access when listing tasks', async () => {
+    projectsService.assertCanAccessProject.mockRejectedValue(
+      new ApiException(
+        'Insufficient project permissions',
+        'FORBIDDEN',
+        HttpStatus.FORBIDDEN,
+      ),
+    );
+
+    await expect(
+      tasksService.findAllForProject('user-2', 'org-1', 'project-1', {
+        page: 1,
+        limit: 20,
+      }),
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(ApiException);
+      expect((error as ApiException).getStatus()).toBe(HttpStatus.FORBIDDEN);
+      return true;
+    });
   });
 
   it('rejects assignee outside the organization', async () => {
