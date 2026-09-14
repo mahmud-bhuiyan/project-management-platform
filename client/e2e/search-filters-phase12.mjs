@@ -60,6 +60,28 @@ async function waitForTasksResponse(page) {
     .catch(() => null);
 }
 
+async function searchTasks(page, query) {
+  await waitForTasksResponse(page);
+  await page.getByTestId('project-detail-task-search').fill(query);
+  await page.waitForTimeout(400);
+  await waitForTasksResponse(page);
+  await page
+    .locator('.project-detail-task-skeleton-list')
+    .waitFor({ state: 'hidden', timeout: 10000 })
+    .catch(() => {});
+}
+
+async function resetTaskFilters(page) {
+  await page.getByTestId('project-detail-task-status-filter').selectOption('');
+  await page.getByTestId('project-detail-task-priority-filter').selectOption('');
+  await page.getByTestId('project-detail-task-assignee-filter').selectOption('');
+  await page.getByTestId('project-detail-task-due-from-filter').fill('');
+  await page.getByTestId('project-detail-task-due-to-filter').fill('');
+  await page.getByTestId('project-detail-task-search').fill('');
+  await page.waitForTimeout(400);
+  await waitForTasksResponse(page);
+}
+
 async function main() {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
@@ -162,8 +184,12 @@ async function main() {
     }
 
     await page.waitForURL(/\/projects\/[^/]+$/, { timeout: 30000 });
+    await searchTasks(page, taskTitle);
     await page.getByText(taskTitle, { exact: true }).waitFor({ state: 'visible', timeout: 15000 });
     log('create task with due date', true, `${taskTitle} due ${dueDate}`);
+
+    await resetTaskFilters(page);
+    await searchTasks(page, taskTitle);
 
     const assigneeFilter = page.getByTestId('project-detail-task-assignee-filter');
     const hasAssigneeFilter = (await assigneeFilter.count()) > 0;
@@ -228,7 +254,7 @@ async function main() {
       !(await page.getByText(taskTitle, { exact: true }).isVisible()),
     );
 
-    await waitForTasksResponse(page);
+    await searchTasks(page, taskTitle);
     await page.getByTestId('project-detail-task-due-from-filter').fill('');
     await page.getByTestId('project-detail-task-due-to-filter').fill('');
     await page.getByTestId('project-detail-task-status-filter').selectOption('TODO');

@@ -1,4 +1,8 @@
-<div class="notification-bell" data-testid="notification-bell">
+<div
+  class="notification-bell"
+  [class.notification-bell--open]="isOpen()"
+  data-testid="notification-bell"
+>
   <button
     type="button"
     class="notification-bell__trigger"
@@ -27,7 +31,7 @@
 
   @if (isOpen()) {
     <section
-      class="notification-bell__panel glass-panel"
+      class="notification-bell__panel"
       data-testid="notification-bell-panel"
       aria-label="Notifications"
     >
