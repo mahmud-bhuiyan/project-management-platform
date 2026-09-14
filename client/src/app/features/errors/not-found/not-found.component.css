@@ -1,0 +1,23 @@
+.error-page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  margin-top: 1rem;
+  border-radius: 0.625rem;
+  background: linear-gradient(
+    to right,
+    var(--color-flow-500),
+    var(--color-flow-400)
+  );
+  padding: 0.625rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 8px 20px rgb(91 79 214 / 0.25);
+}
+
+.error-page-link:hover {
+  filter: brightness(1.05);
+}

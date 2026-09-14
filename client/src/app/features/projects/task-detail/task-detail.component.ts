@@ -23,6 +23,7 @@ import { TasksStore } from '../../../core/state/tasks.store';
 import { formatActivityMessage } from '../../../core/utils/activity-message.util';
 import { formatTaskDueDate } from '../../../core/utils/task.util';
 import { PageHeroComponent } from '../../../shared/components/page-hero/page-hero.component';
+import { SkeletonListComponent } from '../../../shared/components/skeleton-list/skeleton-list.component';
 import { TaskPriorityBadgeComponent } from '../../../shared/components/task-priority-badge/task-priority-badge.component';
 import { TaskStatusBadgeComponent } from '../../../shared/components/task-status-badge/task-status-badge.component';
 
@@ -34,6 +35,7 @@ import { TaskStatusBadgeComponent } from '../../../shared/components/task-status
     PageHeroComponent,
     TaskStatusBadgeComponent,
     TaskPriorityBadgeComponent,
+    SkeletonListComponent,
   ],
   templateUrl: './task-detail.component.html',
   styleUrl: './task-detail.component.css',

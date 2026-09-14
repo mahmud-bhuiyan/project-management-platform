@@ -17,6 +17,7 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import type { TaskPriority, TaskStatus } from '../../../core/models/task.model';
+import { ToastService } from '../../../core/services/toast.service';
 import { OrganizationStore } from '../../../core/state/organization.store';
 import { ProjectsStore } from '../../../core/state/projects.store';
 import { TasksStore } from '../../../core/state/tasks.store';
@@ -37,6 +38,7 @@ export class CreateTaskComponent {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   protected readonly activeOrganization = this.organizationStore.activeOrganization;
 
@@ -131,10 +133,13 @@ export class CreateTaskComponent {
       )
       .subscribe({
         next: () => {
+          this.toastService.success('Task created.');
           void this.router.navigate(['/projects', projectId]);
         },
         error: (error) => {
-          this.formError.set(this.extractErrorMessage(error));
+          const message = this.extractErrorMessage(error);
+          this.formError.set(message);
+          this.toastService.error(message);
         },
       });
   }

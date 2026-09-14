@@ -20,6 +20,7 @@ import type {
   ProjectPriority,
   ProjectSummary,
 } from '../../../core/models/project.model';
+import { ToastService } from '../../../core/services/toast.service';
 import { OrganizationStore } from '../../../core/state/organization.store';
 import { ProjectsStore } from '../../../core/state/projects.store';
 import { toDateInputValue } from '../../../core/utils/project.util';
@@ -44,6 +45,7 @@ export class EditProjectComponent {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   protected readonly activeOrganization = this.organizationStore.activeOrganization;
   protected readonly projects = this.projectsStore.projects;
@@ -136,10 +138,13 @@ export class EditProjectComponent {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
+          this.toastService.success('Project updated.');
           void this.router.navigate(this.backToProjectLink());
         },
         error: (error: HttpErrorResponse) => {
-          this.formError.set(this.extractErrorMessage(error));
+          const message = this.extractErrorMessage(error);
+          this.formError.set(message);
+          this.toastService.error(message);
         },
       });
   }

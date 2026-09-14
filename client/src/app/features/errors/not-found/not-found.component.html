@@ -1,0 +1,17 @@
+<app-page-hero
+  eyebrow="Error 404"
+  title="Page not found"
+  description="The page you're looking for doesn't exist or may have been moved."
+/>
+
+<section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8" data-testid="not-found-panel">
+  <app-empty-state
+    title="We couldn't find that page"
+    description="Check the URL or return to your workspace dashboard."
+    testId="not-found-empty"
+  >
+    <a routerLink="/dashboard" class="error-page-link" data-testid="not-found-dashboard-link">
+      Back to dashboard
+    </a>
+  </app-empty-state>
+</section>

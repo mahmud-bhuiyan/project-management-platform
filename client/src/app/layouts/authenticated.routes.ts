@@ -11,6 +11,8 @@ import { KanbanBoardComponent } from '../features/projects/kanban-board/kanban-b
 import { TaskDetailComponent } from '../features/projects/task-detail/task-detail.component';
 import { ProjectDetailComponent } from '../features/projects/project-detail/project-detail.component';
 import { ProjectsComponent } from '../features/projects/projects.component';
+import { NotFoundComponent } from '../features/errors/not-found/not-found.component';
+import { UnauthorizedComponent } from '../features/errors/unauthorized/unauthorized.component';
 import { TeamComponent } from '../features/team/team.component';
 import { projectManagerGuard } from '../guards/project-manager.guard';
 import { superadminGuard } from '../guards/superadmin.guard';
@@ -78,9 +80,17 @@ export const AUTHENTICATED_ROUTES: Routes = [
         component: CreateCompanyAdminComponent,
       },
       {
+        path: 'unauthorized',
+        component: UnauthorizedComponent,
+      },
+      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full',
+      },
+      {
+        path: '**',
+        component: NotFoundComponent,
       },
     ],
   },

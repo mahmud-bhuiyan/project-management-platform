@@ -16,6 +16,7 @@ import type {
   EditableProjectStatus,
   ProjectPriority,
 } from '../../../core/models/project.model';
+import { ToastService } from '../../../core/services/toast.service';
 import { OrganizationStore } from '../../../core/state/organization.store';
 import { ProjectsStore } from '../../../core/state/projects.store';
 import { PageHeroComponent } from '../../../shared/components/page-hero/page-hero.component';
@@ -33,6 +34,7 @@ export class CreateProjectComponent {
   private readonly projectsStore = inject(ProjectsStore);
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   protected readonly activeOrganization = this.organizationStore.activeOrganization;
   protected readonly isSubmitting = signal(false);
@@ -81,10 +83,13 @@ export class CreateProjectComponent {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
+          this.toastService.success('Project created.');
           void this.router.navigate(['/projects']);
         },
         error: (error: HttpErrorResponse) => {
-          this.formError.set(this.extractErrorMessage(error));
+          const message = this.extractErrorMessage(error);
+          this.formError.set(message);
+          this.toastService.error(message);
         },
       });
   }

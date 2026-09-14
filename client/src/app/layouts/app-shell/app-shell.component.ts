@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  HostListener,
   inject,
   signal,
 } from '@angular/core';
@@ -90,11 +91,27 @@ export class AppShellComponent {
   }
 
   protected toggleMobileNav(): void {
-    this.mobileNavOpen.update((open) => !open);
+    this.mobileNavOpen.update((open) => {
+      const next = !open;
+      this.syncMobileNavScrollLock(next);
+      return next;
+    });
   }
 
   protected closeMobileNav(): void {
     this.mobileNavOpen.set(false);
+    this.syncMobileNavScrollLock(false);
+  }
+
+  @HostListener('document:keydown.escape')
+  protected onEscape(): void {
+    if (this.mobileNavOpen()) {
+      this.closeMobileNav();
+    }
+  }
+
+  private syncMobileNavScrollLock(open: boolean): void {
+    document.body.style.overflow = open ? 'hidden' : '';
   }
 
   private resolvePageTitle(url: string): string {
@@ -144,6 +161,10 @@ export class AppShellComponent {
 
     if (url.includes('/admin/company-admins')) {
       return 'Provision company';
+    }
+
+    if (url.includes('/unauthorized')) {
+      return 'Unauthorized';
     }
 
     if (url.includes('/dashboard')) {

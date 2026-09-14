@@ -18,8 +18,8 @@ The original plan was strong on scope and features, but had gaps that would caus
 
 | Update | Why |
 |--------|-----|
-| Backend on Railway/Render, not Vercel | Vercel serverless cannot reliably host NestJS WebSockets/Socket.IO. REST-only on Vercel is possible, but this project needs real-time updates. |
-| Monorepo (`client` + `server`) + split deploy | One GitHub repo for the CV; Vercel and Railway/Render each deploy only their app folder — monorepo does not mean single-host deploy. |
+| Backend on Render, not Vercel | Vercel serverless cannot reliably host NestJS WebSockets/Socket.IO. REST-only on Vercel is possible, but this project needs real-time updates. |
+| Monorepo (`client` + `server`) + split deploy | One GitHub repo for the CV; Vercel and Render each deploy only their app folder — monorepo does not mean single-host deploy. |
 | Data model section added | Features were defined without shared schema rules, which leads to inconsistent relations and migrations. |
 | API conventions added | One error/pagination format prevents each module inventing its own response shape. |
 | Auth strategy clarified | Stateless JWT logout is misleading without token blocklists. Refresh tokens in httpOnly cookies are a stronger CV story. |
@@ -102,7 +102,7 @@ Use a monorepo so one GitHub repo powers the CV. Name apps **`client`** (Angular
 ```
 project-management-platform/
   client/       # Angular frontend — deployed to Vercel
-  server/       # NestJS backend — deployed to Railway or Render
+  server/       # NestJS backend — deployed to Render
   packages/       # optional shared types later
   docs/
   README.md
@@ -110,14 +110,14 @@ project-management-platform/
 
 Each app has its **own `package.json`**. Deploy platforms point at the correct subfolder — the monorepo does not deploy as one unit.
 
-There is **no root `package.json`** — run each app from its own folder. **Vercel and Railway/Render must use the app root directory** (`client` or `server`), not the repo root.
+There is **no root `package.json`** — run each app from its own folder. **Vercel and Render must use the app root directory** (`client` or `server`), not the repo root.
 
 ## Deployment
 
 | App folder | Platform | Why |
 |------------|----------|-----|
 | `client` | Vercel | Static SPA hosting, fast CDN |
-| `server` | Railway or Render | Long-lived NestJS process + WebSockets |
+| `server` | Render | Long-lived NestJS process + WebSockets |
 | Neon | Database | External Postgres — works from any backend host |
 
 Architecture:
@@ -127,7 +127,7 @@ client (Angular)  →  Vercel
         |
         | HTTPS REST + WSS (cross-origin in production)
         v
-server (NestJS)  →  Railway or Render
+server (NestJS)  →  Render
         |
         v
 Prisma → Neon PostgreSQL
@@ -162,7 +162,7 @@ Add `client/vercel.json` for SPA routing:
 }
 ```
 
-#### Railway or Render — `server`
+#### Render — `server`
 
 | Setting | Value |
 |---------|-------|
@@ -170,7 +170,7 @@ Add `client/vercel.json` for SPA routing:
 | Build Command | `npm install && npx prisma generate && npm run build` |
 | Start Command | `npm run start:prod` (or `node dist/main.js`) |
 
-Environment variables (Railway/Render project):
+Environment variables (Render project):
 
 ```
 DATABASE_URL=postgresql://...
@@ -181,19 +181,7 @@ NODE_ENV=production
 PORT=3000
 ```
 
-Optional `server/railway.toml`:
-
-```toml
-[build]
-builder = "NIXPACKS"
-buildCommand = "npm install && npx prisma generate && npm run build"
-
-[deploy]
-startCommand = "npm run start:prod"
-restartPolicyType = "ON_FAILURE"
-```
-
-Optional `server/render.yaml`:
+`server/render.yaml`:
 
 ```yaml
 services:
@@ -212,10 +200,10 @@ services:
 Monorepo layout does **not** cause CORS or auth issues — **different domains** do. Configure these so production does not break:
 
 1. **CORS on server** — allow only `FRONTEND_URL` (exact Vercel URL, no wildcard in production).
-2. **Client env** — `API_URL` and `WS_URL` must point to the live Railway/Render URL, not `localhost`.
-3. **Cookies (refresh token)** — if frontend and API are on different domains (e.g. `*.vercel.app` + `*.railway.app`), set cookie `SameSite=None; Secure` and enable credentials on both sides. Prefer custom domains later (`app.yourdomain.com` + `api.yourdomain.com`) for cleaner auth.
+2. **Client env** — `API_URL` and `WS_URL` must point to the live Render URL, not `localhost`.
+3. **Cookies (refresh token)** — if frontend and API are on different domains (e.g. `*.vercel.app` + `*.onrender.com`), set cookie `SameSite=None; Secure` and enable credentials on both sides. Prefer custom domains later (`app.yourdomain.com` + `api.yourdomain.com`) for cleaner auth.
 4. **WebSockets** — use `wss://` on the server host; do not proxy WebSockets through Vercel.
-5. **Prisma migrations** — run `npx prisma migrate deploy` in the server build or as a Railway/Render release step (server folder only).
+5. **Prisma migrations** — run `npx prisma migrate deploy` in the server build or as a Render release step (server folder only).
 
 #### Local dev (monorepo)
 
@@ -239,7 +227,7 @@ Production envs override these per platform — no code changes needed between l
 Environment variables summary:
 
 - **Client (Vercel):** `API_URL`, `WS_URL`
-- **Server (Railway/Render):** `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `FRONTEND_URL`, `NODE_ENV`, `PORT`
+- **Server (Render):** `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `FRONTEND_URL`, `NODE_ENV`, `PORT`
 
 ---
 
@@ -686,7 +674,7 @@ See [docs/postman/README.md](./postman/README.md) for import, variables, and typ
 - NestJS 12 (latest stable) + Prisma + Config module + global exception filter
 - Node.js 22.12+ verified locally
 - `client/vercel.json` stub for SPA rewrites (deploy config only — no deploy yet)
-- Server deploy config stub (`railway.toml` or `render.yaml` in `server`)
+- Server deploy config stub (`render.yaml` in `server`)
 - Neon database connected locally
 - Prisma schema draft (Section 3) migrated
 - Swagger stub at `/api/docs`
@@ -936,7 +924,7 @@ Example: `Alex moved "Login API" from Todo to In Progress.`
 
 ## Phase 10: Real-Time Updates
 
-Socket.IO on the Railway/Render backend.
+Socket.IO on the Render backend.
 
 ### Scope (limited, high value)
 
@@ -1056,7 +1044,7 @@ Document passwords in README only — never commit values. Disable demo login in
 
 ### Server (`server`)
 
-- Production env vars on Railway/Render
+- Production env vars on Render
 - CORS locked to Vercel `FRONTEND_URL`
 - Cookie settings verified for cross-origin (`SameSite=None; Secure` if needed)
 - Validation and security headers
@@ -1075,7 +1063,7 @@ Same monorepo, **two deploy projects** — one per app folder.
 | App folder | Platform | Project name |
 |------------|----------|----------------|
 | `client` | Vercel | project-management-client |
-| `server` | Railway or Render | project-management-server |
+| `server` | Render | project-management-server |
 | Neon | Database | production branch |
 
 ### Vercel checklist (`client`)
@@ -1085,7 +1073,7 @@ Same monorepo, **two deploy projects** — one per app folder.
 - [ ] SPA rewrite via `vercel.json`
 - [ ] Production build succeeds
 
-### Railway/Render checklist (`server`)
+### Render checklist (`server`)
 
 - [ ] Root Directory = `server`
 - [ ] `DATABASE_URL`, JWT secrets, `FRONTEND_URL` set
@@ -1123,7 +1111,7 @@ Required before calling the project "done":
 
 - [ ] README with architecture diagram, stack, local setup, env vars
 - [ ] Live frontend URL on Vercel
-- [ ] Live API URL on Railway/Render
+- [ ] Live API URL on Render
 - [ ] Swagger URL linked in README
 - [ ] Demo login credentials documented
 - [ ] 3–5 screenshots (dashboard, Kanban, task detail, team, Swagger)

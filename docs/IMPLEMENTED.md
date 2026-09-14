@@ -6,8 +6,8 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
-**Last updated:** 2026-09-14  
-**Current step:** 12.3 (built — pending manual test)
+**Last updated:** 2026-09-15  
+**Current step:** 16.1 (not started)
 
 ### Decisions (Phase 2)
 
@@ -40,10 +40,10 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 9 | Notifications | 3 / 3 | Complete |
 | 10 | Real-time updates | 3 / 3 | Complete |
 | 11 | Dashboard charts | 1 / 1 | Complete |
-| 12 | Search & permission audit | 2 / 3 | In progress |
-| 13 | UI polish | 0 / 2 | Not started |
-| 14 | Testing pass | 0 / 1 | Not started |
-| 15 | Demo seed data | 0 / 1 | Not started |
+| 12 | Search & permission audit | 3 / 3 | Complete |
+| 13 | UI polish | 2 / 2 | Complete |
+| 14 | Testing pass | 1 / 1 | Complete |
+| 15 | Demo seed data | 1 / 1 | Complete |
 | 16 | Production preparation | 0 / 1 | Not started |
 | 17 | Deployment | 0 / 3 | Not started |
 | 18 | CV showcase | 0 / 1 | Not started |
@@ -64,7 +64,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 1.8 | Tailwind CSS on client | [x] | 2026-09-12 | Tailwind 4 in `styles.css`; classes in `app.html` |
 | 1.9 | Angular folder structure | [x] | 2026-09-12 | `core/`, `shared/`, `features/`, `layouts/`, etc. |
 | 1.10 | Client environment config | [x] | 2026-09-12 | `NG_APP_API_URL` / `NG_APP_WS_URL` via `.env` |
-| 1.11 | Deploy config stubs | [x] | 2026-09-12 | `vercel.json`, `railway.toml`, `render.yaml`; `.env` gitignored |
+| 1.11 | Deploy config stubs | [x] | 2026-09-12 | `vercel.json`, `render.yaml`; `.env` gitignored |
 | 1.12 | Phase 1 integration check | [x] | 2026-09-12 | Server :3001, client build OK, health + Swagger + 404 JSON |
 
 ---
@@ -193,7 +193,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 |------|-------|------|------|-------|
 | 12.1 | Global search API | [x] | 2026-09-14 | `GET /search?organizationId=&q=` — tasks, projects, users; paginated; org membership + project access; Postman repo updated — user verified |
 | 12.2 | Advanced filters | [x] | 2026-09-14 | Task list `dueFrom`/`dueTo` + assignee filters server-side; project detail filter UI — user verified |
-| 12.3 | Permission audit | [~] | 2026-09-14 | Endpoint guard review; +16 forbidden tests; README role matrix + guard checklist — pending manual test |
+| 12.3 | Permission audit | [x] | 2026-09-15 | Endpoint guard review; +16 forbidden tests; README role matrix + guard checklist — user verified |
 
 ---
 
@@ -201,8 +201,8 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 13.1 | Responsive + skeletons + toasts | [ ] | | |
-| 13.2 | 404 + unauthorized pages | [ ] | | |
+| 13.1 | Responsive + skeletons + toasts | [x] | 2026-09-15 | ToastService + container; mobile nav scroll lock + escape; skeleton-list on task detail; toasts on org/team/project/task mutations — user verified |
+| 13.2 | 404 + unauthorized pages | [x] | 2026-09-15 | `/unauthorized` + wildcard 404; guards redirect forbidden routes — user verified |
 
 ---
 
@@ -210,7 +210,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 14.1 | Fill test gaps | [ ] | | |
+| 14.1 | Fill test gaps | [x] | 2026-09-15 | +auth/tasks/form tests on client; 196 server + 150 client tests green — user verified |
 
 ---
 
@@ -218,7 +218,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 15.1 | Seed script | [ ] | | |
+| 15.1 | Seed script | [x] | 2026-09-15 | 3 demo projects, 13 tasks, comments, project members; per-project idempotency; README demo login — user verified |
 
 ---
 
@@ -234,7 +234,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 17.1 | Deploy server (Railway/Render) | [ ] | | |
+| 17.1 | Deploy server (Render) | [ ] | | |
 | 17.2 | Deploy client (Vercel) | [ ] | | |
 | 17.3 | Post-deploy demo script | [ ] | | |
 
@@ -297,3 +297,8 @@ Use this for quick notes across sessions.
 | 2026-09-14 | 12.1 | Global search API — `GET /search` tasks/projects/users | Pass — user verified |
 | 2026-09-14 | 12.2 | Advanced filters — due date range + assignee on task list | Pass — user verified |
 | 2026-09-14 | 12.3 | Permission audit — guards, forbidden tests, README matrix | Built — 196 server tests; pending manual test |
+| 2026-09-15 | 12.3 | Permission audit — manual verification | Pass — Phase 12 complete |
+| 2026-09-15 | 13.1 | UI polish — toasts, mobile nav, skeleton loaders | Pass — user verified |
+| 2026-09-15 | 13.2 | 404 + unauthorized pages | Pass — Phase 13 complete |
+| 2026-09-15 | 14.1 | Testing pass — fill client test gaps | Pass — Phase 14 complete |
+| 2026-09-15 | 15.1 | Demo seed — projects, tasks, comments, persona login | Pass — Phase 15 complete |

@@ -14,6 +14,7 @@ import { finalize } from 'rxjs';
 import type { TaskStatus } from '../../../core/models/task.model';
 import type { TaskPriority } from '../../../core/models/task.model';
 import type { TaskSummary } from '../../../core/models/task.model';
+import { ToastService } from '../../../core/services/toast.service';
 import { OrganizationStore } from '../../../core/state/organization.store';
 import { ProjectsStore } from '../../../core/state/projects.store';
 import { TasksStore } from '../../../core/state/tasks.store';
@@ -47,6 +48,7 @@ export class ProjectDetailComponent {
   private readonly organizationStore = inject(OrganizationStore);
   private readonly projectsStore = inject(ProjectsStore);
   private readonly tasksStore = inject(TasksStore);
+  private readonly toastService = inject(ToastService);
   private readonly route = inject(ActivatedRoute);
 
   protected readonly activeOrganization = this.organizationStore.activeOrganization;
@@ -249,9 +251,12 @@ export class ProjectDetailComponent {
       .subscribe({
         next: () => {
           this.pendingDeleteTask.set(null);
+          this.toastService.success('Task deleted.');
         },
         error: (error: HttpErrorResponse) => {
-          this.deleteTaskError.set(this.extractErrorMessage(error));
+          const message = this.extractErrorMessage(error);
+          this.deleteTaskError.set(message);
+          this.toastService.error(message);
         },
       });
   }

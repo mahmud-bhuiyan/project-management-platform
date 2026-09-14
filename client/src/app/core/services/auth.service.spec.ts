@@ -92,4 +92,53 @@ describe('AuthService', () => {
 
     await expect(mePromise).resolves.toEqual(mockUser);
   });
+
+  it('getDemoPersonas returns persona labels and emails', async () => {
+    const personasPromise = firstValueFrom(authService.getDemoPersonas());
+
+    const request = httpMock.expectOne(
+      'http://localhost:3001/api/v1/auth/demo-personas',
+    );
+    request.flush({
+      success: true,
+      data: {
+        personas: [{ label: 'Company Admin', email: 'admin@acme.dev' }],
+      },
+    });
+
+    await expect(personasPromise).resolves.toEqual([
+      { label: 'Company Admin', email: 'admin@acme.dev' },
+    ]);
+  });
+
+  it('demoLogin posts the persona email with credentials', async () => {
+    const demoLoginPromise = firstValueFrom(authService.demoLogin('admin@acme.dev'));
+
+    const request = httpMock.expectOne('http://localhost:3001/api/v1/auth/demo-login');
+    expect(request.request.withCredentials).toBe(true);
+    expect(request.request.body).toEqual({ email: 'admin@acme.dev' });
+    request.flush({
+      success: true,
+      data: {
+        accessToken: 'demo-access-token',
+        user: mockUser,
+      },
+    });
+
+    await expect(demoLoginPromise).resolves.toEqual({
+      accessToken: 'demo-access-token',
+      user: mockUser,
+    });
+  });
+
+  it('logout clears the refresh cookie on the server', async () => {
+    const logoutPromise = firstValueFrom(authService.logout());
+
+    const request = httpMock.expectOne('http://localhost:3001/api/v1/auth/logout');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.withCredentials).toBe(true);
+    request.flush({ success: true, data: null });
+
+    await expect(logoutPromise).resolves.toBeUndefined();
+  });
 });
