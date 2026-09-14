@@ -1,4 +1,5 @@
 import type { CookieOptions, Response } from 'express';
+import { API_GLOBAL_PREFIX } from '../common/config/api-prefix.js';
 
 export const REFRESH_TOKEN_COOKIE = 'refresh_token';
 
@@ -11,7 +12,7 @@ export function getRefreshTokenCookieOptions(): CookieOptions {
     httpOnly: true,
     secure: isProduction,
     sameSite: isProduction ? 'none' : 'lax',
-    path: '/api/v1/auth',
+    path: `/${API_GLOBAL_PREFIX}/auth`,
     maxAge: REFRESH_TOKEN_MAX_AGE_MS,
   };
 }

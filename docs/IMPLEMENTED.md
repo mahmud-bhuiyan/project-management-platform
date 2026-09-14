@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-15  
-**Current step:** 16.1 (not started)
+**Current step:** 17.1 (in progress — Render + Vercel live; post-deploy demo pending)
 
 ### Decisions (Phase 2)
 
@@ -44,8 +44,8 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 13 | UI polish | 2 / 2 | Complete |
 | 14 | Testing pass | 1 / 1 | Complete |
 | 15 | Demo seed data | 1 / 1 | Complete |
-| 16 | Production preparation | 0 / 1 | Not started |
-| 17 | Deployment | 0 / 3 | Not started |
+| 16 | Production preparation | 1 / 1 | Complete |
+| 17 | Deployment | 0 / 3 | In progress |
 | 18 | CV showcase | 0 / 1 | Not started |
 
 ---
@@ -226,7 +226,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 16.1 | Production env + builds | [ ] | | |
+| 16.1 | Production env + builds | [x] | 2026-09-15 | Vercel + Render env; `vercel.json` output path; `API_GLOBAL_PREFIX` on server; client/server builds — user verified |
 
 ---
 
@@ -302,3 +302,4 @@ Use this for quick notes across sessions.
 | 2026-09-15 | 13.2 | 404 + unauthorized pages | Pass — Phase 13 complete |
 | 2026-09-15 | 14.1 | Testing pass — fill client test gaps | Pass — Phase 14 complete |
 | 2026-09-15 | 15.1 | Demo seed — projects, tasks, comments, persona login | Pass — Phase 15 complete |
+| 2026-09-15 | 16.1 | Production prep — Vercel/Render env, builds, CORS | Pass — Phase 16 complete |

@@ -4,10 +4,11 @@ import type { Request, Response } from 'express';
 import { HttpExceptionFilter } from '../filters/http-exception.filter.js';
 import { TransformInterceptor } from '../interceptors/transform.interceptor.js';
 import { buildErrorResponse } from '../utils/api-response.util.js';
+import { API_GLOBAL_PREFIX } from './api-prefix.js';
 
 export function configureApp(app: INestApplication): void {
   app.use(cookieParser());
-  app.setGlobalPrefix('api/v1', {
+  app.setGlobalPrefix(API_GLOBAL_PREFIX, {
     exclude: [{ path: '', method: RequestMethod.GET }],
   });
   app.useGlobalPipes(
