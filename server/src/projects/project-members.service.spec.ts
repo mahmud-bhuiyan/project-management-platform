@@ -182,6 +182,21 @@ describe('ProjectMembersService', () => {
     });
   });
 
+  it('rejects viewers removing project members', async () => {
+    organizationsService.getMembershipForUser.mockResolvedValue({
+      organizationId: 'org-1',
+      role: OrganizationRole.VIEWER,
+    });
+
+    await expect(
+      projectMembersService.removeMember('user-4', 'org-1', 'project-1', 'pm-2'),
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(ApiException);
+      expect((error as ApiException).getStatus()).toBe(HttpStatus.FORBIDDEN);
+      return true;
+    });
+  });
+
   it('removes a non-owner project member', async () => {
     await projectMembersService.removeMember(
       'user-1',

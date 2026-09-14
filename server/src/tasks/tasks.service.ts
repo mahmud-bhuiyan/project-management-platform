@@ -120,11 +120,13 @@ export class TasksService {
     );
 
     const search = query.search?.trim();
+    const dueDateFilter = this.buildDueDateFilter(query.dueFrom, query.dueTo);
     const where = {
       projectId,
       ...(query.status ? { status: query.status } : {}),
       ...(query.priority ? { priority: query.priority } : {}),
       ...(query.assigneeId ? { assigneeId: query.assigneeId } : {}),
+      ...(dueDateFilter ? { dueDate: dueDateFilter } : {}),
       ...(search
         ? {
             OR: [
@@ -724,6 +726,28 @@ export class TasksService {
         },
       });
     }
+  }
+
+  private buildDueDateFilter(
+    dueFrom?: string,
+    dueTo?: string,
+  ): { gte?: Date; lte?: Date } | null {
+    if (!dueFrom && !dueTo) {
+      return null;
+    }
+
+    if (dueFrom && dueTo && dueFrom > dueTo) {
+      throw new ApiException(
+        'dueFrom must be on or before dueTo',
+        'VALIDATION_ERROR',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+
+    return {
+      ...(dueFrom ? { gte: new Date(`${dueFrom}T00:00:00.000Z`) } : {}),
+      ...(dueTo ? { lte: new Date(`${dueTo}T23:59:59.999Z`) } : {}),
+    };
   }
 
   private toTaskResponse(

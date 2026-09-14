@@ -2,6 +2,10 @@
   position: relative;
 }
 
+.notification-bell--open {
+  z-index: 100;
+}
+
 .notification-bell__trigger {
   position: relative;
   display: flex;
@@ -47,13 +51,18 @@
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
-  z-index: 40;
+  z-index: 100;
   display: flex;
   width: min(22rem, calc(100vw - 2rem));
   max-height: min(28rem, calc(100vh - 6rem));
   flex-direction: column;
   overflow: hidden;
+  border: 1px solid rgb(237 233 254);
   border-radius: 1rem;
+  background: #fff;
+  box-shadow:
+    0 1px 2px rgb(15 11 46 / 0.04),
+    0 24px 48px rgb(15 11 46 / 0.12);
 }
 
 .notification-bell__panel-header {

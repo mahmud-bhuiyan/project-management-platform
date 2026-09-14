@@ -87,6 +87,9 @@ export class ProjectDetailComponent {
 
   protected readonly statusFilter = signal<TaskStatus | ''>('');
   protected readonly priorityFilter = signal<TaskPriority | ''>('');
+  protected readonly assigneeFilter = signal('');
+  protected readonly dueFromFilter = signal('');
+  protected readonly dueToFilter = signal('');
   protected readonly searchQuery = signal('');
 
   private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -155,6 +158,9 @@ export class ProjectDetailComponent {
         limit: ALL_TASKS_LIMIT,
         status: this.statusFilter() || undefined,
         priority: this.priorityFilter() || undefined,
+        assigneeId: this.assigneeFilter() || undefined,
+        dueFrom: this.dueFromFilter() || undefined,
+        dueTo: this.dueToFilter() || undefined,
         search: search || undefined,
       };
 
@@ -177,6 +183,18 @@ export class ProjectDetailComponent {
 
   protected onPriorityFilterChange(value: string): void {
     this.priorityFilter.set(value as TaskPriority | '');
+  }
+
+  protected onAssigneeFilterChange(value: string): void {
+    this.assigneeFilter.set(value);
+  }
+
+  protected onDueFromFilterChange(value: string): void {
+    this.dueFromFilter.set(value);
+  }
+
+  protected onDueToFilterChange(value: string): void {
+    this.dueToFilter.set(value);
   }
 
   protected onTaskSearchChange(value: string): void {

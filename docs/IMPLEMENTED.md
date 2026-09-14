@@ -7,7 +7,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 **Legend:** `[ ]` not started · `[~]` in progress · `[x]` done
 
 **Last updated:** 2026-09-14  
-**Current step:** 12.1 (not started)
+**Current step:** 12.3 (built — pending manual test)
 
 ### Decisions (Phase 2)
 
@@ -40,7 +40,7 @@ Track what you have **built and manually tested**. Compare against the master pl
 | 9 | Notifications | 3 / 3 | Complete |
 | 10 | Real-time updates | 3 / 3 | Complete |
 | 11 | Dashboard charts | 1 / 1 | Complete |
-| 12 | Search & permission audit | 0 / 3 | Not started |
+| 12 | Search & permission audit | 2 / 3 | In progress |
 | 13 | UI polish | 0 / 2 | Not started |
 | 14 | Testing pass | 0 / 1 | Not started |
 | 15 | Demo seed data | 0 / 1 | Not started |
@@ -191,9 +191,9 @@ Track what you have **built and manually tested**. Compare against the master pl
 
 | Step | Title | Done | Date | Notes |
 |------|-------|------|------|-------|
-| 12.1 | Global search API | [ ] | | |
-| 12.2 | Advanced filters | [ ] | | |
-| 12.3 | Permission audit | [ ] | | |
+| 12.1 | Global search API | [x] | 2026-09-14 | `GET /search?organizationId=&q=` — tasks, projects, users; paginated; org membership + project access; Postman repo updated — user verified |
+| 12.2 | Advanced filters | [x] | 2026-09-14 | Task list `dueFrom`/`dueTo` + assignee filters server-side; project detail filter UI — user verified |
+| 12.3 | Permission audit | [~] | 2026-09-14 | Endpoint guard review; +16 forbidden tests; README role matrix + guard checklist — pending manual test |
 
 ---
 
@@ -294,3 +294,6 @@ Use this for quick notes across sessions.
 | 2026-09-14 | 10.2 | Real-time events — Kanban reorder, comments, notifications | Built — server emits + client store sync; 119 client + server tests; builds OK |
 | 2026-09-14 | 10.3 | Phase 10 integration — WS_URL + two-tab simulation script | Pass — `verify:realtime`; interceptor WS ack fix; Phase 10 complete |
 | 2026-09-14 | 11.1 | Dashboard charts — stats API chart data + Chart.js UI | Pass — Playwright e2e 15/15 (`dashboard-charts-phase11.mjs`); 3 chart canvases with demo data; Phase 11 complete |
+| 2026-09-14 | 12.1 | Global search API — `GET /search` tasks/projects/users | Pass — user verified |
+| 2026-09-14 | 12.2 | Advanced filters — due date range + assignee on task list | Pass — user verified |
+| 2026-09-14 | 12.3 | Permission audit — guards, forbidden tests, README matrix | Built — 196 server tests; pending manual test |

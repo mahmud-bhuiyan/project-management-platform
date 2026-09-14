@@ -8,6 +8,7 @@ import { OrganizationStore } from '../../../core/state/organization.store';
 import { ProjectsStore } from '../../../core/state/projects.store';
 import { RealtimeStore } from '../../../core/state/realtime.store';
 import { TasksStore } from '../../../core/state/tasks.store';
+import { WorkspaceStore } from '../../../core/state/workspace.store';
 import { KanbanBoardComponent } from './kanban-board.component';
 
 const project = {
@@ -77,6 +78,11 @@ describe('KanbanBoardComponent', () => {
     leaveProject: vi.fn(),
   };
 
+  const workspaceStore = {
+    isBootstrapping: signal(false),
+    hasBootstrapped: signal(true),
+  };
+
   beforeEach(async () => {
     vi.clearAllMocks();
 
@@ -87,6 +93,7 @@ describe('KanbanBoardComponent', () => {
         { provide: ProjectsStore, useValue: projectsStore },
         { provide: TasksStore, useValue: tasksStore },
         { provide: RealtimeStore, useValue: realtimeStore },
+        { provide: WorkspaceStore, useValue: workspaceStore },
         {
           provide: ActivatedRoute,
           useValue: {

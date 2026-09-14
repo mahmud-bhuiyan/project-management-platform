@@ -208,6 +208,53 @@ describe('ProjectsService', () => {
     });
   });
 
+  it('rejects viewers updating projects', async () => {
+    organizationsService.getMembershipForUser.mockResolvedValue({
+      organizationId: 'org-1',
+      role: OrganizationRole.VIEWER,
+    });
+
+    await expect(
+      projectsService.update('user-4', 'org-1', 'project-1', {
+        name: 'Blocked update',
+      }),
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(ApiException);
+      expect((error as ApiException).getStatus()).toBe(HttpStatus.FORBIDDEN);
+      return true;
+    });
+  });
+
+  it('rejects viewers archiving projects', async () => {
+    organizationsService.getMembershipForUser.mockResolvedValue({
+      organizationId: 'org-1',
+      role: OrganizationRole.VIEWER,
+    });
+
+    await expect(
+      projectsService.archive('user-4', 'org-1', 'project-1'),
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(ApiException);
+      expect((error as ApiException).getStatus()).toBe(HttpStatus.FORBIDDEN);
+      return true;
+    });
+  });
+
+  it('rejects viewers deleting projects', async () => {
+    organizationsService.getMembershipForUser.mockResolvedValue({
+      organizationId: 'org-1',
+      role: OrganizationRole.VIEWER,
+    });
+
+    await expect(
+      projectsService.remove('user-4', 'org-1', 'project-1'),
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(ApiException);
+      expect((error as ApiException).getStatus()).toBe(HttpStatus.FORBIDDEN);
+      return true;
+    });
+  });
+
   it('archives a project', async () => {
     const archivedProject = {
       ...projectRecord,

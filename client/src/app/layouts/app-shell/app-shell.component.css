@@ -71,6 +71,7 @@
   position: sticky;
   top: 0;
   z-index: 20;
+  overflow: visible;
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0 1rem;

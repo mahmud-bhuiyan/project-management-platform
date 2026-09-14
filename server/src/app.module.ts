@@ -9,6 +9,7 @@ import { OrganizationsModule } from './organizations/organizations.module.js';
 import { ProjectsModule } from './projects/projects.module.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
 import { RealtimeModule } from './realtime/realtime.module.js';
+import { SearchModule } from './search/search.module.js';
 import { TasksModule } from './tasks/tasks.module.js';
 import { UsersModule } from './users/users.module.js';
 
@@ -27,6 +28,7 @@ import { UsersModule } from './users/users.module.js';
     TasksModule,
     NotificationsModule,
     RealtimeModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [AppService],
