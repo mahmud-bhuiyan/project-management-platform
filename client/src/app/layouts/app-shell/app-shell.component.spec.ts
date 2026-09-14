@@ -101,6 +101,31 @@ describe('AppShellComponent', () => {
     ).toContain('Dashboard');
   });
 
+  it('opens and closes the mobile navigation drawer', async () => {
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/dashboard');
+
+    const fixture = TestBed.createComponent(AppShellComponent);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const menuButton = compiled.querySelector('.app-shell__menu-btn') as HTMLButtonElement;
+
+    menuButton.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['mobileNavOpen']()).toBe(true);
+    expect(compiled.querySelector('.app-shell__sidebar--open')).toBeTruthy();
+    expect(document.body.style.overflow).toBe('hidden');
+
+    const backdrop = compiled.querySelector('.app-shell__backdrop') as HTMLButtonElement;
+    backdrop.click();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance['mobileNavOpen']()).toBe(false);
+    expect(document.body.style.overflow).toBe('');
+  });
+
   it('signs out and redirects to login', async () => {
     const router = TestBed.inject(Router);
     await router.navigateByUrl('/dashboard');

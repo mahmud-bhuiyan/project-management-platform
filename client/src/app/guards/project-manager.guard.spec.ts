@@ -36,7 +36,7 @@ describe('projectManagerGuard', () => {
     expect(result).toBe(true);
   });
 
-  it('redirects viewers to the projects list', () => {
+  it('redirects viewers to the unauthorized page', () => {
     organizationStore.activeOrganization = signal<Organization | null>({
       ...organization,
       role: 'VIEWER',
@@ -44,6 +44,6 @@ describe('projectManagerGuard', () => {
 
     const result = TestBed.runInInjectionContext(() => projectManagerGuard(null!, null!));
     expect(result).toBeInstanceOf(UrlTree);
-    expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/projects');
+    expect(TestBed.inject(Router).serializeUrl(result as UrlTree)).toBe('/unauthorized');
   });
 });

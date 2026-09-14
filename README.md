@@ -9,7 +9,7 @@ A project management platform built as a CV showcase — Angular 22 client + Nes
 ```
 flowdesk/
   client/   # Angular frontend → deploy to Vercel
-  server/   # NestJS API → deploy to Railway or Render
+  server/   # NestJS API → deploy to Render
   docs/
     PLAN.md         # Full spec (stack, data model, API conventions, phases)
     STEPS.md        # Step-by-step build plan + manual test per step
@@ -55,6 +55,37 @@ Default local URLs:
 | API             | `http://localhost:3000` | —                       |
 | WebSocket       | `ws://localhost:3000`   | —                       |
 | Frontend (CORS) | —                       | `http://localhost:4200` |
+
+### Database seed (demo data)
+
+After migrations, seed the platform superadmin, Acme demo org/users, projects, tasks, and sample notifications:
+
+```bash
+cd server && npm run db:seed
+```
+
+Required in `server/.env` (values stay local — never commit):
+
+| Variable | Purpose |
+| --- | --- |
+| `SUPERADMIN_EMAIL` / `SUPERADMIN_PASSWORD` | Platform superadmin |
+| `DEMO_PASSWORD` | Shared password for `@acme.dev` demo users |
+| `DEMO_LOGIN_ENABLED` | `true` to expose demo login API (default) |
+
+Optional client flag: `NG_APP_DEMO_LOGIN_ENABLED=true` in `client/.env` shows the persona picker on the login page.
+
+**Demo personas** (password from your `.env`, not this repo):
+
+| Persona | Email |
+| --- | --- |
+| Superadmin | `superadmin@flowdesk.local` (or your `SUPERADMIN_EMAIL`) |
+| Company Admin | `admin@acme.dev` |
+| Manager | `manager@acme.dev` |
+| Member | `member@acme.dev` |
+
+Seeded org **Acme Technologies** includes three projects — CRM Development, Website Redesign, Mobile Application — with tasks, assignees, due dates, and comments for Kanban/dashboard demos.
+
+Set `DEMO_LOGIN_ENABLED=false` and `NG_APP_DEMO_LOGIN_ENABLED=false` in production if you want to hide one-click demo login.
 
 ## API
 
@@ -115,9 +146,9 @@ Automated forbidden-path coverage lives in `server/src/**/*.spec.ts` (organizati
 | App    | Folder   | Platform          |
 | ------ | -------- | ----------------- |
 | Client | `client` | Vercel            |
-| Server | `server` | Railway or Render |
+| Server | `server` | Render |
 
-Set each platform's **Root Directory** to the app folder above. See `client/vercel.json` and `server/railway.toml`.
+Set each platform's **Root Directory** to the app folder above. See `client/vercel.json` and `server/render.yaml`.
 
 ## Stack
 

@@ -1,0 +1,22 @@
+<app-page-hero
+  eyebrow="Access denied"
+  title="Unauthorized"
+  description="You don't have permission to view this page."
+/>
+
+<section class="mt-8 glass-panel rounded-2xl p-6 sm:p-8" data-testid="unauthorized-panel">
+  <app-empty-state
+    title="Insufficient permissions"
+    description="Your account role doesn't allow this action. Contact an organization admin if you need access."
+    testId="unauthorized-empty"
+  >
+    <div class="error-page-actions">
+      <a routerLink="/dashboard" class="error-page-link" data-testid="unauthorized-dashboard-link">
+        Back to dashboard
+      </a>
+      <a routerLink="/projects" class="error-page-link error-page-link--secondary" data-testid="unauthorized-projects-link">
+        View projects
+      </a>
+    </div>
+  </app-empty-state>
+</section>

@@ -72,4 +72,49 @@ describe('AuthStore', () => {
     expect(authStore.currentUser()).toBeNull();
     expect(authStore.isAuthenticated()).toBe(false);
   });
+
+  it('demoLogin stores the session from demo credentials', async () => {
+    const demoLoginPromise = firstValueFrom(authStore.demoLogin('admin@acme.dev'));
+
+    const request = httpMock.expectOne('http://localhost:3001/api/v1/auth/demo-login');
+    request.flush({
+      success: true,
+      data: {
+        accessToken: 'demo-access-token',
+        user: mockUser,
+      },
+    });
+
+    await expect(demoLoginPromise).resolves.toEqual(mockUser);
+    expect(authStore.getAccessToken()).toBe('demo-access-token');
+    expect(authStore.isAuthenticated()).toBe(true);
+  });
+
+  it('logout clears the session after the API call', async () => {
+    authStore.setSession('jwt-access-token', mockUser);
+
+    const logoutPromise = firstValueFrom(authStore.logout());
+
+    const request = httpMock.expectOne('http://localhost:3001/api/v1/auth/logout');
+    request.flush({ success: true, data: null });
+
+    await expect(logoutPromise).resolves.toBeUndefined();
+    expect(authStore.isAuthenticated()).toBe(false);
+  });
+
+  it('refresh updates the access token', async () => {
+    authStore.setSession('old-token', mockUser);
+
+    const refreshPromise = firstValueFrom(authStore.refresh());
+
+    const request = httpMock.expectOne('http://localhost:3001/api/v1/auth/refresh');
+    request.flush({
+      success: true,
+      data: { accessToken: 'refreshed-token' },
+    });
+
+    await expect(refreshPromise).resolves.toBe('refreshed-token');
+    expect(authStore.getAccessToken()).toBe('refreshed-token');
+    expect(authStore.currentUser()).toEqual(mockUser);
+  });
 });

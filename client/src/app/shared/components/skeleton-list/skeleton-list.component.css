@@ -1,0 +1,50 @@
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.skeleton-list--card {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .skeleton-list--card {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .skeleton-list--card {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.skeleton-list__item {
+  height: 3rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(
+    90deg,
+    rgb(237 233 254 / 0.55) 0%,
+    rgb(245 243 255 / 0.95) 50%,
+    rgb(237 233 254 / 0.55) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-list__item--card {
+  height: 7.5rem;
+  border-radius: 1rem;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+
+  100% {
+    background-position: -100% 0;
+  }
+}

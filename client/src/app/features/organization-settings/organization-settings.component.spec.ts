@@ -2,6 +2,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import type { Organization } from '../../core/models/organization.model';
+import { ToastService } from '../../core/services/toast.service';
 import { OrganizationStore } from '../../core/state/organization.store';
 import { OrganizationSettingsComponent } from './organization-settings.component';
 
@@ -20,13 +21,21 @@ describe('OrganizationSettingsComponent', () => {
     updateOrganization: vi.fn(),
   };
 
+  const toastService = {
+    success: vi.fn(),
+    error: vi.fn(),
+  };
+
   beforeEach(async () => {
     organizationStore.activeOrganization = signal<Organization | null>(organization);
     organizationStore.updateOrganization.mockReturnValue(of(undefined));
 
     await TestBed.configureTestingModule({
       imports: [OrganizationSettingsComponent],
-      providers: [{ provide: OrganizationStore, useValue: organizationStore }],
+      providers: [
+        { provide: OrganizationStore, useValue: organizationStore },
+        { provide: ToastService, useValue: toastService },
+      ],
     }).compileComponents();
   });
 
@@ -88,9 +97,7 @@ describe('OrganizationSettingsComponent', () => {
       organizationId: 'org-1',
       name: 'Acme Corp',
     });
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
-      'Organization name updated.',
-    );
+    expect(toastService.success).toHaveBeenCalledWith('Organization name updated.');
   });
 
   it('shows an error when update fails', async () => {
@@ -112,6 +119,9 @@ describe('OrganizationSettingsComponent', () => {
     fixture.detectChanges();
 
     expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'Insufficient organization permissions',
+    );
+    expect(toastService.error).toHaveBeenCalledWith(
       'Insufficient organization permissions',
     );
   });

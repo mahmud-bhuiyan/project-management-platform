@@ -14,6 +14,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { ToastService } from '../../core/services/toast.service';
 import { OrganizationStore } from '../../core/state/organization.store';
 import {
   canManageOrganizationMembers,
@@ -30,12 +31,12 @@ import { PageHeroComponent } from '../../shared/components/page-hero/page-hero.c
 })
 export class OrganizationSettingsComponent {
   private readonly organizationStore = inject(OrganizationStore);
+  private readonly toastService = inject(ToastService);
   private readonly formBuilder = inject(NonNullableFormBuilder);
 
   protected readonly activeOrganization = this.organizationStore.activeOrganization;
   protected readonly isSaving = signal(false);
   protected readonly saveError = signal<string | null>(null);
-  protected readonly saveSuccess = signal(false);
 
   protected readonly canEdit = computed(() => {
     const role = this.activeOrganization()?.role;
@@ -50,7 +51,6 @@ export class OrganizationSettingsComponent {
     effect(() => {
       const organization = this.activeOrganization();
       this.saveError.set(null);
-      this.saveSuccess.set(false);
 
       if (!organization) {
         this.settingsForm.reset({ name: '' });
@@ -96,17 +96,18 @@ export class OrganizationSettingsComponent {
 
     this.isSaving.set(true);
     this.saveError.set(null);
-    this.saveSuccess.set(false);
 
     this.organizationStore
       .updateOrganization({ organizationId: organization.id, name })
       .pipe(finalize(() => this.isSaving.set(false)))
       .subscribe({
         next: () => {
-          this.saveSuccess.set(true);
+          this.toastService.success('Organization name updated.');
         },
         error: (error: HttpErrorResponse) => {
-          this.saveError.set(this.extractErrorMessage(error));
+          const message = this.extractErrorMessage(error);
+          this.saveError.set(message);
+          this.toastService.error(message);
         },
       });
   }

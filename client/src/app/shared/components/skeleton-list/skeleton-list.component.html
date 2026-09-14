@@ -1,0 +1,13 @@
+<div
+  class="skeleton-list"
+  [class.skeleton-list--card]="variant() === 'card'"
+  aria-hidden="true"
+>
+  @for (item of placeholders(); track item) {
+    <div
+      class="skeleton-list__item"
+      [class.skeleton-list__item--card]="variant() === 'card'"
+    ></div>
+  }
+</div>
+<p class="sr-only">{{ ariaLabel() }}</p>

@@ -17,6 +17,7 @@ import {
 import { finalize } from 'rxjs';
 import type { OrganizationMember } from '../../core/models/organization-member.model';
 import type { OrganizationRole } from '../../core/models/organization.model';
+import { ToastService } from '../../core/services/toast.service';
 import { OrganizationStore } from '../../core/state/organization.store';
 import { TeamStore } from '../../core/state/team.store';
 import {
@@ -64,6 +65,7 @@ interface PendingRoleChange {
 export class TeamComponent {
   private readonly organizationStore = inject(OrganizationStore);
   private readonly teamStore = inject(TeamStore);
+  private readonly toastService = inject(ToastService);
   private readonly formBuilder = inject(NonNullableFormBuilder);
 
   protected readonly activeOrganization = this.organizationStore.activeOrganization;
@@ -315,9 +317,12 @@ export class TeamComponent {
         next: () => {
           this.isAddMemberModalOpen.set(false);
           this.addMemberForm.reset({ email: '', role: 'MEMBER' });
+          this.toastService.success('Team member added.');
         },
         error: (error: HttpErrorResponse) => {
-          this.addMemberError.set(this.extractErrorMessage(error));
+          const message = this.extractErrorMessage(error);
+          this.addMemberError.set(message);
+          this.toastService.error(message);
         },
       });
   }
@@ -391,10 +396,13 @@ export class TeamComponent {
       .subscribe({
         next: () => {
           this.pendingRoleChange.set(null);
+          this.toastService.success('Member role updated.');
         },
         error: (error: HttpErrorResponse) => {
-          this.rowActionError.set(this.extractErrorMessage(error));
+          const message = this.extractErrorMessage(error);
+          this.rowActionError.set(message);
           this.pendingRoleChange.set(null);
+          this.toastService.error(message);
         },
       });
   }
@@ -445,10 +453,13 @@ export class TeamComponent {
       .subscribe({
         next: () => {
           this.pendingRemoveMember.set(null);
+          this.toastService.success('Team member removed.');
         },
         error: (error: HttpErrorResponse) => {
-          this.rowActionError.set(this.extractErrorMessage(error));
+          const message = this.extractErrorMessage(error);
+          this.rowActionError.set(message);
           this.pendingRemoveMember.set(null);
+          this.toastService.error(message);
         },
       });
   }

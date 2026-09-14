@@ -285,8 +285,12 @@
 }
 
 .app-shell__sign-out {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  min-height: 2.25rem;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
   border-radius: 0.5rem;
   border: 1px solid rgb(237 233 254);
   background: #fff;

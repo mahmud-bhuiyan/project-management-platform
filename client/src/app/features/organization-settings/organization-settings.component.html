@@ -73,10 +73,6 @@
         <p class="org-settings-inline-error mt-4" role="alert">{{ error }}</p>
       }
 
-      @if (saveSuccess()) {
-        <p class="org-settings-success mt-4" role="status">Organization name updated.</p>
-      }
-
       @if (canEdit()) {
         <div class="org-settings-actions">
           <button

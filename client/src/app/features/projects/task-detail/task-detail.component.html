@@ -112,7 +112,7 @@
       }
 
       @if (isLoadingDetail() && subtasks().length === 0) {
-        <p class="task-detail-empty" aria-busy="true">Loading subtasks…</p>
+        <app-skeleton-list [count]="3" ariaLabel="Loading subtasks…" />
       } @else if (subtasks().length === 0) {
         <p class="task-detail-empty">No subtasks yet.</p>
       } @else {
@@ -170,7 +170,7 @@
       }
 
       @if (isLoadingDetail() && comments().length === 0) {
-        <p class="task-detail-empty" aria-busy="true">Loading comments…</p>
+        <app-skeleton-list [count]="3" ariaLabel="Loading comments…" />
       } @else if (comments().length === 0) {
         <p class="task-detail-empty">No comments yet.</p>
       } @else {
@@ -267,7 +267,7 @@
       @if (detailError(); as error) {
         <p class="task-detail-inline-error" role="alert">{{ error }}</p>
       } @else if (isLoadingDetail() && activity().length === 0) {
-        <p class="task-detail-empty" aria-busy="true">Loading activity…</p>
+        <app-skeleton-list [count]="4" ariaLabel="Loading activity…" />
       } @else if (activity().length === 0) {
         <p class="task-detail-empty">No activity yet.</p>
       } @else {

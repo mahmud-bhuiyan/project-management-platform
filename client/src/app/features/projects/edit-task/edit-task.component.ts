@@ -21,6 +21,7 @@ import type {
   TaskStatus,
   TaskSummary,
 } from '../../../core/models/task.model';
+import { ToastService } from '../../../core/services/toast.service';
 import { OrganizationStore } from '../../../core/state/organization.store';
 import { ProjectsStore } from '../../../core/state/projects.store';
 import { TasksStore } from '../../../core/state/tasks.store';
@@ -42,6 +43,7 @@ export class EditTaskComponent {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly toastService = inject(ToastService);
 
   protected readonly activeOrganization = this.organizationStore.activeOrganization;
 
@@ -172,10 +174,13 @@ export class EditTaskComponent {
       .pipe(finalize(() => this.isSubmitting.set(false)))
       .subscribe({
         next: () => {
+          this.toastService.success('Task updated.');
           void this.router.navigate(['/projects', projectId, 'tasks', taskId]);
         },
         error: (error) => {
-          this.formError.set(this.extractErrorMessage(error));
+          const message = this.extractErrorMessage(error);
+          this.formError.set(message);
+          this.toastService.error(message);
         },
       });
   }

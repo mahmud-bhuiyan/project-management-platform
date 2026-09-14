@@ -179,7 +179,7 @@
 **Layer:** Setup
 
 **Build:**
-- Verify `client/vercel.json`, `server/railway.toml` or `render.yaml`, root `.gitignore` excludes `.env`.
+- Verify `client/vercel.json`, `server/render.yaml`, root `.gitignore` excludes `.env`.
 
 **Manual test:**
 - [ ] Files exist and paths point to `client` / `server` roots.
@@ -1034,7 +1034,7 @@
 
 ## Phase 17 — Deployment
 
-### Step 17.1 — Deploy server (Railway/Render)
+### Step 17.1 — Deploy server (Render)
 **Layer:** Test
 
 **Manual test:**

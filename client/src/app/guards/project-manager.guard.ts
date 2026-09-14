@@ -13,5 +13,5 @@ export const projectManagerGuard: CanActivateFn = () => {
     return true;
   }
 
-  return router.createUrlTree(['/projects']);
+  return router.createUrlTree(['/unauthorized']);
 };
